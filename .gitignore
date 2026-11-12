@@ -1,0 +1,19 @@
+.DS_Store
+/.build
+/Packages
+xcuserdata/
+DerivedData/
+.swiftpm/configuration/registries.json
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.netrc
+
+# Build output (app bundle, DMG); published as release assets, not in git
+/dist
+
+# Local planning notes, editor settings and one-off helper scripts
+/.planning
+/.vscode
+/debug_app_state.sh
+/test_features.sh
+/test_ollama_api.swift
+/.claude

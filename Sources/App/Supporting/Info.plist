@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundleName</key>
+    <string>MinuteMind</string>
+    <key>CFBundleIdentifier</key>
+    <string>dev.robin.MinuteMind</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>MinuteMind records your microphone so it can capture your side of the conversation.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>MinuteMind needs speech recognition to transcribe your calls.</string>
+    <key>NSScreenCaptureDescription</key>
+    <string>MinuteMind captures system audio via screen recording APIs without disturbing your setup.</string>
+    <key>NSRemindersUsageDescription</key>
+    <string>MinuteMind can sync your tasks with Apple Reminders to send you notifications on all your devices.</string>
+    <key>NSCalendarsFullAccessUsageDescription</key>
+    <string>MinuteMind can add time blockers to your calendar to help you schedule focused work time for your tasks.</string>
+</dict>
+</plist>
