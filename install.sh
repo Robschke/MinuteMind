@@ -1,8 +1,9 @@
 #!/bin/bash
 # Purpose: one-line installer and updater for MinuteMind. Downloads the latest release, replaces
 #          an existing MinuteMind.app where it is (/Applications, then ~/Applications) or installs
-#          into /Applications (~/Applications when that is not writable), reopens it and installs
-#          Claude Code when the `claude` command is missing.
+#          into /Applications (~/Applications when that is not writable), reopens it, installs
+#          Claude Code when the `claude` command is missing and offers Apple's Command Line Tools
+#          when git is missing.
 # Depends on: the GitHub Release asset MinuteMind.zip of Robschke/MinuteMind (built by
 #             Scripts/package_release.sh), Claude Code's official installer at claude.ai/install.sh.
 # Dependents: README.md (Install section) links this file via raw.githubusercontent.com;
@@ -75,6 +76,20 @@ main() {
     say "Installing Claude Code (MinuteMind uses it for summaries, tasks and knowledge)"
     curl -fsSL https://claude.ai/install.sh | bash \
       || printf 'Claude Code could not be installed. Install it later: https://claude.com/claude-code\n'
+  fi
+
+  # Project workspaces are git repositories. Without Apple's Command Line Tools /usr/bin/git is
+  # only a stub, so they are offered here. Apple's installer opens only for a run in a terminal;
+  # the in-app update (output to a log file) leaves it to MinuteMind's own hint.
+  local developer_dir
+  developer_dir="$(/usr/bin/xcode-select -p 2>/dev/null || true)"
+  if [[ -n "$developer_dir" && -x "$developer_dir/usr/bin/git" ]]; then
+    say "git is already installed"
+  elif [[ -t 1 ]]; then
+    say "Opening Apple's installer for the Command Line Tools (git, used for project workspaces)"
+    /usr/bin/xcode-select --install >/dev/null 2>&1 || true
+  else
+    printf 'git is missing. Install it with: xcode-select --install\n'
   fi
 
   say "Done. MinuteMind is in $install_dir"
