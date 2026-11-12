@@ -14,7 +14,7 @@ Paste this into Terminal (macOS 14 or newer, Apple Silicon):
 curl -fsSL https://raw.githubusercontent.com/Robschke/MinuteMind/main/install.sh | bash
 ```
 
-It downloads the latest release into `/Applications` and installs [Claude Code](https://claude.com/claude-code) if it is missing. Run the same command again to update.
+It downloads the latest release into `/Applications` (or updates MinuteMind where it is already installed) and installs [Claude Code](https://claude.com/claude-code) if it is missing. Run the same command again to update.
 
 MinuteMind runs the official Claude Code CLI on your Mac. You sign in to Claude Code yourself, with your own Claude account, through Anthropic's sign-in; MinuteMind never sees your credentials. Your use of Claude is subject to [Anthropic's terms](https://code.claude.com/docs/en/legal-and-compliance).
 

@@ -1,14 +1,17 @@
 #!/bin/bash
-# Purpose: one-line installer for MinuteMind. Downloads the latest release, installs it into
-#          /Applications (or ~/Applications when that is not writable) and installs Claude Code
-#          when the `claude` command is missing.
+# Purpose: one-line installer and updater for MinuteMind. Downloads the latest release, replaces
+#          an existing MinuteMind.app where it is (/Applications, then ~/Applications) or installs
+#          into /Applications (~/Applications when that is not writable), reopens it and installs
+#          Claude Code when the `claude` command is missing.
 # Depends on: the GitHub Release asset MinuteMind.zip of Robschke/MinuteMind (built by
 #             Scripts/package_release.sh), Claude Code's official installer at claude.ai/install.sh.
-# Dependents: README.md (Install section) links this file via raw.githubusercontent.com.
+# Dependents: README.md (Install section) links this file via raw.githubusercontent.com;
+#             Sources/App/Services/AppUpdateService.swift runs it for in-app updates.
 # Notes: Everything runs inside main(), called on the last line, so a download cut off halfway
 #        through `curl | bash` never executes a partial script. The release is Apple Silicon only,
 #        because the app is built with `swift build` on an arm64 Mac.
-#        MINUTEMIND_INSTALL_DIR overrides the target folder (used for testing the script).
+#        MINUTEMIND_INSTALL_DIR sets the target folder (the in-app update passes the running
+#        app's folder); MINUTEMIND_NO_OPEN=1 skips opening the app (used for testing the script).
 
 set -euo pipefail
 
@@ -26,9 +29,17 @@ main() {
   macos_major="$(sw_vers -productVersion | cut -d. -f1)"
   (( macos_major >= 14 )) || fail "MinuteMind needs macOS 14 (Sonoma) or newer."
 
-  local install_dir="${MINUTEMIND_INSTALL_DIR:-/Applications}"
-  if [[ -z "${MINUTEMIND_INSTALL_DIR:-}" && ! -w "$install_dir" ]]; then
-    install_dir="$HOME/Applications"
+  local install_dir="${MINUTEMIND_INSTALL_DIR:-}"
+  if [[ -z "$install_dir" ]]; then
+    if [[ -d "/Applications/$app_name" ]]; then
+      install_dir="/Applications"
+    elif [[ -d "$HOME/Applications/$app_name" ]]; then
+      install_dir="$HOME/Applications"
+    elif [[ -w "/Applications" ]]; then
+      install_dir="/Applications"
+    else
+      install_dir="$HOME/Applications"
+    fi
   fi
   mkdir -p "$install_dir"
 
@@ -46,7 +57,8 @@ main() {
   if pgrep -x MinuteMind >/dev/null 2>&1; then
     say "Quitting the running MinuteMind"
     osascript -e 'quit app "MinuteMind"' >/dev/null 2>&1 || true
-    for _ in {1..20}; do pgrep -x MinuteMind >/dev/null 2>&1 || break; sleep 0.5; done
+    for _ in {1..40}; do pgrep -x MinuteMind >/dev/null 2>&1 || break; sleep 0.5; done
+    pgrep -x MinuteMind >/dev/null 2>&1 && fail "MinuteMind did not quit. Quit it and run this command again."
   fi
 
   say "Installing into $install_dir"
@@ -55,7 +67,9 @@ main() {
   # The system xattr explicitly: a Python xattr earlier on PATH has no -r.
   /usr/bin/xattr -dr com.apple.quarantine "$install_dir/$app_name" >/dev/null 2>&1 || true
 
-  if command -v claude >/dev/null 2>&1 || [[ -x "$HOME/.local/bin/claude" ]]; then
+  # Where Claude Code's installers put it, for runs with a minimal PATH (the in-app update).
+  PATH="$PATH:$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin"
+  if command -v claude >/dev/null 2>&1; then
     say "Claude Code is already installed"
   else
     say "Installing Claude Code (MinuteMind uses it for summaries, tasks and knowledge)"
@@ -64,7 +78,7 @@ main() {
   fi
 
   say "Done. MinuteMind is in $install_dir"
-  if [[ -z "${MINUTEMIND_INSTALL_DIR:-}" ]]; then
+  if [[ "${MINUTEMIND_NO_OPEN:-}" != "1" ]]; then
     open "$install_dir/$app_name"
   fi
 }
