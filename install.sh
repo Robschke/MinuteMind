@@ -34,7 +34,8 @@ main() {
 
   local tmp
   tmp="$(mktemp -d)"
-  trap 'rm -rf "$tmp"' EXIT
+  # Expanded now: tmp is local to main and already gone when the EXIT trap fires.
+  trap "rm -rf '$tmp'" EXIT
 
   say "Downloading MinuteMind"
   curl -fL --progress-bar "$download_url" -o "$tmp/MinuteMind.zip" \
@@ -51,7 +52,8 @@ main() {
   say "Installing into $install_dir"
   rm -rf "${install_dir:?}/$app_name"
   ditto "$tmp/unpacked/$app_name" "$install_dir/$app_name"
-  xattr -dr com.apple.quarantine "$install_dir/$app_name" 2>/dev/null || true
+  # The system xattr explicitly: a Python xattr earlier on PATH has no -r.
+  /usr/bin/xattr -dr com.apple.quarantine "$install_dir/$app_name" >/dev/null 2>&1 || true
 
   if command -v claude >/dev/null 2>&1 || [[ -x "$HOME/.local/bin/claude" ]]; then
     say "Claude Code is already installed"
