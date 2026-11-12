@@ -17,8 +17,28 @@ enum HelpGuideContent {
         gettingStarted, recording, meetingDetection, inbox, transcription, speakers, dictionary,
         summaries, quickDictation, voiceAssistant, companion, projects, workspace, knowledge,
         jobs, sharedProjects, calendar, tasks, claudeIntegration, appearance, storage, settings,
-        shortcuts,
+        updating, shortcuts,
     ]
+
+    static let updating = HelpGuideTopic(
+        id: "updating",
+        title: "Updating MinuteMind",
+        icon: "arrow.down.circle",
+        summary: "Check which version you run and install the latest release, from Terminal or by asking Claude.",
+        body: """
+        MinuteMind is installed and updated with one command in Terminal:
+
+        ```
+        curl -fsSL https://raw.githubusercontent.com/Robschke/MinuteMind/main/install.sh | bash
+        ```
+
+        It downloads the latest release, quits MinuteMind, replaces the app where it is installed (/Applications or ~/Applications) and opens the new version. Your recordings, projects, settings and permissions stay. It also installs Claude Code if it is missing.
+
+        **Ask Claude instead:** "Is there a MinuteMind update?" makes Claude compare your version with the latest release and show what changed. "Update MinuteMind" installs it: MinuteMind quits and opens again, usually within a minute. Open windows and Claude sessions in MinuteMind close, so Claude asks first. It waits while a recording, a transcription or meeting processing runs.
+
+        Releases and their notes are listed at github.com/Robschke/MinuteMind/releases. MinuteMind needs macOS 14 or newer on a Mac with Apple Silicon.
+        """
+    )
 
     static let gettingStarted = HelpGuideTopic(
         id: "getting-started",
