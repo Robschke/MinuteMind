@@ -2,6 +2,7 @@
 //          which branch is checked out and whether there are uncommitted changes, and switches or
 //          creates branches from a popover, asking before anything could surprise the user.
 // Dependencies: Sources/App/Services/WorkspaceGitService.swift (all git work),
+//               Sources/App/Services/GitAvailability.swift (git missing: hint and install),
 //               Sources/App/Services/ProjectRepositoryService.swift (switchingRepos pauses the
 //               app's own commits), Sources/App/Services/KnowledgeCurationService.swift
 //               (runningRepo), Sources/App/Supporting/WorkspaceEditorStore.swift (save before a
@@ -37,6 +38,8 @@
 //          meetings go now, and the repo's knowledge is reindexed.
 //        - git status every 2 s while the workspace shows (no optional locks, so Claude's git
 //          commands never wait on it).
+//        - Without a real git (no Command Line Tools) the row says so and offers Apple's installer;
+//          it switches to the branch by itself once git is there, creating the repository first.
 //        - A Shared Project shows its sync state right after the branch ("Synced 2 min ago",
 //          "Syncing…", or the problem in orange) and a Sync now button. The branch button then
 //          hugs its label instead of filling the row, so the sync state sits beside it.
@@ -58,6 +61,8 @@ struct WorkspaceGitBranchBar: View {
     @State private var prompt: Prompt?
     /// Side branches whose "meetings go here now" note was shown this session.
     @State private var explainedBranches: Set<String> = []
+    /// No real git on this Mac: the row offers Apple's Command Line Tools instead of a branch.
+    @State private var isGitMissing = false
 
     private enum Prompt {
         case changes(from: String?, to: String, count: Int, claudeWorking: Bool, claudeOpen: Bool)
@@ -83,12 +88,16 @@ struct WorkspaceGitBranchBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            branchButton
-                .layoutPriority(1)
-            if project.isShared {
-                WorkspaceSharedSyncStatus(projectID: project.id)
-                    .padding(.trailing, 12)
-                Spacer(minLength: 0)
+            if isGitMissing {
+                gitMissingRow
+            } else {
+                branchButton
+                    .layoutPriority(1)
+                if project.isShared {
+                    WorkspaceSharedSyncStatus(projectID: project.id)
+                        .padding(.trailing, 12)
+                    Spacer(minLength: 0)
+                }
             }
         }
         .alert(promptTitle(prompt), isPresented: isPromptShown, presenting: prompt) { promptActions($0) } message: {
@@ -134,6 +143,26 @@ struct WorkspaceGitBranchBar: View {
     }
 
     // MARK: - Row
+
+    /// Shown instead of the branch while git is missing. Turns back into the branch by itself
+    /// once the tools are installed (the poll keeps checking).
+    private var gitMissingRow: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "exclamationmark.triangle")
+            Text("git is not installed")
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            Button("Install\u{2026}") { GitAvailability.installDeveloperTools() }
+                .controlSize(.mini)
+        }
+        .font(.system(size: 11))
+        .foregroundStyle(Color.orange)
+        .padding(.horizontal, 12)
+        .padding(.leading, cornerButtonInset)
+        .frame(height: 26)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .help("Without git this workspace keeps no history and Shared Projects cannot sync. Install opens Apple's installer for the Command Line Tools, which include git.")
+    }
 
     private var label: some View {
         HStack(spacing: 5) {
@@ -190,6 +219,16 @@ struct WorkspaceGitBranchBar: View {
 
     private func refresh() async {
         let repo = repo
+        let installed = await Task.detached { GitAvailability.isInstalled }.value
+        guard installed else {
+            if !isGitMissing { isGitMissing = true }
+            return
+        }
+        if isGitMissing {
+            isGitMissing = false
+            // A workspace opened while git was missing has no repository yet.
+            viewModel.projectRepositories.ensureRepository(for: project)
+        }
         let fresh = await Task.detached { WorkspaceGit.state(of: repo) }.value
         if fresh != state { state = fresh }
     }

@@ -361,7 +361,7 @@ enum HelpGuideContent {
         - **Editor:** click a file to open it, with syntax colours, a Markdown preview, images and PDFs. Changes save by themselves; double click opens a file in its usual app.
         - **Claude Code:** up to six sessions per project in tabs (the sparkle button or Opt+Cmd+N; right click for Sonnet instead of Opus), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.
         - **Layout:** Claude sits below the file (default), beside it, or in its own window (buttons in Claude's tab strip). Drag a tab onto a pane to split it, or use Split Right / Split Down in the tab's menu; drag a tab out to give it its own window.
-        - **Branch row** under the tree: the checked-out git branch; switch or create branches there. Uncommitted changes come along or are kept for you on the branch you leave.
+        - **Branch row** under the tree: the checked-out git branch; switch or create branches there. Uncommitted changes come along or are kept for you on the branch you leave. If it says "git is not installed", click Install: it opens Apple's installer for the Command Line Tools (or run `xcode-select --install` in Terminal). Until then the workspace keeps no history and Shared Projects cannot sync.
 
         Claude in the workspace has MinuteMind's tools, so it can read meetings, tasks, the calendar and the knowledge, and change settings.
         """

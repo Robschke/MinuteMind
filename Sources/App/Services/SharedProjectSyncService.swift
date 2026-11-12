@@ -4,6 +4,7 @@
 //          workspace branch row. SharedRepoGit holds the blocking git steps.
 // Dependencies: Sources/App/Models/SharedProject.swift (SharedSyncStatus),
 //               Sources/App/Services/WorkspaceGitService.swift (repo state, app-managed commits),
+//               Sources/App/Services/GitAvailability.swift (no git calls while git is missing),
 //               Sources/App/Services/KnowledgeCurationService.swift (the replayed agent step and
 //               the cleanup of emptied knowledge files)
 // RBAC: None (membership is enforced by the git host).
@@ -342,6 +343,9 @@ enum SharedRepoGit {
 
     /// git without a terminal: no credential prompt, no editor, English messages.
     static func run(_ arguments: [String], in directory: URL) -> WorkspaceGit.Output {
+        guard GitAvailability.isInstalled else {
+            return WorkspaceGit.Output(status: -1, stdout: "", stderr: GitAvailability.missingMessage)
+        }
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
         process.arguments = arguments

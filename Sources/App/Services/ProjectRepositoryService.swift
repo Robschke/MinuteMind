@@ -7,7 +7,8 @@
 //               Sources/App/Services/MCP/MinuteMindMCPServer.swift (endpoint + token for Claude's
 //               MCP config), Sources/App/Models/Project.swift, RecordingSession.swift,
 //               Sources/App/Models/SharedProject.swift (Shared Project layout, manifest, contributor name),
-//               Sources/App/Services/WorkspaceGitService.swift (git with output)
+//               Sources/App/Services/WorkspaceGitService.swift (git with output),
+//               Sources/App/Services/GitAvailability.swift (no git calls while git is missing)
 // Used by: Sources/App/ViewModels/AppViewModel.swift (mirroring after processing, repo access),
 //          Sources/App/ViewModels/AppViewModel+SharedPublishing.swift (moving published items),
 //          Sources/App/Views/ProjectWorkspaceView.swift (file tree + terminal)
@@ -651,6 +652,9 @@ final class ProjectRepositoryService {
 
     @discardableResult
     static func git(_ arguments: [String], in directory: URL) -> Bool {
+        // Without git the files are still written; the first commit once git is installed
+        // picks them up (ensureRepository creates the repo then).
+        guard GitAvailability.isInstalled else { return false }
         if let command = arguments.first, command == "add" || command == "commit", !acceptsAppCommits(directory) {
             return false
         }

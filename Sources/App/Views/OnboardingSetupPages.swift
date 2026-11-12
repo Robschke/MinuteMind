@@ -1,8 +1,8 @@
 // Purpose: The onboarding's setup pages around the permissions and the tour: Welcome, Claude
-//          (Claude Code check + one-click MCP), the speech models (Parakeet and Nemotron 3) and the
-//          finish page with what is still missing and the restart.
+//          (Claude Code check + one-click MCP, and git when it is missing), the speech models
+//          (Parakeet and Nemotron 3) and the finish page with what is still missing and the restart.
 // Dependencies: Sources/App/Supporting/OnboardingFlow.swift (downloads, finish, restart),
-//               Sources/App/Supporting/OnboardingClaudeSetup.swift (CLI and MCP),
+//               Sources/App/Supporting/OnboardingClaudeSetup.swift (CLI, MCP and git),
 //               Sources/App/Supporting/OnboardingPermissions.swift (missing permissions),
 //               Sources/App/Views/OnboardingView.swift (page layout, creature),
 //               Sources/App/ViewModels/AppViewModel.swift (Parakeet progress, MCP server)
@@ -60,8 +60,18 @@ struct OnboardingClaudePage: View {
                                       color: DesignSystem.Colors.success)
                 mcpSection
             }
+            if setup.gitInstalled == false {
+                missingGit
+            }
         }
         .task { await setup.checkCLI(server: viewModel.mcpServer) }
+        .task {
+            // Polled, so the block goes away once Apple's installer has finished.
+            while !Task.isCancelled {
+                await setup.checkGit()
+                try? await Task.sleep(for: .seconds(2))
+            }
+        }
     }
 
     private var missingCLI: some View {
@@ -89,6 +99,28 @@ struct OnboardingClaudePage: View {
                 Spacer()
             }
         }
+    }
+
+    private var missingGit: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingM) {
+            OnboardingPoint(symbol: "exclamationmark.triangle",
+                            text: "git is missing. Project workspaces use it to keep a history of every change Claude and MinuteMind make.")
+            HStack {
+                Spacer()
+                Button("Install Developer Tools") { setup.installGit() }
+                    .controlSize(.large)
+                Spacer()
+            }
+            if setup.gitInstallRequested {
+                Text("Apple\u{2019}s installer has opened (it may be behind this window). This page notices when it has finished.")
+                    .font(DesignSystem.Typography.footnote)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.top, DesignSystem.Dimensions.spacingM)
     }
 
     private var mcpSection: some View {
@@ -281,6 +313,7 @@ struct OnboardingFinishPage: View {
                     if state == .notDetermined || state == .denied { still.append(permission) }
                 }
                 missing = still
+                await flow.claude.checkGit()
                 try? await Task.sleep(for: .seconds(1))
             }
         }
@@ -310,6 +343,11 @@ struct OnboardingFinishPage: View {
         OnboardingChecklistRow(title: claudeTitle, isDone: flow.claude.mcp == .added) {
             if flow.claude.mcp != .added {
                 Button("Set Up") { flow.jump(to: .claude) }
+            }
+        }
+        if flow.claude.gitInstalled == false {
+            OnboardingChecklistRow(title: "git not installed: project workspaces keep no history", isDone: false) {
+                Button("Install") { flow.claude.installGit() }
             }
         }
         OnboardingChecklistRow(title: "General workspace ready for meetings without a project", isDone: true) {}

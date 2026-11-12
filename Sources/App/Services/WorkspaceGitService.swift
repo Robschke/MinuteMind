@@ -1,7 +1,7 @@
 // Purpose: WorkspaceGit, the small slice of git the workspace shows and does: which branch is
 //          checked out, how many files changed, whether a merge or rebase is in progress, the
 //          local branches, and switching or creating a branch without ever losing a change.
-// Dependencies: Foundation (Process, /usr/bin/git)
+// Dependencies: Foundation (Process, /usr/bin/git), Sources/App/Services/GitAvailability.swift (git missing)
 // Used by: Sources/App/Views/WorkspaceGitBranchBar.swift, Sources/App/Services/ProjectRepositoryService.swift
 //          (acceptsAppCommits), Tests/WorkspaceGitTests.swift
 // Notes: Everything here blocks on a git process, so callers run it off the main actor.
@@ -226,6 +226,10 @@ enum WorkspaceGit {
     // MARK: - Process
 
     static func run(_ arguments: [String], in repo: URL) -> Output {
+        // Without the Command Line Tools /usr/bin/git only opens Apple's install dialog.
+        guard GitAvailability.isInstalled else {
+            return Output(status: -1, stdout: "", stderr: GitAvailability.missingMessage)
+        }
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
         process.arguments = arguments

@@ -1,11 +1,13 @@
 // Purpose: The onboarding's Claude step: finds the installed Claude Code CLI and registers the
 //          MinuteMind MCP server with it in one click, so every Claude Code session on this Mac
-//          can use meetings, tasks and knowledge.
+//          can use meetings, tasks and knowledge. Also checks for git, which the project
+//          workspaces Claude works in need, and offers Apple's Command Line Tools when it is missing.
 // Dependencies: Sources/App/Services/ClaudeCodeService.swift (findBinary, environment),
-//               Sources/App/Services/MCP/MinuteMindMCPServer.swift (endpoint, token, isEnabled)
+//               Sources/App/Services/MCP/MinuteMindMCPServer.swift (endpoint, token, isEnabled),
+//               Sources/App/Services/GitAvailability.swift (git check and install)
 // RBAC: The registered entry carries the MCP bearer token, which grants full read, write and
 //       delete access to MinuteMind for any Claude Code session of this user.
-// Used by: Sources/App/Views/OnboardingSetupPages.swift (Claude page)
+// Used by: Sources/App/Views/OnboardingSetupPages.swift (Claude page, finish page)
 // Notes: The entry goes into Claude Code's user scope (~/.claude.json), not a project, so it works
 //        in every folder. An existing "minutemind" entry is replaced rather than kept, because a
 //        rotated token or port would leave it pointing nowhere. The CLI's own lookup in
@@ -33,6 +35,10 @@ final class OnboardingClaudeSetup {
 
     private(set) var cli: CLIState = .checking
     private(set) var mcp: MCPState = .unknown
+    /// nil until checked. Project workspaces are git repositories, so a missing git is offered here.
+    private(set) var gitInstalled: Bool?
+    /// Apple's installer was opened from the setup (its window may sit behind MinuteMind).
+    private(set) var gitInstallRequested = false
     private var binary: URL?
 
     static let serverName = "minutemind"
@@ -49,6 +55,18 @@ final class OnboardingClaudeSetup {
         }
         cli = .found(path: found.path)
         if mcp == .unknown, await isRegistered(token: server.token) { mcp = .added }
+    }
+
+    /// Reads whether git is installed; the Claude and finish pages poll it while they show.
+    func checkGit() async {
+        let installed = await Task.detached { GitAvailability.isInstalled }.value
+        if gitInstalled != installed { gitInstalled = installed }
+    }
+
+    /// Opens Apple's installer for the Command Line Tools (git among them).
+    func installGit() {
+        GitAvailability.installDeveloperTools()
+        gitInstallRequested = true
     }
 
     /// Adds (or replaces) the MinuteMind entry in Claude Code's user scope and turns the server on.
