@@ -355,6 +355,8 @@ struct WorkspaceTerminalPane: View {
                         TapGesture(count: 2).onEnded { restoreFromMinimized?() },
                         including: isMinimized ? .all : .subviews)
                 }
+                // Under the title bar the scroll edge effect would cover the whole strip.
+                .hidesTitlebarScrollEdge()
             }
             if !isWindow, !sessions.isEmpty, !terminals.windows(rootedAt: rootID).isEmpty {
                 otherWindowsMenu

@@ -13,6 +13,9 @@
 //        nil, every click still reaches the view in front. Below the band it has no effect.
 //        Buttons and headers in the band stay draggable on purpose: a click still works, and
 //        they give the window its handle.
+//        hidesTitlebarScrollEdge(): on macOS 26 a scroll view under the title bar gets a top
+//        scroll edge effect that covers the whole band, so a scroll view living in the band
+//        (the terminal tab strip) would hide itself and everything beside it.
 
 import AppKit
 import SwiftUI
@@ -21,6 +24,16 @@ extension View {
     /// Drags that start on this view never move the window, also inside the title bar band.
     func excludedFromWindowDrag() -> some View {
         background(TitlebarDragBlocker())
+    }
+
+    /// No top scroll edge effect for a scroll view that sits in the title bar band itself.
+    @ViewBuilder
+    func hidesTitlebarScrollEdge() -> some View {
+        if #available(macOS 26, *) {
+            scrollEdgeEffectHidden(true, for: .top)
+        } else {
+            self
+        }
     }
 }
 
