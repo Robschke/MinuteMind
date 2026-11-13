@@ -1,25 +1,24 @@
 // Purpose: MainWindowEventMonitor, the main window's own input outside any view: the mouse's back
-//          and forward buttons step through the navigation history, and Shift+Tab drives the
-//          project switcher (hold Shift, Tab steps, releasing Shift enters, Esc cancels, the arrow
-//          keys step back and forth, Return enters), and Cmd+K opens and closes the global search.
+//          and forward buttons step through the navigation history, and Option+Tab drives the
+//          project switcher (hold Option, Tab steps, releasing Option enters, Esc cancels, the
+//          arrow keys step back and forth, Return enters), and Cmd+K opens and closes the global search.
 // Dependencies: Sources/App/ViewModels/AppViewModel+Navigation.swift (goBack, goForward,
 //               switcherProjectIDs, enterProject), Sources/App/ViewModels/AppViewModel+Companion.swift
 //               (mainWindow), Sources/App/Views/ProjectSwitcherView.swift (ProjectSwitcherModel),
 //               Sources/App/Views/GlobalSearchView.swift (GlobalSearchModel)
 // Used by: Sources/App/Views/ContentView.swift
 // Notes: An AppKit local monitor rather than SwiftUI shortcuts: the switcher needs the release of
-//        Shift (flagsChanged), and the mouse buttons and Cmd+K must work while a terminal or the
-//        editor has focus, which take keys and clicks before SwiftUI sees them. Shift+Tab keeps its usual
-//        meaning (focus backwards) while text input has focus: a text field, the terminal, the
-//        code editor or any other text view; anywhere else it opens the switcher. With no project
-//        to list it is left alone too. Only the main window reacts, and not while it shows a
-//        sheet; Claude's own windows keep every event.
+//        Option (flagsChanged), and the mouse buttons, Option+Tab and Cmd+K must work while a
+//        terminal or the editor has focus, which take keys and clicks before SwiftUI sees them.
+//        Option+Tab, not Shift+Tab: Claude Code cycles its modes (plan, auto, ...) with Shift+Tab,
+//        so that key must reach the terminal. With no project to list Option+Tab is left alone.
+//        Only the main window reacts, and not while it shows a sheet; Claude's own windows keep
+//        every event.
 //        The back and forward buttons are buttons 4 and 5 (AppKit numbers 3 and 4); other
 //        shortcuts for back (Cmd+[, swipes) are left out on purpose. Leaving the app while the
-//        switcher is open cancels it, since the release of Shift would never arrive.
+//        switcher is open cancels it, since the release of Option would never arrive.
 
 import AppKit
-import SwiftTerm
 
 @MainActor
 final class MainWindowEventMonitor {
@@ -80,7 +79,7 @@ final class MainWindowEventMonitor {
         if switcher.isShown {
             switch input.type {
             case .flagsChanged:
-                if !input.flags.contains(.shift) { enter(switcher.finish(), viewModel: viewModel) }
+                if !input.flags.contains(.option) { enter(switcher.finish(), viewModel: viewModel) }
                 return false
             case .keyDown:
                 switch input.keyCode {
@@ -114,8 +113,7 @@ final class MainWindowEventMonitor {
                 search.toggle(viewModel: viewModel)
                 return true
             }
-            guard input.keyCode == keyTab, modifiers == .shift, window.isKeyWindow,
-                  !isTextInput(window.firstResponder)
+            guard input.keyCode == keyTab, modifiers == .option, window.isKeyWindow
             else { return false }
             let items = viewModel.switcherProjectIDs
             guard !items.isEmpty else { return false }
@@ -124,12 +122,6 @@ final class MainWindowEventMonitor {
         default:
             return false
         }
-    }
-
-    /// True for a responder that takes typed text: a text field (its field editor), a text view
-    /// (code editor, notes) or a terminal. Shift+Tab stays theirs.
-    private static func isTextInput(_ responder: NSResponder?) -> Bool {
-        responder is NSText || responder is TerminalView
     }
 
     private static func enter(_ id: UUID?, viewModel: AppViewModel) {

@@ -127,7 +127,7 @@ final class AppViewModel {
     /// Each project's section (Overview, Workspace, Jobs), remembered across launches
     /// (`mm.projectTabs`); read through `projectTab(for:)` (AppViewModel+Navigation.swift).
     var projectTabs: [UUID: ProjectTab] = AppViewModel.loadProjectTabs()
-    /// Projects (and General) most recently visited first, for the Shift+Tab switcher (`mm.recentProjects`).
+    /// Projects (and General) most recently visited first, for the Option+Tab switcher (`mm.recentProjects`).
     var recentProjectIDs: [UUID] = AppViewModel.loadRecentProjects()
     /// Back and forward between places (mouse buttons 4 and 5, AppViewModel+Navigation.swift).
     var navigationHistory = NavigationHistory()

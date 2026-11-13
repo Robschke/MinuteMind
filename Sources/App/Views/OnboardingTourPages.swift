@@ -6,7 +6,7 @@
 // Used by: Sources/App/Supporting/OnboardingFlow.swift (tour steps),
 //          Sources/App/Views/OnboardingView.swift (page switch)
 // Notes: The keys shown are the ones registered in MinuteMindApp.setupHotkeys and in
-//        MainWindowEventMonitor (Cmd+K, Shift+Tab); when one changes there, change it here too. The dictation key follows the user's setting (fn by default);
+//        MainWindowEventMonitor (Cmd+K, Option+Tab); when one changes there, change it here too. The dictation key follows the user's setting (fn by default);
 //        the toggle mode has no hold key, so the Claude key and quick recording are described as
 //        needing a hold key.
 
@@ -84,7 +84,7 @@ struct OnboardingTourPage: View {
                             text: "Link a recurring calendar meeting to a project once, and every recording of it is filed there.")
             OnboardingPoint(symbol: "star",
                             text: "Star a project (right click in the sidebar) to put it first when you scroll over the companion and keep it in the project switcher.")
-            OnboardingShortcutRow(keys: ["\u{21E7}", "\u{21E5}"], caption: "hold \u{21E7}",
+            OnboardingShortcutRow(keys: ["\u{2325}", "\u{21E5}"], caption: "hold \u{2325}",
                                   text: "Switch between your starred projects and those with Claude running")
             OnboardingShortcutRow(keys: ["\u{2318}", "K"],
                                   text: "Search everything: pages, projects, Claude sessions, meetings and what was said in them, knowledge")

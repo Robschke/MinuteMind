@@ -1,11 +1,11 @@
 // Purpose: ContentView, the main window: the sidebar (Home's, or the open project's own) beside the
-//          page of the current place, the Shift+Tab project switcher and the Cmd+K search over
+//          page of the current place, the Option+Tab project switcher and the Cmd+K search over
 //          both, and the window-wide sheets and alerts.
 // Dependencies: Sources/App/Views/ProjectsSidebarView.swift (Home sidebar),
 //               Sources/App/Views/ProjectContextSidebar.swift (project sidebar),
 //               Sources/App/Views/HomeView.swift, Sources/App/Views/ProjectSwitcherView.swift,
 //               Sources/App/Views/GlobalSearchView.swift (Cmd+K search),
-//               Sources/App/Components/MainWindowEventMonitor.swift (mouse back and forward, Shift+Tab,
+//               Sources/App/Components/MainWindowEventMonitor.swift (mouse back and forward, Option+Tab,
 //               Cmd+K),
 //               Sources/App/ViewModels/AppViewModel+Navigation.swift (currentPlace, visits),
 //               Sources/App/Components/TitlebarDragBlocker.swift (drags inside the title bar band)
