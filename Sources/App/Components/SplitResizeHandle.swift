@@ -90,6 +90,8 @@ struct SplitResizeHandle: View {
                     .frame(
                         width: isVertical ? Self.pillReach * 2 : nil,
                         height: isVertical ? nil : Self.pillReach * 2)
+                    // A line reaching up under the title bar still resizes there.
+                    .excludedFromWindowDrag()
             }
             .accessibilityElement()
             .accessibilityLabel(accessibilityLabel)

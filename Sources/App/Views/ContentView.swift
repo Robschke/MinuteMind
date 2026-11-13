@@ -5,12 +5,18 @@
 //               Sources/App/Views/ProjectContextSidebar.swift (project sidebar),
 //               Sources/App/Views/HomeView.swift, Sources/App/Views/ProjectSwitcherView.swift,
 //               Sources/App/Components/MainWindowEventMonitor.swift (mouse back and forward, Cmd+K),
-//               Sources/App/ViewModels/AppViewModel+Navigation.swift (currentPlace, visits)
+//               Sources/App/ViewModels/AppViewModel+Navigation.swift (currentPlace, visits),
+//               Sources/App/Components/TitlebarDragBlocker.swift (drags inside the title bar band)
 // Used by: Sources/App/MinuteMindApp.swift (main window)
 // Notes: The sidebar slides: Home's goes out to the left as a project's comes in from the right,
 //        and back the other way; between two projects it crossfades (Reduce Motion: no slide).
 //        It is clipped at its sides only, so its background reaches up under the traffic lights.
 //        Every change of the current place is recorded here as a visit, whoever made it.
+//        The page reaches up into the title bar band like the sidebar (the toolbar only holds the
+//        system sidebar button, which sits over the sidebar). With the sidebar hidden in a
+//        window the traffic lights and that button sit over the page, so it keeps the band then.
+//        In the band macOS moves the window on drags over plain content, which keeps the window
+//        draggable by headers and free space; views that need their drags opt out there.
 
 import SwiftUI
 
@@ -27,6 +33,13 @@ struct ContentView: View {
     /// Full screen hides the toolbar's sidebar button; the page then offers its own way back.
     private var showsSidebarCornerButton: Bool {
         isFullScreen && sidebarVisibility == .detailOnly
+    }
+
+    /// The page reaches up under the title bar while the sidebar holds the traffic lights and
+    /// the sidebar button, and in full screen, where the toolbar slides away. With the sidebar
+    /// hidden in a window they sit over the page, so it keeps the band free for them.
+    private var pageReachesTitleBar: Bool {
+        isFullScreen || sidebarVisibility != .detailOnly
     }
 
     var body: some View {
@@ -150,6 +163,10 @@ struct ContentView: View {
                         .environment(viewModel)
                 }
             }
+            // No empty toolbar band above the page: its top (tab strip, headers) sits beside the
+            // traffic lights, like the sidebar. Views that take drags up there keep them with
+            // excludedFromWindowDrag() (TitlebarDragBlocker).
+            .ignoresSafeArea(.container, edges: pageReachesTitleBar ? .top : [])
             // The page background follows the theme (Studio: the window background, as before).
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(DesignSystem.Colors.surface)

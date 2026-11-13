@@ -217,6 +217,8 @@ struct WorkspaceTerminalPane: View {
         }
         .padding(insets)
         .background(Color(nsColor: .textBackgroundColor))
+        // Selecting text in the top rows must not move the window when they sit under the title bar.
+        .excludedFromWindowDrag()
         .overlay { statusFrame(session) }
         .overlay(alignment: .top) {
             if isSplit, isFocused {
@@ -342,6 +344,9 @@ struct WorkspaceTerminalPane: View {
                         }
                     }
                     .padding(.horizontal, 6)
+                    // Under the title bar a drag on a tab moves the tab, not the window; the
+                    // free space after the tabs still moves the window there.
+                    .excludedFromWindowDrag()
                     // The free space after the tabs takes a double click that brings a
                     // minimized strip back up; not minimized, only the tabs' own gestures run.
                     .frame(minWidth: proxy.size.width, minHeight: proxy.size.height, alignment: .leading)
