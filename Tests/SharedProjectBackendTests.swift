@@ -423,6 +423,20 @@ struct SharedProjectBackendTests {
         #expect(SharedRepoGit.sync(repo: anna) == .problem(SharedRepoGit.switchBackMessage))
     }
 
+    @Test("A knowledge file deleted by hand reaches the others while meetings/ holds nothing tracked")
+    func deletionWithUntrackedMeetingsFolder() throws {
+        let (origin, robin, anna) = try makeRemote()
+        // No published meeting yet: meetings/ exists, git knows no file in it.
+        try FileManager.default.createDirectory(at: robin.appendingPathComponent("meetings"), withIntermediateDirectories: true)
+        try FileManager.default.removeItem(at: robin.appendingPathComponent("knowledge/decisions.md"))
+
+        #expect(SharedRepoGit.sync(repo: robin) == .synced(pulled: false))
+        #expect(!git(["show", "main:knowledge/decisions.md"], in: origin).succeeded)
+        #expect(git(["status", "--porcelain"], in: robin).stdout.isEmpty)
+        #expect(SharedRepoGit.sync(repo: anna) == .synced(pulled: true))
+        #expect(!exists("knowledge/decisions.md", in: anna))
+    }
+
     @Test("Knowledge replay starts over after a rejected push and never sees private/")
     func knowledgeReplay() async throws {
         let (origin, robin, anna) = try makeRemote()

@@ -241,7 +241,9 @@ enum SharedRepoGit {
         }
         guard run(["remote", "get-url", remote], in: repo).succeeded else { return .problem("This workspace has no remote to sync with") }
         // What the app wrote while its commits paused belongs in this sync.
-        WorkspaceGit.commitAppManagedChanges(in: repo)
+        if let failure = WorkspaceGit.commitAppManagedChanges(in: repo) {
+            return .problem("Could not commit the workspace's changes: \(failure)")
+        }
         let upstream = "\(remote)/\(branch)"
         var pulled = false
         for _ in 0..<max(1, attempts) {

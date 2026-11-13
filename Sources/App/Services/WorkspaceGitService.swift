@@ -188,13 +188,19 @@ enum WorkspaceGit {
     /// Commits what MinuteMind wrote but has not committed yet (its commits pause on a detached
     /// HEAD or during a merge), so a switch neither counts nor stashes it as the user's changes.
     /// Other staged work stays staged. Does nothing off a branch or during an operation.
-    static func commitAppManagedChanges(in repo: URL) {
-        guard isOnBranchWithoutOperation(repo) else { return }
+    /// Returns git's reason when the commit failed, nil otherwise.
+    /// Only folders with staged changes go to `git commit`: a folder git knows no file in (an
+    /// empty or all-ignored `meetings/`) fails the whole commit as an unmatched pathspec.
+    @discardableResult
+    static func commitAppManagedChanges(in repo: URL) -> String? {
+        guard isOnBranchWithoutOperation(repo) else { return nil }
         let paths = appManagedPaths.filter { FileManager.default.fileExists(atPath: repo.appendingPathComponent($0).path) }
-        guard !paths.isEmpty else { return }
+        guard !paths.isEmpty else { return nil }
         _ = run(["add", "-A", "--"] + paths, in: repo)
-        guard !run(["diff", "--cached", "--quiet", "--"] + paths, in: repo).succeeded else { return }
-        _ = run(["commit", "-q", "-m", "MinuteMind: workspace updates", "--"] + paths, in: repo)
+        let changed = paths.filter { !run(["diff", "--cached", "--quiet", "--", $0], in: repo).succeeded }
+        guard !changed.isEmpty else { return nil }
+        let commit = run(["commit", "-q", "-m", "MinuteMind: workspace updates", "--"] + changed, in: repo)
+        return commit.succeeded ? nil : firstLine(of: commit.stderr + commit.stdout)
     }
 
     /// The files git lists (tab-indented) when it refuses to switch.
