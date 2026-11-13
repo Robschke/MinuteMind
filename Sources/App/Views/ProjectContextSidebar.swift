@@ -85,7 +85,7 @@ struct ProjectContextSidebar: View {
             .padding(.vertical, DesignSystem.Dimensions.spacingS)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(DesignSystem.Colors.card)
         .onChange(of: editor.selection) { _, urls in
             // A single click on a file opens it; multi-select (Shift/Cmd) opens nothing.
             guard urls.count == 1, let url = urls.first, editor.open(url) else { return }

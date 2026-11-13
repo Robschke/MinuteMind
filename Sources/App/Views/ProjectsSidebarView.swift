@@ -384,7 +384,7 @@ struct ProjectsSidebarView: View {
         // A fixed max width here left the translucent column showing beside the content when the
         // sidebar was dragged wider.
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(DesignSystem.Colors.card)
         .sheet(isPresented: $showingNewProjectSheet) {
             newProjectSheet
         }

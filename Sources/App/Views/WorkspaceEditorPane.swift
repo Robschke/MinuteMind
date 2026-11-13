@@ -44,6 +44,9 @@ struct WorkspaceEditorPane: View {
                 }
             }
             content
+                // Its top sits under the title bar when no banner shows; selecting there must
+                // not move the window. The header above stays a handle for the window.
+                .excludedFromWindowDrag()
         }
         .background(DesignSystem.Colors.card)
         .background {
