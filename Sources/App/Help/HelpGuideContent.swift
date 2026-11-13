@@ -347,7 +347,7 @@ enum HelpGuideContent {
         icon: "folder",
         summary: "Creating, arranging, starring and configuring projects, Home, moving around (back, forward, Cmd+K) and the General workspace.",
         body: """
-        Projects group meetings, tasks, knowledge and a workspace folder. Create one with the + button in the sidebar (New Project: name, colour, optional companion creature; or Join shared, see Shared Projects).
+        Projects group meetings, tasks, knowledge and a workspace folder. Create one with the + button in the sidebar (New Project: name and optional companion creature; or Join shared, see Shared Projects). Projects have no colour of their own: their creature identifies them everywhere (sidebar, switcher, lists, calendar, the project wheel).
 
         ## In the sidebar
 
@@ -358,7 +358,7 @@ enum HelpGuideContent {
 
         Entering a project (a tile on Home, or its row in the sidebar) gives the sidebar to the project: at the top its creature and name (click it to go back Home), then three sections: **Overview** (tasks and recordings), **Workspace** (the project folder with Claude Code, see Workspace) and **Jobs** (scheduled Claude jobs), then the project's files and its branch row. Each project remembers its last section; the first visit opens Workspace. The menu in the Overview header has Rename Project, Project Settings... (the export folder for transcripts and summaries), the project's own task auto-accept choice, and Delete Project.
 
-        A project without a creature of its own shows a Blob in its colour on Home and in the switcher; General shows your companion.
+        A project without a creature of its own shows a Blob; General shows your companion.
 
         ## Moving around
 

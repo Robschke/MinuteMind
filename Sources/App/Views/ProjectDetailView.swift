@@ -218,9 +218,7 @@ struct ProjectDetailView: View {
 
     private var projectHeader: some View {
         HStack(spacing: 12) {
-            Circle()
-                .fill(Color(hex: project.colorHex))
-                .frame(width: 16, height: 16)
+            ProjectAvatarView(projectID: project.id, pixelSize: 2)
 
             Text(project.name)
                 .font(.title.bold())

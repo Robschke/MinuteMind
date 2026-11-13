@@ -228,9 +228,7 @@ private struct EventRowView: View {
 
     private var project: Project? { appViewModel.project(for: event) }
 
-    private var accent: Color {
-        project.map { Color(hex: $0.colorHex) } ?? DesignSystem.Colors.textTertiary
-    }
+    private var accent: Color { DesignSystem.Colors.textTertiary }
 
     var body: some View {
         HStack(spacing: DesignSystem.Dimensions.spacingS) {
@@ -239,7 +237,7 @@ private struct EventRowView: View {
                 .labelsHidden()
                 .help("Record this meeting automatically")
 
-            // Project colour as a bar, mirroring the week grid so the two views read the same way.
+            // A bar mirroring the week grid so the two views read the same way.
             RoundedRectangle(cornerRadius: 1.5)
                 .fill(accent)
                 .frame(width: 3, height: 26)
@@ -264,9 +262,10 @@ private struct EventRowView: View {
                         .foregroundStyle(DesignSystem.Colors.textSecondary)
 
                     if let project {
+                        ProjectAvatarView(projectID: project.id, pixelSize: 1)
                         Text(project.name)
                             .font(DesignSystem.Typography.caption1)
-                            .foregroundStyle(accent)
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
                             .lineLimit(1)
                     }
                 }

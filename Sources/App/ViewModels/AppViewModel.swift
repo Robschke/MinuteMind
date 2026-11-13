@@ -650,6 +650,12 @@ final class AppViewModel {
         // Load projects and tasks synchronously on init
         if let loadedProjects = try? projectStore.loadProjects() {
             self.projects = loadedProjects.sorted(by: Project.isOrderedBefore)
+            // Project colours of older files become avatar colours where the creature showed them.
+            if let migrated = ProjectAvatarColorMigration.migrated(
+                projects, homeAvatar: CompanionAppearance.shared.avatar) {
+                self.projects = migrated
+                try? projectStore.saveProjects(migrated)
+            }
         }
         if let loadedTasks = try? projectStore.loadTasks() {
             self.tasks = loadedTasks
@@ -983,7 +989,10 @@ final class AppViewModel {
             ids.append(project.id)
         }
         return ids.compactMap { id in projects.first { $0.id == id } }
-            .map { .init(projectID: $0.id, name: $0.name, colorHex: $0.colorHex) }
+            .map {
+                let look = Self.projectAvatar(of: $0)
+                return .init(projectID: $0.id, name: $0.name, avatar: look.avatar, avatarColor: look.color)
+            }
     }
 
     /// A project (or General) was picked for the recording: process it now when it is transcribed.
@@ -3602,10 +3611,10 @@ final class AppViewModel {
 
     // MARK: - Project Management
 
-    func createProject(name: String, colorHex: String = Project.defaultColors[0], companion: MascotAvatar? = nil) {
+    func createProject(name: String, companion: MascotAvatar? = nil) {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        var project = Project(name: trimmed, colorHex: colorHex)
+        var project = Project(name: trimmed)
         project.companionAvatar = companion?.rawValue
         projects.insert(project, at: 0)
         projectStore.debouncedSaveProjects(projects)
@@ -4230,7 +4239,7 @@ final class AppViewModel {
         epics.filter { $0.projectID == projectID }.sorted { $0.sortOrder < $1.sortOrder }
     }
 
-    func createEpic(title: String, projectID: UUID, colorHex: String = Project.defaultColors[0], summary: String = "") {
+    func createEpic(title: String, projectID: UUID, colorHex: String = Epic.defaultColors[0], summary: String = "") {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         let maxOrder = epics.filter { $0.projectID == projectID }.map(\.sortOrder).max() ?? -1

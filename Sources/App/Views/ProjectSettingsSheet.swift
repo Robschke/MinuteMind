@@ -28,9 +28,7 @@ struct ProjectSettingsSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(spacing: 10) {
-                Circle()
-                    .fill(Color(hex: project.colorHex))
-                    .frame(width: 12, height: 12)
+                ProjectAvatarView(projectID: project.id, pixelSize: 1)
                 Text("Project Settings")
                     .font(.title3.bold())
                 Spacer()

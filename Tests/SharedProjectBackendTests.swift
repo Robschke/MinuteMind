@@ -162,7 +162,7 @@ struct SharedProjectBackendTests {
         #expect(!claude.contains("## Shared Project"))
 
         let manifest = SharedProjectManifest(
-            projectID: project.id, name: "Acme", colorHex: nil, admin: "Robin",
+            projectID: project.id, name: "Acme", admin: "Robin",
             members: [.init(name: "Robin", joinedAt: Date()), .init(name: "Anna", joinedAt: Date())], codeRepos: [])
         try manifest.save(to: repo)
         project.shared = SharedProjectInfo(remoteURL: "git@example.com:acme.git", sharedAt: Date())
@@ -348,7 +348,7 @@ struct SharedProjectBackendTests {
         let repo = temporaryDirectory("manifest")
         let joined = Date(timeIntervalSince1970: 1_794_000_000)
         var manifest = SharedProjectManifest(
-            projectID: UUID(), name: "Acme", colorHex: "#FF0000", admin: "Robin",
+            projectID: UUID(), name: "Acme", admin: "Robin",
             members: [.init(name: "Robin", joinedAt: joined)],
             codeRepos: [.init(url: "git@example.com:acme/app.git", folder: "app")])
         let added = manifest.addMember("Anna", at: joined)

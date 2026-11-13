@@ -45,7 +45,7 @@ extension AppViewModel {
             return
         }
         let prompt = SharedProjectSkill.initialPrompt(
-            projectID: current.id, projectName: current.name, colorHex: current.colorHex,
+            projectID: current.id, projectName: current.name,
             displayName: displayName, folderSuffix: ContributorName.folderSuffix(displayName))
 
         showWorkspaceTab(of: current.id)
@@ -79,8 +79,7 @@ extension AppViewModel {
         }.value
 
         let manifest = joined.manifest
-        var project = Project(
-            id: manifest.projectID, name: manifest.name, colorHex: manifest.colorHex ?? Project.defaultColors[0])
+        var project = Project(id: manifest.projectID, name: manifest.name)
         project.shared = SharedProjectInfo(remoteURL: url, sharedAt: Date())
         addJoinedProject(project)
 

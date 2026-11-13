@@ -357,15 +357,17 @@ private struct TaskCommanderRow: View {
 
                 HStack(spacing: DesignSystem.Dimensions.spacingXS) {
                     if let project {
-                        Text(project.name)
-                            .font(DesignSystem.Typography.caption2)
-                            .foregroundStyle(Color(hex: project.colorHex))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(
-                                Capsule()
-                                    .fill(Color(hex: project.colorHex).opacity(0.12))
-                            )
+                        HStack(spacing: 3) {
+                            // The panel has no AppViewModel in its environment.
+                            let look = AppViewModel.projectAvatar(of: project)
+                            ProjectCreatureMark(avatar: look.avatar, color: look.color, pixelSize: 1)
+                            Text(project.name)
+                                .font(DesignSystem.Typography.caption2)
+                                .foregroundStyle(DesignSystem.Colors.textSecondary)
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.primary.opacity(0.06)))
                     }
 
                     if let due = task.dueDate {

@@ -108,7 +108,7 @@ struct DailyBriefingView: View {
     @ViewBuilder
     private func row(_ event: CalendarEvent) -> some View {
         let project = appViewModel.project(for: event)
-        let accent = project.map { Color(hex: $0.colorHex) } ?? Color.secondary
+        let accent = Color.secondary
         let isOn = recording.contains(event.id)
 
         Button {
@@ -129,9 +129,10 @@ struct DailyBriefingView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         if let project {
+                            ProjectAvatarView(projectID: project.id, pixelSize: 1)
                             Text(project.name)
                                 .font(.caption)
-                                .foregroundStyle(accent)
+                                .foregroundStyle(.secondary)
                                 .lineLimit(1)
                         }
                     }

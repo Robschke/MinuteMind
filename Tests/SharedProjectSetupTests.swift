@@ -50,7 +50,7 @@ struct SharedProjectSetupTests {
 
     private func manifest(_ id: UUID = UUID()) -> SharedProjectManifest {
         SharedProjectManifest(
-            projectID: id, name: "Acme", colorHex: "#FF9500", admin: "Robin",
+            projectID: id, name: "Acme", admin: "Robin",
             members: [.init(name: "Robin", joinedAt: Date(timeIntervalSince1970: 1_700_000_000))], codeRepos: [])
     }
 
@@ -96,7 +96,7 @@ struct SharedProjectSetupTests {
     func initialPrompt() {
         let id = UUID()
         let prompt = SharedProjectSkill.initialPrompt(
-            projectID: id, projectName: "Acme", colorHex: "#FF9500", displayName: "Robin S.", folderSuffix: "robin-s")
+            projectID: id, projectName: "Acme", displayName: "Robin S.", folderSuffix: "robin-s")
         #expect(prompt.contains("share-project"))
         #expect(prompt.contains(id.uuidString))
         #expect(prompt.contains("Project name: Acme"))

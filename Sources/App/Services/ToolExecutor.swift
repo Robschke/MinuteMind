@@ -181,8 +181,7 @@ class ToolExecutor {
                 """
                 {
                     "id": "\(project.id.uuidString)",
-                    "name": "\(escapeJSON(project.name))",
-                    "color": "\(project.colorHex)"
+                    "name": "\(escapeJSON(project.name))"
                 }
                 """
             }.joined(separator: ",\n                ")
@@ -490,7 +489,7 @@ class ToolExecutor {
                 throw ToolError.custom("No project specified.")
             }
 
-            let colorHex = args.color_hex ?? Project.defaultColors.randomElement() ?? "#007AFF"
+            let colorHex = args.color_hex ?? Epic.defaultColors.randomElement() ?? "#007AFF"
             appViewModel.createEpic(
                 title: args.title,
                 projectID: targetProjectID,

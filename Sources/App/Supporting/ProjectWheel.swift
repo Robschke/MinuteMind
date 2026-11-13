@@ -20,7 +20,10 @@ struct ProjectWheel: Equatable {
         /// Nil for "No Project" and "Later".
         var projectID: UUID?
         var name: String
-        var colorHex: String?
+        /// The project's creature and body colour (AppViewModel.projectAvatar); nil avatar for
+        /// "No Project" and "Later", nil colour for General (the home companion's own colour).
+        var avatar: MascotAvatar? = nil
+        var avatarColor: Color? = nil
         /// "Later": the saved card's question is put off to the Inbox.
         var isLater = false
         /// Starred in the sidebar: shows the companion's avatar in the row.

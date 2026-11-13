@@ -162,13 +162,16 @@ struct StorageManagementSettingsView: View {
         let fraction = report.totalBytes > 0
             ? Double(usage.totalBytes) / Double(report.totalBytes)
             : 0
-        let color = usage.colorHex.map { Color(hex: $0) } ?? Color.secondary
 
         return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-                Circle()
-                    .fill(color)
-                    .frame(width: 10, height: 10)
+                if let projectID = usage.projectID {
+                    ProjectAvatarView(projectID: projectID, pixelSize: 1)
+                } else {
+                    Circle()
+                        .fill(Color.secondary)
+                        .frame(width: 10, height: 10)
+                }
                 Text(usage.name)
                     .font(.subheadline)
                     .lineLimit(1)
@@ -187,7 +190,7 @@ struct StorageManagementSettingsView: View {
                     Capsule()
                         .fill(Color.secondary.opacity(0.15))
                     Capsule()
-                        .fill(color)
+                        .fill(Color.secondary)
                         .frame(width: max(2, geo.size.width * fraction))
                 }
             }

@@ -1,5 +1,5 @@
 /// Epic CRUD sheet for managing epics within a project (create, rename, recolor, reorder, delete).
-/// Depends on: AppViewModel, Epic.swift, Project.swift (defaultColors), DesignSystem
+/// Depends on: AppViewModel, Epic.swift (defaultColors), DesignSystem
 /// Used by: WorkboardView
 
 import SwiftUI
@@ -10,7 +10,7 @@ struct EpicManagementSheet: View {
     let project: Project
 
     @State private var newEpicTitle = ""
-    @State private var selectedColor = Project.defaultColors[0]
+    @State private var selectedColor = Epic.defaultColors[0]
     @State private var editingEpic: Epic?
     @State private var editTitle = ""
     @State private var editSummary = ""
@@ -175,7 +175,7 @@ struct EpicManagementSheet: View {
 
     private func colorPicker(selection: Binding<String>) -> some View {
         Menu {
-            ForEach(Project.defaultColors, id: \.self) { hex in
+            ForEach(Epic.defaultColors, id: \.self) { hex in
                 Button {
                     selection.wrappedValue = hex
                 } label: {
