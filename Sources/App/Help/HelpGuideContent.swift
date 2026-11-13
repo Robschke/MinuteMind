@@ -38,9 +38,11 @@ enum HelpGuideContent {
         id: "updating",
         title: "Updating MinuteMind",
         icon: "arrow.down.circle",
-        summary: "Check which version you run and install the latest release, from Terminal or by asking Claude.",
+        summary: "MinuteMind offers new releases by itself; you can also update from Terminal or by asking Claude.",
         body: """
-        MinuteMind is installed and updated with one command in Terminal:
+        **Automatic check:** MinuteMind looks for a new release when it starts and once a day while it runs. When there is one, a dialog shows the new version and what changed. **Update** quits MinuteMind, installs the release and opens it again, usually within a minute; your recordings, projects, settings and permissions stay. **Later** hides the dialog for three days. The dialog never appears while a recording, a transcription or meeting processing runs, or during the first-launch setup: it waits until they are done.
+
+        MinuteMind is also installed and updated with one command in Terminal:
 
         ```
         curl -fsSL https://raw.githubusercontent.com/Robschke/MinuteMind/main/install.sh | bash

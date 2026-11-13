@@ -58,6 +58,7 @@ enum AppSettingsCatalog {
         "mm.taskReview.": "notification id prefix",
         "mm.themeCustom": "custom theme colours, edited in Settings > Appearance",
         "mm.themeProfiles": "saved theme profiles, edited in Settings > Appearance",
+        "mm.updateSnoozedUntil": "Later on the update dialog: no dialog before this date",
         "mm.todoBrief": "cached task brief",
         "mm.wheelHintCount": "one-time hint",
         "mm.workspaceClaudeBelow": "workspace layout",

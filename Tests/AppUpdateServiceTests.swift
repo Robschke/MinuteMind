@@ -1,6 +1,7 @@
-// Purpose: Tests for AppUpdateService: version comparison, reading GitHub's release JSON, and the
-//          update tools being exposed over MCP.
+// Purpose: Tests for AppUpdateService: version comparison, reading GitHub's release JSON, when the
+//          update dialog may show, and the update tools being exposed over MCP.
 // Dependencies: Sources/App/Services/AppUpdateService.swift,
+//               Sources/App/Services/AppUpdateChecker.swift (offer rules),
 //               Sources/App/Services/MCP/MCPUpdateTools.swift, MinuteMindMCPServer.exposedToolNames
 
 import Foundation
@@ -46,6 +47,26 @@ struct AppUpdateServiceTests {
         #expect(throws: AppUpdateService.UpdateError.self) {
             try AppUpdateService.parseRelease(Data(#"{"message": "Not Found"}"#.utf8))
         }
+    }
+
+    @Test("The update dialog shows only a newer release, outside the snooze and while idle")
+    func offerRules() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let release = AppUpdateService.Release(
+            version: "0.3.0", page: AppUpdateService.releasesPage, notes: "", published: nil)
+        func offer(_ release: AppUpdateService.Release?, installed: String = "0.2.0",
+                   snoozedUntil: Date? = nil, blocked: Bool = false) -> Bool {
+            AppUpdateChecker.shouldOffer(release, installed: installed, snoozedUntil: snoozedUntil, now: now, blocked: blocked)
+        }
+        #expect(offer(release))
+        #expect(!offer(nil))
+        #expect(!offer(release, installed: "0.3.0"))
+        #expect(!offer(release, installed: "dev"))
+        #expect(!offer(release, blocked: true))
+        #expect(!offer(release, snoozedUntil: now.addingTimeInterval(60)))
+        #expect(offer(release, snoozedUntil: now.addingTimeInterval(-60)))
+        #expect(AppUpdateChecker.snoozeInterval == 3 * 24 * 60 * 60)
+        #expect(AppUpdateChecker.checkInterval == 24 * 60 * 60)
     }
 
     @Test("The update tools are served over MCP")

@@ -1,7 +1,8 @@
 // Purpose: MCPUpdateTools, the MCP tools that let Claude check for a newer MinuteMind release
 //          (check_for_update) and install it (update_app).
 // Dependencies: Sources/App/Services/AppUpdateService.swift (release lookup, version compare,
-//               installer), Sources/App/ViewModels/AppViewModel.swift (recording and queue state),
+//               installer, install folder), Sources/App/Services/AppUpdateChecker.swift
+//               (AppViewModel.updateBlockedReason, shared with the update dialog),
 //               Sources/App/Services/ToolError (ToolExecutor.swift)
 // Used by: Sources/App/Services/MCP/MinuteMindMCPServer.swift
 // RBAC: none inside the app; every MCP client holding the bearer token may update the app. The
@@ -57,39 +58,25 @@ struct MCPUpdateTools {
     }
 
     private func update() async throws -> String {
-        if let busy = busyReason() {
+        if let busy = appViewModel.updateBlockedReason {
             throw ToolError.invalidArguments("Not now: \(busy). Try again once it has finished.")
         }
-        guard let folder = AppUpdateService.installFolder else {
-            throw ToolError.invalidArguments(
-                "This MinuteMind is a development build, not an installed app. Install the release with: \(AppUpdateService.installCommand)")
+        guard AppUpdateService.installFolder != nil else {
+            throw ToolError.invalidArguments(AppUpdateService.UpdateError.developmentBuild.localizedDescription)
         }
         let installed = AppUpdateService.installedVersion
         let release = try await AppUpdateService.latestRelease()
         guard AppUpdateService.isNewer(release.version, than: installed) else {
             return "MinuteMind \(installed) is up to date (latest release: \(release.version))."
         }
-        guard FileManager.default.isWritableFile(atPath: folder.path) else {
-            throw ToolError.invalidArguments(
-                "MinuteMind cannot write to \(folder.path). Update in Terminal with: \(AppUpdateService.installCommand)")
+        let folder: URL
+        do {
+            folder = try AppUpdateService.writableInstallFolder()
+        } catch {
+            throw ToolError.invalidArguments(error.localizedDescription)
         }
-        try AppUpdateService.startInstaller(into: folder, logFile: Self.logFile)
-        return "Updating MinuteMind \(installed) to \(release.version). MinuteMind quits in a few seconds and opens again when the new version is installed (usually under a minute). The installer's output goes to \(Self.logFile.path)."
-    }
-
-    /// Why the app must not quit right now, nil when it may.
-    private func busyReason() -> String? {
-        if appViewModel.isRecording { return "a recording is running" }
-        if appViewModel.transcriptionQueue.currentJob != nil || appViewModel.transcriptionQueue.pendingCount > 0 {
-            return "a transcription is running"
-        }
-        if !appViewModel.processingStage.isEmpty { return "a meeting is being processed" }
-        return nil
-    }
-
-    private static var logFile: URL {
-        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return support.appendingPathComponent("MinuteMind/update.log")
+        try AppUpdateService.startInstaller(into: folder, logFile: AppUpdateService.logFile)
+        return "Updating MinuteMind \(installed) to \(release.version). MinuteMind quits in a few seconds and opens again when the new version is installed (usually under a minute). The installer's output goes to \(AppUpdateService.logFile.path)."
     }
 
     private func json(_ object: Any) throws -> String {

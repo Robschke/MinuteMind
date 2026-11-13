@@ -3,7 +3,8 @@
 //          and opens the new version.
 // Dependencies: install.sh at the repository root (download, quit, replace, reopen),
 //               GitHub's releases API for Robschke/MinuteMind (tag "v<version>", asset MinuteMind.zip)
-// Used by: Sources/App/Services/MCP/MCPUpdateTools.swift (check_for_update, update_app)
+// Used by: Sources/App/Services/MCP/MCPUpdateTools.swift (check_for_update, update_app),
+//          Sources/App/Services/AppUpdateChecker.swift (automatic check and update dialog)
 // Notes: The installer runs as a separate bash process so it survives MinuteMind quitting; it
 //        starts after a short sleep so the MCP reply reaches the client first. It installs into
 //        the folder the running app lives in (MINUTEMIND_INSTALL_DIR), so an app in
@@ -29,13 +30,25 @@ enum AppUpdateService {
     enum UpdateError: LocalizedError {
         case noRelease
         case badResponse(Int)
+        case developmentBuild
+        case folderNotWritable(String)
 
         var errorDescription: String? {
             switch self {
             case .noRelease: "No MinuteMind release was found on GitHub."
             case .badResponse(let status): "GitHub answered with HTTP \(status) when asked for the latest release."
+            case .developmentBuild:
+                "This MinuteMind is a development build, not an installed app. Install the release with: \(AppUpdateService.installCommand)"
+            case .folderNotWritable(let path):
+                "MinuteMind cannot write to \(path). Update in Terminal with: \(AppUpdateService.installCommand)"
             }
         }
+    }
+
+    /// Where the installer writes its output.
+    static var logFile: URL {
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        return support.appendingPathComponent("MinuteMind/update.log")
     }
 
     /// The version of the running app (CFBundleShortVersionString), "dev" outside an app bundle.
@@ -47,6 +60,15 @@ enum AppUpdateService {
     static var installFolder: URL? {
         let bundle = Bundle.main.bundleURL
         return bundle.pathExtension == "app" ? bundle.deletingLastPathComponent() : nil
+    }
+
+    /// The running app's folder when the installer may replace the app there.
+    static func writableInstallFolder() throws -> URL {
+        guard let folder = installFolder else { throw UpdateError.developmentBuild }
+        guard FileManager.default.isWritableFile(atPath: folder.path) else {
+            throw UpdateError.folderNotWritable(folder.path)
+        }
+        return folder
     }
 
     static func latestRelease(session: URLSession = .shared) async throws -> Release {

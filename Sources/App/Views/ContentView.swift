@@ -5,6 +5,7 @@ struct ContentView: View {
     @Environment(\.openWindow) private var openWindow
     @State private var sidebarVisibility: NavigationSplitViewVisibility = .all
     @State private var isFullScreen = false
+    @State private var updateChecker = AppUpdateChecker.shared
 
     /// Full screen hides the toolbar's sidebar button; the page then offers its own way back.
     private var showsSidebarCornerButton: Bool {
@@ -72,6 +73,19 @@ struct ContentView: View {
                 .frame(width: 360)
             }
         }
+        // A newer release, offered only while nothing records or processes (AppUpdateChecker).
+        .onAppear {
+            let model = self.viewModel
+            AppUpdateChecker.shared.start { [weak model] in
+                guard let model else { return true }
+                return model.updateBlockedReason != nil || OnboardingFlow.shared.isActive
+            }
+        }
+        .sheet(isPresented: updateSheetBinding()) {
+            if let release = updateChecker.offeredRelease {
+                AppUpdateSheet(release: release, checker: updateChecker)
+            }
+        }
         .alert("Recording Consent Required", isPresented: $viewModel.showTeamsConsentInfo) {
             Button("I Understand", role: .cancel) {}
         } message: {
@@ -126,6 +140,18 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    /// Shown while the checker offers a release; closing it any other way counts as Later.
+    private func updateSheetBinding() -> Binding<Bool> {
+        Binding(
+            get: { updateChecker.offeredRelease != nil },
+            set: { shown in
+                if !shown, updateChecker.offeredRelease != nil, !updateChecker.isUpdating {
+                    updateChecker.later()
+                }
+            }
+        )
     }
 
     private func bindingForError() -> Binding<Bool> {
