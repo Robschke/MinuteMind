@@ -348,7 +348,7 @@ struct MeetingPillView: View {
     }
 
     /// The project list scrolled over the companion while recording: the selection in the middle
-    /// with its colour, two neighbours above and below fading out (the list wraps, so they are
+    /// with its creature, two neighbours above and below fading out (the list wraps, so they are
     /// always there with three or more entries), and a line that drains until the selection is
     /// taken. Once taken it shrinks to one confirming row. Fixed height while scrolling, so the
     /// panel does not jump with every step.
@@ -358,7 +358,7 @@ struct MeetingPillView: View {
                 HStack(spacing: 8) {
                     Image(systemName: model.companionMode ? "checkmark.square.fill" : "checkmark.circle.fill")
                         .font(.system(size: 14))
-                        .foregroundStyle(item.colorHex.map { Color(hex: $0) } ?? PillStyle.secondaryText)
+                        .foregroundStyle(PillStyle.secondaryText)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(item.isLater ? "Later" : item.projectID == nil ? "No project" : "Filed to \(item.name)")
@@ -420,11 +420,7 @@ struct MeetingPillView: View {
             model.projectWheelPick(index)
         } label: {
             HStack(spacing: 8) {
-                let dot = item?.colorHex.map { Color(hex: $0) } ?? Color.primary.opacity(0.25)
-                Group {
-                    if pixel { Rectangle().fill(dot) } else { Circle().fill(dot) }
-                }
-                .frame(width: 8, height: 8)
+                projectMark(item)
                 Text(item?.name ?? "")
                     .font(.system(size: offset == 0 ? 13 : 12, weight: offset == 0 ? .semibold : .regular))
                     .lineLimit(1)
@@ -993,7 +989,7 @@ struct MeetingPillView: View {
                             model.chooseProject(sessionID, item)
                         } label: {
                             HStack(spacing: 6) {
-                                projectDot(item.colorHex)
+                                projectMark(item)
                                 Text(item.name).lineLimit(1).truncationMode(.tail).frame(maxWidth: 96, alignment: .leading)
                             }
                         }
@@ -1015,14 +1011,19 @@ struct MeetingPillView: View {
         .accessibilityElement(children: .contain)
     }
 
-    /// A project's colour mark: square beside the companion, round otherwise.
-    private func projectDot(_ colorHex: String?) -> some View {
-        let color = colorHex.map { Color(hex: $0) } ?? Color.primary.opacity(0.25)
-        return Group {
-            if model.companionMode { Rectangle().fill(color) } else { Circle().fill(color) }
+    /// A project's creature (AppViewModel.projectAvatar); "No Project" and "Later" get a plain
+    /// dot, square beside the companion, round otherwise.
+    @ViewBuilder
+    private func projectMark(_ item: ProjectWheel.Item?) -> some View {
+        if let avatar = item?.avatar {
+            ProjectCreatureMark(avatar: avatar, color: item?.avatarColor, pixelSize: 1)
+        } else {
+            Group {
+                if model.companionMode { Rectangle().fill(Color.primary.opacity(0.25)) } else { Circle().fill(Color.primary.opacity(0.25)) }
+            }
+            .frame(width: 8, height: 8)
+            .accessibilityHidden(true)
         }
-        .frame(width: 8, height: 8)
-        .accessibilityHidden(true)
     }
 
     /// Opens the project wheel (the same list as scrolling over the companion) for this recording:

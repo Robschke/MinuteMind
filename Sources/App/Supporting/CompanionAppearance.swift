@@ -5,7 +5,8 @@
 //               Sources/App/Components/DesignSystem.swift (accent)
 // Used by: Sources/App/Supporting/CompanionPlacement.swift (sizes), Sources/App/Views/CompanionView.swift
 //          and Sources/App/Components/PillPixelStyle.swift (colour), Sources/App/Supporting/
-//          CompanionController.swift (resizes its panels), Sources/App/Views/AppearanceSettingsView.swift
+//          CompanionController.swift (resizes its panels), Sources/App/Views/AppearanceSettingsView.swift,
+//          Sources/App/ViewModels/AppViewModel+Companion.swift (projectBodyColor: project creatures)
 // Notes: User request 2026-10-13: size and colour adjustable in Settings, Appearance; a choice of
 //        other creatures may follow later. Sizes are whole-point pixels (2, 3, 4 pt) so the pixel
 //        art stays crisp; 3 pt is the size the creature was designed at. One colour for light and
@@ -161,6 +162,16 @@ final class CompanionAppearance {
     /// An avatar's body colour: the own colour, else its natural one, else the theme's accent.
     func bodyColor(for avatar: MascotAvatar) -> Color {
         if let hex = customColor ?? avatar.naturalBody { return Color(nsColor: ThemeColor.srgb(hex)) }
+        return DesignSystem.Colors.accent
+    }
+
+    /// A project creature's body colour: the project's avatar colour (`#RRGGBB`), else the
+    /// avatar's natural one, else the theme's accent. Never the user's own colour from Settings,
+    /// which stays the home companion's. Every view drawing a project's creature takes it from
+    /// here (through AppViewModel.projectAvatar / companionMark and CompanionController).
+    static func projectBodyColor(_ avatar: MascotAvatar, hex: String?) -> Color {
+        if let hex { return Color(hex: hex) }
+        if let natural = avatar.naturalBody { return Color(nsColor: ThemeColor.srgb(natural)) }
         return DesignSystem.Colors.accent
     }
 }

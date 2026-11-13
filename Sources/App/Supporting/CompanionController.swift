@@ -1408,18 +1408,16 @@ final class CompanionController {
         let pairs = sessions.map { (projectID: $0.projectID, status: $0.status) }
         let home = CompanionAppearance.shared.avatar
         castProjects = CompanionCast.projectMembers(
-            projects: viewModel.projects.sorted(by: Project.isOrderedBefore), sessions: pairs, homeAvatar: home)
+            projects: viewModel.projects.sorted(by: Project.isOrderedBefore), sessions: pairs)
         castHome = CompanionCast.homeMember(avatar: home, projectMembers: castProjects, sessions: pairs)
         let members = castProjects, busy = homeBusy
         changeFront { $0.update(members: members, homeBusy: busy, now: now) }
     }
 
-    /// A project creature's body colour: the project's colour where CompanionCast asks for it,
-    /// else its avatar's natural one (never the user's own colour, which is the home companion's).
+    /// A project creature's body colour: its avatar colour, else the avatar's natural one (never
+    /// the user's own colour, which is the home companion's).
     private static func bodyColor(of member: CompanionCastMember) -> Color {
-        if let hex = member.colorHex { return Color(hex: hex) }
-        if let natural = member.avatar.naturalBody { return Color(nsColor: ThemeColor.srgb(natural)) }
-        return DesignSystem.Colors.accent
+        CompanionAppearance.projectBodyColor(member.avatar, hex: member.colorHex)
     }
 
     private var sidekickMoodSince: [String: (mood: MascotMood, since: Date)] = [:]

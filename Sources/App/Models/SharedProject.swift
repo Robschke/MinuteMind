@@ -37,6 +37,7 @@ struct SharedProjectInfo: Codable, Equatable {
 }
 
 /// `.minutemind/project.json` in a Shared Project's repo (tracked, so every member reads it).
+/// Manifests written by older builds also hold a `colorHex`; it is ignored when read.
 struct SharedProjectManifest: Codable, Equatable {
     struct Member: Codable, Equatable {
         var name: String
@@ -51,7 +52,6 @@ struct SharedProjectManifest: Codable, Equatable {
 
     var projectID: UUID
     var name: String
-    var colorHex: String?
     /// Display name of whoever shared the project first.
     var admin: String
     var members: [Member]

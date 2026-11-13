@@ -1661,7 +1661,7 @@ final class MeetingPillController {
             dictationEnded(); try? await Task.sleep(for: .seconds(1))
             levelTimer?.invalidate()
             setState(.confirmStop(.silence(180))); try? await Task.sleep(for: .seconds(3))
-            setState(.saved(sessionID: UUID(), title: "Weekly Sync", minutes: 32, next: .chooseProject(quick: [.init(projectID: UUID(), name: "Acme", colorHex: "#007AFF"), .init(projectID: UUID(), name: "Phoenix", colorHex: "#FF9500")], all: [], processes: true), secondsLeft: 9))
+            setState(.saved(sessionID: UUID(), title: "Weekly Sync", minutes: 32, next: .chooseProject(quick: [.init(projectID: UUID(), name: "Acme", avatar: .duck), .init(projectID: UUID(), name: "Phoenix", avatar: .lime)], all: [], processes: true), secondsLeft: 9))
             model.countdownProgress = 0.6
             try? await Task.sleep(for: .seconds(3))
             // Shared Projects: filed to one already, then picked on the card.

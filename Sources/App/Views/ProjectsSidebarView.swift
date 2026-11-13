@@ -5,6 +5,8 @@
 // Dependencies: Sources/App/ViewModels/AppViewModel.swift (projects, reorderProjects, setProjectStarred),
 //               Sources/App/Views/CompanionView.swift (StarredProjectMark, MascotCanvas),
 //               Sources/App/Supporting/CompanionCast.swift (firstFreeAvatar for the New Project sheet),
+//               Sources/App/Components/ProjectCompanionChooser.swift (its creature tiles),
+//               Sources/App/Components/ProjectAvatarView.swift (each row's creature),
 //               Sources/App/Views/ProjectSidebarArranging.swift (order maths, wiggle),
 //               Sources/App/Views/SharedProjectSetupViews.swift (name sheet, Join shared form),
 //               Sources/App/Views/SharedProjectStatusViews.swift (SharedProjectMark),
@@ -23,7 +25,8 @@
 //        every drop. A cancelled gesture never calls onEnded, so `gestureActive` cleans up.
 //        No autoscroll yet: a row can only be dragged within the visible part of the list.
 //        General is not a project and stays first, dimmed while arranging.
-//        Right click stars or unstars a project (`setProjectStarred`); a starred row shows the
+//        Right click offers Edit Project… (the settings sheet: name, companion, avatar colour) and
+//        stars or unstars a project (`setProjectStarred`); a starred row shows the
 //        project's own creature in tiny, or the companion's avatar without one (StarredProjectMark) and the project leads the companion's
 //        project wheel (user request 2026-10-28).
 //        Shared Projects: a people mark after the name (orange dot and tooltip on a sync problem);
@@ -38,7 +41,6 @@ struct ProjectsSidebarView: View {
     @Environment(\.fullScreenSidebarControl) private var sidebarControl
     @State private var showingNewProjectSheet = false
     @State private var newProjectName = ""
-    @State private var selectedColor = Project.defaultColors[0]
     /// The new project's creature; preset to a free one each time the sheet opens.
     @State private var newProjectCompanion: MascotAvatar?
     @State private var newProjectMode: NewProjectMode = .create
@@ -498,6 +500,7 @@ struct ProjectsSidebarView: View {
             } else {
                 Button("Star") { viewModel.setProjectStarred(project, true) }
             }
+            Button("Edit Project…") { viewModel.editingProjectID = project.id }
             companionMenu(for: project)
             if !project.isShared, project.id != ProjectRepositoryService.generalProjectID {
                 Button("Make Shared Project…") { makeShared(project) }
@@ -561,8 +564,8 @@ struct ProjectsSidebarView: View {
     }
 
     /// The creature that speaks for the project's Claude sessions beside the desktop companion.
-    /// Avatars already in use are named, not blocked: CompanionCast draws a second one in the
-    /// project's colour.
+    /// Avatars already in use are named, not blocked: an avatar colour in the project settings
+    /// tells two of them apart.
     private func companionMenu(for project: Project) -> some View {
         Menu("Companion") {
             Picker("Companion", selection: Binding(
@@ -581,9 +584,7 @@ struct ProjectsSidebarView: View {
     }
 
     private func companionLabel(_ avatar: MascotAvatar, for project: Project) -> String {
-        if avatar == CompanionAppearance.shared.avatar { return "\(avatar.name) (your companion)" }
-        let others = viewModel.projects.filter { $0.id != project.id && $0.companionCreature == avatar }.map(\.name)
-        return others.isEmpty ? avatar.name : "\(avatar.name) (used by \(others.joined(separator: ", ")))"
+        ProjectCompanionChooser.label(avatar, projectID: project.id, projects: viewModel.projects)
     }
 
     /// Asks for the display name first when none is set (it goes into published folder names).
@@ -678,7 +679,7 @@ struct ProjectsSidebarView: View {
         }
     }
 
-    /// Today's New Project form: name, colour, companion.
+    /// Today's New Project form: name, companion.
     private var createProjectForm: some View {
         VStack(spacing: DesignSystem.Dimensions.spacingXL) {
             VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingS) {
@@ -690,41 +691,6 @@ struct ProjectsSidebarView: View {
                 TextField("Enter project name", text: $newProjectName)
                     .textFieldStyle(.roundedBorder)
                     .font(DesignSystem.Typography.body)
-            }
-
-            VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingM) {
-                Text("COLOR")
-                    .font(DesignSystem.Typography.caption2)
-                    .tracking(0.6)
-                    .foregroundStyle(DesignSystem.Colors.textTertiary)
-                
-                HStack(spacing: DesignSystem.Dimensions.spacingM) {
-                    ForEach(Project.defaultColors, id: \.self) { colorHex in
-                        Button {
-                            selectedColor = colorHex
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(Color(hex: colorHex))
-                                    .frame(width: 32, height: 32)
-                                
-                                if selectedColor == colorHex {
-                                    Circle()
-                                        .strokeBorder(Color.white, lineWidth: 2)
-                                        .frame(width: 32, height: 32)
-                                        .shadow(color: .black.opacity(0.2), radius: 2)
-                                    
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundStyle(.white)
-                                }
-                            }
-                        }
-                        .buttonStyle(.plain)
-                        .scaleEffect(selectedColor == colorHex ? 1.1 : 1.0)
-                        .animation(DesignSystem.Animation.quick, value: selectedColor)
-                    }
-                }
             }
 
             companionChooser
@@ -740,7 +706,7 @@ struct ProjectsSidebarView: View {
                 Spacer()
 
                 Button("Create") {
-                    viewModel.createProject(name: newProjectName, colorHex: selectedColor, companion: newProjectCompanion)
+                    viewModel.createProject(name: newProjectName, companion: newProjectCompanion)
                     showingNewProjectSheet = false
                     newProjectName = ""
                 }
@@ -757,71 +723,16 @@ struct ProjectsSidebarView: View {
             used: Set(viewModel.projects.compactMap(\.companionCreature)), homeAvatar: CompanionAppearance.shared.avatar)
     }
 
-    /// The new project's creature: None, then every avatar as a tile, drawn the way it will stand
-    /// beside the companion (CompanionCast colours, with the chosen project colour).
+    /// The new project's creature, in its natural colour (an avatar colour is picked in the
+    /// project settings).
     private var companionChooser: some View {
-        let draft: Project = {
-            var project = Project(name: newProjectName, colorHex: selectedColor)
-            project.companionAvatar = newProjectCompanion?.rawValue
-            return project
-        }()
-        return VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingM) {
+        VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingM) {
             Text("COMPANION")
                 .font(DesignSystem.Typography.caption2)
                 .tracking(0.6)
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
-
-            HStack(alignment: .top, spacing: DesignSystem.Dimensions.spacingS) {
-                companionTile(nil, draft: draft) {
-                    Text("None")
-                        .font(DesignSystem.Typography.caption1)
-                        .foregroundStyle(DesignSystem.Colors.textSecondary)
-                }
-                LazyVGrid(
-                    columns: Array(repeating: GridItem(.fixed(Self.companionTileSize), spacing: DesignSystem.Dimensions.spacingS), count: 5),
-                    alignment: .leading, spacing: DesignSystem.Dimensions.spacingS
-                ) {
-                    ForEach(MascotAvatar.allCases) { avatar in
-                        companionTile(avatar, draft: draft) {
-                            MascotCanvas(
-                                frame: AssistantMascotPose.frame(.init(mood: .idle, time: 0.05, look: nil, avatar: avatar, animated: false)),
-                                avatar: avatar, pixelSize: 2, bodyColor: tileColor(avatar, draft: draft))
-                        }
-                    }
-                }
-            }
+            ProjectCompanionChooser(selection: $newProjectCompanion)
         }
-    }
-
-    private static let companionTileSize: CGFloat = 40
-
-    /// The colour `avatar` would have on the new project, which lands first in the sidebar.
-    private func tileColor(_ avatar: MascotAvatar, draft: Project) -> Color? {
-        var candidate = draft
-        candidate.companionAvatar = avatar.rawValue
-        return viewModel.companionMark(
-            for: candidate, among: [candidate] + viewModel.projects.sorted(by: Project.isOrderedBefore)).color
-    }
-
-    private func companionTile(_ avatar: MascotAvatar?, draft: Project, @ViewBuilder content: () -> some View) -> some View {
-        let isSelected = newProjectCompanion == avatar
-        return Button {
-            newProjectCompanion = avatar
-        } label: {
-            content()
-                .frame(width: Self.companionTileSize, height: Self.companionTileSize)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isSelected ? DesignSystem.Colors.accent.opacity(0.15) : Color.primary.opacity(0.04)))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(isSelected ? DesignSystem.Colors.accent : Color.primary.opacity(0.1), lineWidth: isSelected ? 2 : 1))
-                .contentShape(RoundedRectangle(cornerRadius: 8))
-        }
-        .buttonStyle(.plain)
-        .help(avatar.map { companionLabel($0, for: draft) } ?? "No companion")
-        .accessibilityLabel(avatar.map { companionLabel($0, for: draft) } ?? "No companion")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
@@ -845,10 +756,7 @@ private struct ProjectRowView: View {
 
     var body: some View {
         HStack(spacing: DesignSystem.Dimensions.spacingS) {
-            Circle()
-                .fill(Color(hex: project.colorHex))
-                .frame(width: 10, height: 10)
-                .shadow(color: Color(hex: project.colorHex).opacity(0.3), radius: 2)
+            ProjectAvatarView(projectID: project.id, pixelSize: 1)
 
             Text(project.name)
                 .font(DesignSystem.Typography.callout)

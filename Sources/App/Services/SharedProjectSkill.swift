@@ -42,7 +42,7 @@ enum SharedProjectSkill {
 
     /// The first prompt of the Claude session that runs the skill.
     static func initialPrompt(
-        projectID: UUID, projectName: String, colorHex: String, displayName: String, folderSuffix: String
+        projectID: UUID, projectName: String, displayName: String, folderSuffix: String
     ) -> String {
         """
         Use the share-project skill (.claude/skills/share-project/SKILL.md) to turn this MinuteMind \
@@ -50,7 +50,6 @@ enum SharedProjectSkill {
 
         Project id: \(projectID.uuidString)
         Project name: \(projectName)
-        Project colour: \(colorHex)
         Display name: \(displayName)
         Folder suffix: \(folderSuffix)
         """
@@ -68,7 +67,7 @@ enum SharedProjectSkill {
 
         The request that started you names:
 
-        - **Project id** (UUID), **project name** and **project colour** (hex)
+        - **Project id** (UUID) and **project name**
         - **Display name**: the user's name as contributor (for example `Robin S.`)
         - **Folder suffix**: the display name as MinuteMind writes it into folder names (for example `robin-s`). Use it exactly as given; never derive your own.
 
@@ -178,7 +177,6 @@ enum SharedProjectSkill {
           "codeRepos" : [
             { "folder" : "<folder in code/>", "url" : "<remote url>" }
           ],
-          "colorHex" : "<project colour>",
           "members" : [
             { "joinedAt" : "2026-11-12T14:05:00Z", "name" : "<display name>" }
           ],

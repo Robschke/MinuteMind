@@ -1,5 +1,5 @@
 /// Epic model for grouping tasks into larger initiatives on the workboard.
-/// Depends on: Project.swift (uses Project.defaultColors palette)
+/// Depends on: Foundation only (its colour palette is its own).
 /// Used by: WorkboardView, EpicManagementSheet, AppViewModel
 
 import Foundation
@@ -18,7 +18,7 @@ struct Epic: Identifiable, Codable, Equatable {
         projectID: UUID,
         title: String,
         summary: String = "",
-        colorHex: String = Project.defaultColors.randomElement() ?? "#007AFF",
+        colorHex: String = Epic.defaultColors.randomElement() ?? "#007AFF",
         sortOrder: Int = 0,
         createdAt: Date = Date()
     ) {
@@ -30,4 +30,16 @@ struct Epic: Identifiable, Codable, Equatable {
         self.sortOrder = sortOrder
         self.createdAt = createdAt
     }
+
+    /// Colour options for epics on the workboard.
+    static let defaultColors: [String] = [
+        "#007AFF", // Blue
+        "#34C759", // Green
+        "#FF9500", // Orange
+        "#FF3B30", // Red
+        "#AF52DE", // Purple
+        "#5856D6", // Indigo
+        "#FF2D55", // Pink
+        "#00C7BE", // Teal
+    ]
 }

@@ -311,18 +311,21 @@ struct WeekCalendarView: View {
         let blockH = max(minimumBlockHeight, yEnd - yStart)
         let isAutoRecord = autoRecordStore.isEnabled(for: event.id)
 
-        let accent = accentColor(for: event)
+        let accent = DesignSystem.Colors.textSecondary
+        let project = appViewModel.project(for: event)
 
         return Button { onEventTap(event) } label: {
             HStack(spacing: 0) {
-                // The project's colour as a bar rather than a fill: it stays legible in both
-                // appearances and does not depend on the contrast of a user-picked colour.
                 RoundedRectangle(cornerRadius: 1.5)
                     .fill(accent)
                     .frame(width: 3)
 
                 VStack(alignment: .leading, spacing: 1) {
                     HStack(spacing: 3) {
+                        // The project's creature tells which project a block belongs to.
+                        if let project {
+                            ProjectAvatarView(projectID: project.id, pixelSize: 1)
+                        }
                         Text(event.title)
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(accent)
@@ -364,15 +367,6 @@ struct WeekCalendarView: View {
         .buttonStyle(.plain)
         .padding(.horizontal, 2)
         .help(event.title)
-    }
-
-    /// Colour for an event: its project's, or a neutral grey when it is not assigned to one.
-    /// Colour therefore means something — you can see at a glance which project a block belongs to.
-    private func accentColor(for event: CalendarEvent) -> Color {
-        guard let project = appViewModel.project(for: event) else {
-            return DesignSystem.Colors.textSecondary
-        }
-        return Color(hex: project.colorHex)
     }
 
     // MARK: - Helpers

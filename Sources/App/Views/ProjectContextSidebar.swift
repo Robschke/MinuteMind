@@ -146,6 +146,11 @@ struct ProjectContextSidebar: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(SidebarHoverButtonStyle())
+        .contextMenu {
+            if projectID != ProjectRepositoryService.generalProjectID {
+                Button("Edit Project…") { viewModel.editingProjectID = projectID }
+            }
+        }
         .help("Back to Home")
         .accessibilityLabel("\(project.name), back to Home")
     }

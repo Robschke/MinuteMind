@@ -752,15 +752,13 @@ struct TranscriptCardWithProject: View {
         } label: {
             if let project = currentProject {
                 HStack(spacing: 4) {
-                    Circle()
-                        .fill(Color(hex: project.colorHex))
-                        .frame(width: 8, height: 8)
+                    ProjectAvatarView(projectID: project.id, pixelSize: 1)
                     Text(project.name)
                         .font(.caption)
                 }
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Color(hex: project.colorHex).opacity(0.15))
+                .background(Color.primary.opacity(0.06))
                 .cornerRadius(4)
             } else {
                 Label("Assign to Project", systemImage: "folder.badge.plus")
@@ -777,9 +775,6 @@ struct TranscriptCardWithProject: View {
             assignToProject(project.id)
         } label: {
             HStack {
-                Circle()
-                    .fill(Color(hex: project.colorHex))
-                    .frame(width: 8, height: 8)
                 Text(project.name)
                 if isCurrent {
                     Image(systemName: "checkmark")

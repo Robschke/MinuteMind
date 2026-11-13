@@ -28,7 +28,6 @@ struct ProjectStorageUsage: Identifiable {
     /// Project UUID, or nil for recordings without a project.
     let projectID: UUID?
     let name: String
-    let colorHex: String?
     var totalBytes: Int64
     var recordingCount: Int
 
@@ -139,7 +138,6 @@ enum StorageAnalyzer {
                 perProject[key] = ProjectStorageUsage(
                     projectID: key,
                     name: project?.name ?? "Unassigned",
-                    colorHex: project?.colorHex,
                     totalBytes: sessionBytes,
                     recordingCount: 1
                 )

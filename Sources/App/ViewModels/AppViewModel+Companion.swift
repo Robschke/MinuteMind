@@ -1,7 +1,8 @@
 // Purpose: What the desktop companion asks of the app: open the Claude (General) window, bring a
 //          Claude session forward, find every window with a running Claude session, tell whether
 //          the user is looking at a session right now, and the projects its scroll wheel offers
-//          for the running recording.
+//          for the running recording. Also how a project's creature looks (projectAvatar,
+//          companionMark), the one place every view takes it from.
 // Dependencies: Sources/App/ViewModels/AppViewModel.swift (openWindowAction, navigation flags,
 //               requestedProjectTab), Sources/App/Supporting/WorkspaceTerminalStore.swift (sessions,
 //               strips and the views showing them)
@@ -24,31 +25,42 @@ extension AppViewModel {
     /// order), General, and last "No Project" during a recording, "Later" while the saved card asks
     /// for a project, nothing when it changes a filed one. The list wraps, so that last entry sits
     /// right above the starred ones.
-    /// A project's creature for its starred mark: its own (in the colour CompanionCast gives it)
-    /// or nil without one (the mark is a star then).
+    /// A project's creature for its starred mark: its own (in its avatar colour) or nil without
+    /// one (the mark is a star then).
     func companionMark(for project: Project) -> (avatar: MascotAvatar?, color: Color?) {
-        companionMark(for: project, among: projects.sorted(by: Project.isOrderedBefore))
+        guard let avatar = project.companionCreature else { return (nil, nil) }
+        return (avatar, CompanionAppearance.projectBodyColor(avatar, hex: project.avatarColorHex))
     }
 
-    /// `ordered`: the projects in the sidebar's order, `project` among them (a project not yet
-    /// created goes first, where a new one lands).
-    func companionMark(for project: Project, among ordered: [Project]) -> (avatar: MascotAvatar?, color: Color?) {
-        guard let avatar = project.companionCreature else { return (nil, nil) }
-        let hex = CompanionCast.colorHex(of: project, among: ordered, homeAvatar: CompanionAppearance.shared.avatar)
-        if let hex { return (avatar, Color(hex: hex)) }
-        return (avatar, avatar.naturalBody.map { Color(nsColor: ThemeColor.srgb($0)) })
+    /// A project's creature as every view draws it (Home, the sidebars, the switcher, lists, the
+    /// calendar, the pill): its own creature, a Blob without one; the body in the avatar colour,
+    /// else the creature's natural colour. General shows the home companion in its own colour
+    /// (nil: MascotCanvas then takes the colour from Settings).
+    func projectAvatar(for projectID: UUID) -> (avatar: MascotAvatar, color: Color?) {
+        if projectID == ProjectRepositoryService.generalProjectID { return (CompanionAppearance.shared.avatar, nil) }
+        guard let project = projects.first(where: { $0.id == projectID }) else {
+            return (.blob, CompanionAppearance.projectBodyColor(.blob, hex: nil))
+        }
+        return Self.projectAvatar(of: project)
+    }
+
+    /// `projectAvatar(for:)` for a project value, also one not saved yet (the settings sheet's preview).
+    static func projectAvatar(of project: Project) -> (avatar: MascotAvatar, color: Color) {
+        let avatar = project.companionCreature ?? .blob
+        return (avatar, CompanionAppearance.projectBodyColor(avatar, hex: project.avatarColorHex))
     }
 
     func projectWheelItems(tail: WheelTail = .noProject) -> [ProjectWheel.Item] {
         let ordered = projects.filter { $0.isStarred == true } + projects.filter { $0.isStarred != true }
         return ordered.map {
             let mark = companionMark(for: $0)
+            let look = Self.projectAvatar(of: $0)
             return ProjectWheel.Item(
-                projectID: $0.id, name: $0.name, colorHex: $0.colorHex, isStarred: $0.isStarred == true,
-                markAvatar: mark.avatar, markColor: mark.color)
+                projectID: $0.id, name: $0.name, avatar: look.avatar, avatarColor: look.color,
+                isStarred: $0.isStarred == true, markAvatar: mark.avatar, markColor: mark.color)
         }
             + [.init(projectID: ProjectRepositoryService.generalProjectID, name: "General",
-                     colorHex: ProjectRepositoryService.generalProject.colorHex)]
+                     avatar: CompanionAppearance.shared.avatar)]
             + {
                 switch tail {
                 case .noProject: return [.init(projectID: nil, name: "No Project")]

@@ -9,8 +9,8 @@ import Testing
 
 @Suite("CompanionCast Tests")
 struct CompanionCastTests {
-    private func project(_ name: String, _ avatar: MascotAvatar?, color: String = "#FF0000") -> Project {
-        var project = Project(name: name, colorHex: color)
+    private func project(_ name: String, _ avatar: MascotAvatar?, color: String? = nil) -> Project {
+        var project = Project(name: name, avatarColorHex: color)
         project.companionAvatar = avatar?.rawValue
         return project
     }
@@ -28,7 +28,7 @@ struct CompanionCastTests {
         let sessions: [(projectID: UUID, status: TerminalSessionStatus)] = [
             (lime.id, .waiting), (duck.id, .working), (none.id, .error), (duck.id, .done),
         ]
-        let members = CompanionCast.projectMembers(projects: [duck, lime, none, idle], sessions: sessions, homeAvatar: .blob)
+        let members = CompanionCast.projectMembers(projects: [duck, lime, none, idle], sessions: sessions)
         #expect(members.map(\.name) == ["A", "B"])
         #expect(members.map(\.status) == [.working, .waiting])
         // Natural colours for both.
@@ -38,31 +38,19 @@ struct CompanionCastTests {
         #expect(home.projectID == nil && home.status == .error)
     }
 
-    @Test("Blob, a shared avatar and the home avatar take the project colour")
+    @Test("A creature takes its project's avatar colour, else its natural one")
     func colours() {
         let blob = project("A", .blob, color: "#111111"), duck1 = project("B", .duck), duck2 = project("C", .duck, color: "#222222")
-        let cat = project("D", .cat, color: "#333333")
-        let sessions = [blob, duck1, duck2, cat].map { (projectID: $0.id, status: TerminalSessionStatus.idle) }
-        let members = CompanionCast.projectMembers(projects: [blob, duck1, duck2, cat], sessions: sessions, homeAvatar: .cat)
-        #expect(members.map(\.colorHex) == ["#111111", nil, "#222222", "#333333"])
-    }
-
-    @Test("A creature keeps its colour whether or not earlier projects run sessions")
-    func stableColour() {
-        let first = project("A", .duck), second = project("B", .duck, color: "#444444"), none = project("C", nil)
-        // Only B runs a session: it still takes its project colour, as in its starred mark.
-        let members = CompanionCast.projectMembers(
-            projects: [first, second, none], sessions: [(second.id, .working)], homeAvatar: .blob)
-        #expect(members.map(\.colorHex) == ["#444444"])
-        #expect(CompanionCast.colorHex(of: first, among: [first, second], homeAvatar: .blob) == nil)
-        #expect(CompanionCast.colorHex(of: none, among: [first, none], homeAvatar: .blob) == nil)
+        let sessions = [blob, duck1, duck2].map { (projectID: $0.id, status: TerminalSessionStatus.idle) }
+        let members = CompanionCast.projectMembers(projects: [blob, duck1, duck2], sessions: sessions)
+        #expect(members.map(\.colorHex) == ["#111111", nil, "#222222"])
     }
 
     @Test("At most five project creatures; the rest is the home companion's")
     func cap() {
         let projects = (0..<7).map { project("P\($0)", .duck) }
         let sessions = projects.map { (projectID: $0.id, status: TerminalSessionStatus.waiting) }
-        let members = CompanionCast.projectMembers(projects: projects, sessions: sessions, homeAvatar: .blob)
+        let members = CompanionCast.projectMembers(projects: projects, sessions: sessions)
         #expect(members.count == CompanionCast.maxSidekicks)
         #expect(CompanionCast.homeMember(avatar: .blob, projectMembers: members, sessions: sessions).status == .waiting)
     }

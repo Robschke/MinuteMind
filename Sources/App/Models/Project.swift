@@ -1,10 +1,26 @@
+// Purpose: The project model (Project), plus the task model (ProjectTask) and its status and
+//          priority enums, all persisted in projects.json / tasks.json by ProjectStore.
+// Dependencies: Sources/App/Supporting/MascotAvatar.swift (companionCreature),
+//               Sources/App/Models/SharedProject.swift (SharedProjectInfo)
+// Dependents: Sources/App/Models/ProjectAvatarColorMigration.swift (legacyColorHex)
+// Notes: Project has hand-written Codable for the avatar colour: files from before it carry a
+//        project colour (`colorHex`) that the migration turns into an avatar colour where the
+//        creature showed it. `colorHex` is still written (the avatar colour, or grey) because
+//        older builds fail to read projects.json without it and would start with no projects.
+
 import Foundation
 
 /// A project that groups recordings and tasks together
 struct Project: Identifiable, Codable, Equatable {
     let id: UUID
     var name: String
-    var colorHex: String
+    /// The body colour of the project's creature (`#RRGGBB`, picked in the project settings).
+    /// nil = Default: the creature's natural colour (the theme's accent for the Blob). Projects
+    /// carry no colour of their own; the creature is what identifies them.
+    var avatarColorHex: String? = nil
+    /// The project colour of a file written before avatar colours, until
+    /// `ProjectAvatarColorMigration` turns it into `avatarColorHex`. Never set otherwise.
+    var legacyColorHex: String? = nil
     var createdAt: Date
     var updatedAt: Date
     /// Optional project start date for timeline tracking
@@ -42,7 +58,7 @@ struct Project: Identifiable, Codable, Equatable {
     init(
         id: UUID = UUID(),
         name: String,
-        colorHex: String = Project.defaultColors.randomElement() ?? "#007AFF",
+        avatarColorHex: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         startDate: Date? = nil,
@@ -53,7 +69,7 @@ struct Project: Identifiable, Codable, Equatable {
     ) {
         self.id = id
         self.name = name
-        self.colorHex = colorHex
+        self.avatarColorHex = avatarColorHex
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.startDate = startDate
@@ -78,18 +94,64 @@ struct Project: Identifiable, Codable, Equatable {
     var isExportConfigured: Bool {
         exportOptOut == true || !(exportFolderPath ?? "").isEmpty
     }
-    
-    /// Predefined color options for projects
-    static let defaultColors: [String] = [
-        "#007AFF", // Blue
-        "#34C759", // Green
-        "#FF9500", // Orange
-        "#FF3B30", // Red
-        "#AF52DE", // Purple
-        "#5856D6", // Indigo
-        "#FF2D55", // Pink
-        "#00C7BE", // Teal
-    ]
+}
+
+// MARK: - Coding
+
+extension Project {
+    private enum CodingKeys: String, CodingKey {
+        case id, name, avatarColorHex, colorHex, createdAt, updatedAt, startDate, targetDate
+        case autoAcceptExtractedTasks, exportFolderPath, exportOptOut, sortOrder, isStarred
+        case companionAvatar, shared
+    }
+
+    /// Written as `colorHex` while the avatar colour is Default, only for older builds.
+    static let olderBuildsColorHex = "#8E8E93"
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        // The key (even as null) marks a file written with avatar colours; without it, `colorHex`
+        // is an old project colour waiting for the migration.
+        if container.contains(.avatarColorHex) {
+            avatarColorHex = try container.decodeIfPresent(String.self, forKey: .avatarColorHex)
+        } else {
+            legacyColorHex = try container.decodeIfPresent(String.self, forKey: .colorHex)
+        }
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        startDate = try container.decodeIfPresent(Date.self, forKey: .startDate)
+        targetDate = try container.decodeIfPresent(Date.self, forKey: .targetDate)
+        autoAcceptExtractedTasks = try container.decodeIfPresent(Bool.self, forKey: .autoAcceptExtractedTasks)
+        exportFolderPath = try container.decodeIfPresent(String.self, forKey: .exportFolderPath)
+        exportOptOut = try container.decodeIfPresent(Bool.self, forKey: .exportOptOut)
+        sortOrder = try container.decodeIfPresent(Int.self, forKey: .sortOrder)
+        isStarred = try container.decodeIfPresent(Bool.self, forKey: .isStarred)
+        companionAvatar = try container.decodeIfPresent(String.self, forKey: .companionAvatar)
+        shared = try container.decodeIfPresent(SharedProjectInfo.self, forKey: .shared)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        // Always written, null for Default: its presence tells the decoder the file is migrated.
+        try container.encode(avatarColorHex, forKey: .avatarColorHex)
+        // Older builds require `colorHex` and would read no project at all without it.
+        try container.encode(avatarColorHex ?? legacyColorHex ?? Self.olderBuildsColorHex, forKey: .colorHex)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(startDate, forKey: .startDate)
+        try container.encodeIfPresent(targetDate, forKey: .targetDate)
+        try container.encodeIfPresent(autoAcceptExtractedTasks, forKey: .autoAcceptExtractedTasks)
+        try container.encodeIfPresent(exportFolderPath, forKey: .exportFolderPath)
+        try container.encodeIfPresent(exportOptOut, forKey: .exportOptOut)
+        try container.encodeIfPresent(sortOrder, forKey: .sortOrder)
+        try container.encodeIfPresent(isStarred, forKey: .isStarred)
+        try container.encodeIfPresent(companionAvatar, forKey: .companionAvatar)
+        try container.encodeIfPresent(shared, forKey: .shared)
+    }
 }
 
 /// Board column position for kanban workflow

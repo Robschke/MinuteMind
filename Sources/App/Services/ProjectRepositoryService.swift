@@ -66,7 +66,7 @@ final class ProjectRepositoryService {
     /// The workspace for processed meetings without a project. Not a real project: it never shows
     /// in project lists, only as "General" in the sidebar.
     static let generalProjectID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
-    static let generalProject = Project(id: generalProjectID, name: "General", colorHex: "#8E8E93")
+    static let generalProject = Project(id: generalProjectID, name: "General")
 
     static func isGeneral(_ project: Project) -> Bool { project.id == generalProjectID }
 

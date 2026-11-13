@@ -256,7 +256,7 @@ private struct InboxRow: View {
     private var projectMarker: some View {
         Group {
             if let project {
-                Circle().fill(Color(hex: project.colorHex)).frame(width: 8, height: 8)
+                ProjectAvatarView(projectID: project.id, pixelSize: 1)
             } else {
                 Image(systemName: "questionmark.folder")
                     .font(.system(size: 11))

@@ -273,9 +273,6 @@ struct AllTasksView: View {
                                 }
                             } label: {
                                 HStack {
-                                    Circle()
-                                        .fill(Color(hex: project.colorHex))
-                                        .frame(width: 8, height: 8)
                                     Text(project.name)
                                     if selectedProjectIDs.contains(project.id) {
                                         Image(systemName: "checkmark")
@@ -334,9 +331,7 @@ struct AllTasksView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 if let project = project {
-                    Circle()
-                        .fill(Color(hex: project.colorHex))
-                        .frame(width: 10, height: 10)
+                    ProjectAvatarView(projectID: project.id, pixelSize: 1)
                     
                     Text(project.name)
                         .font(.headline)
@@ -494,15 +489,13 @@ private struct AllTasksRowView: View {
                     if let project = project {
                         Button(action: onProjectTap) {
                             HStack(spacing: 4) {
-                                Circle()
-                                    .fill(Color(hex: project.colorHex))
-                                    .frame(width: 7, height: 7)
+                                ProjectAvatarView(projectID: project.id, pixelSize: 1)
                                 Text(project.name)
                                     .font(DesignSystem.Typography.caption1)
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
-                            .background(Color(hex: project.colorHex).opacity(0.12))
+                            .background(Color.primary.opacity(0.06))
                             .clipShape(Capsule())
                         }
                         .buttonStyle(.plain)
