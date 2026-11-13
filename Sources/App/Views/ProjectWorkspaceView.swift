@@ -30,6 +30,13 @@
 //        that header); its selection drives the editor here: a click on a text or Markdown file
 //        shows it (multi-select with Shift/Cmd opens nothing). The open file's disk state is
 //        checked every second.
+//        Below the file, Claude can be minimized to its tab strip: dragging the divider down
+//        until Claude would keep less than half its minimum height snaps it into the strip,
+//        dragging back above that point brings it up at the dragged height. A click on a tab, a
+//        double click on the strip's free space or on the divider, a placement button, a new
+//        session and tabs coming back from windows bring it back too. There is no minimize
+//        button. Remembered for every project (`mm.workspaceClaudeMinimized`); beside the file
+//        or with no file open it has no effect.
 
 import AppKit
 import SwiftUI
@@ -52,7 +59,12 @@ struct ProjectWorkspaceView: View {
     @AppStorage("mm.workspaceClaudeBelow") private var claudeBelow = true
     /// Height of the file above Claude in the "below" layout, remembered (default 360 pt).
     @AppStorage("mm.workspaceEditorHeight") private var editorHeight: Double = ProjectWorkspaceView.defaultEditorHeight
+    /// Claude below the file folded down to its tab strip, the same for every project.
+    @AppStorage("mm.workspaceClaudeMinimized") private var claudeMinimized = false
     @State private var dragStartWidth: Double?
+    /// The file's remembered height when a drag of the row divider began, restored when the
+    /// drag minimizes Claude, so bringing it back returns to the height before the drag.
+    @State private var dragStartEditorHeight: Double?
     @Environment(\.openWindow) private var openWindow
 
     private static let defaultTreeWidth: Double = 240
@@ -69,6 +81,8 @@ struct ProjectWorkspaceView: View {
     /// No tab left in the workspace's own strip (all in windows, or all closed): the file takes
     /// the whole width and a bar offers the way back.
     private var isPoppedOut: Bool { sessions.isEmpty && terminals.hasStarted(project.id) }
+    /// Claude is shown minimized: only below an open file, while its strip has tabs.
+    private var showsMinimized: Bool { claudeMinimized && claudeBelow && editor.document != nil && !isPoppedOut }
 
     var body: some View {
         // A hand-made split: HSplitView ignores the preferred width and gives the tree half the window.
@@ -81,6 +95,9 @@ struct ProjectWorkspaceView: View {
             // Below: the file keeps 160 pt, Claude keeps its minimum height.
             let heightRoom = proxy.size.height - 1 - Self.minTerminalHeight
             let shownEditorHeight = max(160, min(editorHeight, heightRoom))
+            // Minimized, Claude keeps only its tab strip and the file takes the rest.
+            let minimizedEditorHeight = max(160, proxy.size.height - 1 - WorkspaceTerminalPane.tabStripHeight)
+            let restoredTerminalHeight = proxy.size.height - 1 - shownEditorHeight
             HStack(spacing: 0) {
                 if treeCollapsed {
                     treeRail
@@ -110,9 +127,11 @@ struct ProjectWorkspaceView: View {
                 } else if let document, claudeBelow {
                     VStack(spacing: 0) {
                         editorPane(document)
-                            .frame(height: shownEditorHeight)
-                        rowDivider(height: $editorHeight, shown: shownEditorHeight, range: 160...max(160, heightRoom))
-                        terminalPane
+                            .frame(height: showsMinimized ? minimizedEditorHeight : shownEditorHeight)
+                        rowDivider(
+                            shown: showsMinimized ? minimizedEditorHeight : shownEditorHeight,
+                            room: max(160, heightRoom))
+                        terminalPane(restoredHeight: restoredTerminalHeight)
                     }
                 } else {
                     if let document {
@@ -122,7 +141,7 @@ struct ProjectWorkspaceView: View {
                             width: $editorWidth, shown: shownEditorWidth, range: 320...max(320, room),
                             defaultWidth: Self.defaultEditorWidth, label: "File width")
                     }
-                    terminalPane
+                    terminalPane(restoredHeight: restoredTerminalHeight)
                 }
             }
         }
@@ -132,6 +151,10 @@ struct ProjectWorkspaceView: View {
             editorHintSeen = true
         }
         .onDisappear { editor.save() }
+        // Tabs coming back from windows bring a minimized Claude up with them.
+        .onChange(of: isPoppedOut) { was, now in
+            if was, !now { claudeMinimized = false }
+        }
         .task(id: project.id) {
             viewModel.projectRepositories.ensureRepository(for: project)
             // Outside `body`: creating a terminal (and launching Claude) during a render caused
@@ -174,8 +197,10 @@ struct ProjectWorkspaceView: View {
         .id(document.url)
     }
 
+    /// The workspace's strip of sessions. `restoredHeight` is how tall it is when not minimized,
+    /// so moving a minimized Claude into a window opens the window at that height.
     @ViewBuilder
-    private var terminalPane: some View {
+    private func terminalPane(restoredHeight: Double) -> some View {
         if sessions.isEmpty {
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
@@ -185,9 +210,11 @@ struct ProjectWorkspaceView: View {
                     switch mode {
                     case .beside: claudeBelow = false
                     case .below: claudeBelow = true
-                    case .window: popOut()
+                    case .window: popOut(restoredHeight: restoredHeight)
                     }
-                })
+                    claudeMinimized = false
+                },
+                restoreFromMinimized: showsMinimized ? { claudeMinimized = false } : nil)
             .frame(minWidth: 360, maxWidth: .infinity)
         }
     }
@@ -224,31 +251,56 @@ struct ProjectWorkspaceView: View {
     }
 
     /// Moves every tab of the workspace into one new window, opened over the strip it leaves
-    /// so the panes keep their arrangement and room.
-    private func popOut() {
-        let frame = terminals.windowFrame(over: project.id)
+    /// so the panes keep their arrangement and room. A minimized strip is only its tab bar, so
+    /// the window grows upward to the height Claude has when brought back.
+    private func popOut(restoredHeight: Double) {
+        var frame = terminals.windowFrame(over: project.id)
+        if showsMinimized, let shown = frame {
+            frame = NSRect(
+                x: shown.minX, y: shown.minY, width: shown.width,
+                height: shown.height + max(0, restoredHeight - WorkspaceTerminalPane.tabStripHeight))
+        }
         if let windowID = terminals.tearOff(sessions.map(\.id), from: project.id, frame: frame) {
             openWindow(id: "workspace-claude", value: windowID)
         }
     }
 
-    /// Horizontal divider between the file and Claude below it; drags change the file's height,
-    /// double click goes back to the default height.
-    private func rowDivider(height: Binding<Double>, shown: Double, range: ClosedRange<Double>) -> some View {
+    /// Horizontal divider between the file and Claude below it; drags change the file's height
+    /// (160 pt up to `room`, where Claude keeps its minimum height). Dragged on until Claude
+    /// would keep less than half its minimum, Claude minimizes to its tab strip; dragged back
+    /// above that point, it comes back at the dragged height. Double click goes back to the
+    /// default height and brings a minimized Claude back.
+    private func rowDivider(shown: Double, room: Double) -> some View {
         SplitResizeHandle(
             axis: .vertical,
             // The editor's scroller above and Claude's tab strip below keep their clicks.
             grabLeading: 2,
             grabTrailing: 3,
             accessibilityLabel: "File height",
-            accessibilityValue: "\(Int(shown)) points",
-            onBegan: { dragStartWidth = shown },
-            onChanged: { translation in
-                let start = dragStartWidth ?? shown
-                height.wrappedValue = min(range.upperBound, max(range.lowerBound, start + translation))
+            accessibilityValue: showsMinimized ? "Claude minimized" : "\(Int(shown)) points",
+            onBegan: {
+                dragStartWidth = shown
+                dragStartEditorHeight = editorHeight
             },
-            onEnded: { dragStartWidth = nil },
-            onDoubleClick: { height.wrappedValue = Self.defaultEditorHeight })
+            onChanged: { translation in
+                let proposed = (dragStartWidth ?? shown) + translation
+                if proposed > room + Self.minTerminalHeight / 2 {
+                    guard !claudeMinimized else { return }
+                    claudeMinimized = true
+                    editorHeight = dragStartEditorHeight ?? editorHeight
+                } else {
+                    claudeMinimized = false
+                    editorHeight = min(room, max(160, proposed))
+                }
+            },
+            onEnded: {
+                dragStartWidth = nil
+                dragStartEditorHeight = nil
+            },
+            onDoubleClick: {
+                claudeMinimized = false
+                editorHeight = Self.defaultEditorHeight
+            })
             .frame(height: 1)
             .zIndex(1)
     }

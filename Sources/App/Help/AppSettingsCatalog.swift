@@ -62,6 +62,7 @@ enum AppSettingsCatalog {
         "mm.todoBrief": "cached task brief",
         "mm.wheelHintCount": "one-time hint",
         "mm.workspaceClaudeBelow": "workspace layout",
+        "mm.workspaceClaudeMinimized": "workspace layout",
         "mm.workspaceEditorHeight": "workspace layout",
         "mm.workspaceEditorHintSeen": "one-time hint",
         "mm.workspaceEditorWidth": "workspace layout",

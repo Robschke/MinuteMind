@@ -61,6 +61,10 @@
 //        A double click on a tab (or Rename in its menu) edits its name in place: Return or
 //        clicking elsewhere keeps it, Esc cancels, an empty name restores the automatic one. The
 //        tab cannot be dragged while its name is being edited.
+//        Minimized (`restoreFromMinimized`, the workspace's strip below an open file only): the
+//        strip shows just its tab strip, which keeps the status icons. A click on a tab brings
+//        it back with that tab focused, as do a double click on the strip's free space and a
+//        new session started from its buttons.
 
 import AppKit
 import SwiftTerm
@@ -77,6 +81,9 @@ struct WorkspaceTerminalPane: View {
     /// Where Claude sits relative to the open file; when set, the tab strip shows the three
     /// placement buttons (the project workspace only).
     var placement: Placement? = nil
+    /// When set, the strip is minimized below the open file: only the tab strip shows, and the
+    /// closure brings the strip back up (the project workspace only).
+    var restoreFromMinimized: (() -> Void)? = nil
     @Environment(AppViewModel.self) private var viewModel
     @Environment(\.openWindow) private var openWindow
     @Environment(\.colorSchemeContrast) private var contrast
@@ -114,19 +121,22 @@ struct WorkspaceTerminalPane: View {
     private var focusedSession: WorkspaceTerminalSession? { terminals.targetSession(for: groupKey) }
     private var split: WorkspaceTerminalSplit { group?.split ?? WorkspaceTerminalSplit() }
     private var trustHintKey: String { "mm.workspaceTrustHintShown.\(project.id.uuidString)" }
+    private var isMinimized: Bool { restoreFromMinimized != nil }
 
     var body: some View {
         VStack(spacing: 0) {
             tabStrip
-            Divider()
-            if showTrustHint { trustBanner }
-            if sessions.isEmpty {
-                emptyState
-            } else {
-                paneArea
+            if !isMinimized {
+                Divider()
+                if showTrustHint { trustBanner }
+                if sessions.isEmpty {
+                    emptyState
+                } else {
+                    paneArea
+                }
+                Divider()
+                statusStrip
             }
-            Divider()
-            statusStrip
         }
         .background(DropZoneReporter { terminals.registerDropZone($0, for: groupKey) })
         .overlay {
@@ -324,13 +334,22 @@ struct WorkspaceTerminalPane: View {
     private var tabStrip: some View {
         let shown = Set(split.visibleSessionIDs)
         return HStack(spacing: 0) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 2) {
-                    ForEach(sessions) { session in
-                        tab(session, isShown: shown.contains(session.id))
+            GeometryReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 2) {
+                        ForEach(sessions) { session in
+                            tab(session, isShown: shown.contains(session.id))
+                        }
                     }
+                    .padding(.horizontal, 6)
+                    // The free space after the tabs takes a double click that brings a
+                    // minimized strip back up; not minimized, only the tabs' own gestures run.
+                    .frame(minWidth: proxy.size.width, minHeight: proxy.size.height, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        TapGesture(count: 2).onEnded { restoreFromMinimized?() },
+                        including: isMinimized ? .all : .subviews)
                 }
-                .padding(.horizontal, 6)
             }
             if !isWindow, !sessions.isEmpty, !terminals.windows(rootedAt: rootID).isEmpty {
                 otherWindowsMenu
@@ -415,7 +434,10 @@ struct WorkspaceTerminalPane: View {
             RoundedRectangle(cornerRadius: 5)
                 .fill(isShown ? Color.primary.opacity(isFocused ? 0.14 : 0.05) : Color.clear))
         .contentShape(Rectangle())
-        .onTapGesture { focus(session) }
+        .onTapGesture {
+            restoreFromMinimized?()
+            focus(session)
+        }
         .simultaneousGesture(TapGesture(count: 2).onEnded { startRename(session) })
         .gesture(DragGesture(minimumDistance: 6)
             .onChanged { _ in TerminalTabDragController.shared.update(session: session, from: groupKey, store: terminals) }
@@ -609,6 +631,7 @@ struct WorkspaceTerminalPane: View {
     }
 
     private func addSession(_ kind: WorkspaceTerminalSession.Kind) {
+        restoreFromMinimized?()
         terminals.addSession(in: groupKey, kind: kind, launch: launch)
     }
 
