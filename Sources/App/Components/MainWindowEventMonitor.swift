@@ -1,14 +1,15 @@
 // Purpose: MainWindowEventMonitor, the main window's own input outside any view: the mouse's back
 //          and forward buttons step through the navigation history, and Shift+Tab drives the
 //          project switcher (hold Shift, Tab steps, releasing Shift enters, Esc cancels, the arrow
-//          keys step back and forth, Return enters).
+//          keys step back and forth, Return enters), and Cmd+K opens and closes the global search.
 // Dependencies: Sources/App/ViewModels/AppViewModel+Navigation.swift (goBack, goForward,
 //               switcherProjectIDs, enterProject), Sources/App/ViewModels/AppViewModel+Companion.swift
-//               (mainWindow), Sources/App/Views/ProjectSwitcherView.swift (ProjectSwitcherModel)
+//               (mainWindow), Sources/App/Views/ProjectSwitcherView.swift (ProjectSwitcherModel),
+//               Sources/App/Views/GlobalSearchView.swift (GlobalSearchModel)
 // Used by: Sources/App/Views/ContentView.swift
 // Notes: An AppKit local monitor rather than SwiftUI shortcuts: the switcher needs the release of
-//        Shift (flagsChanged), and the mouse buttons must work while a terminal or the editor has
-//        focus, which take keys and clicks before SwiftUI sees them. Shift+Tab keeps its usual
+//        Shift (flagsChanged), and the mouse buttons and Cmd+K must work while a terminal or the
+//        editor has focus, which take keys and clicks before SwiftUI sees them. Shift+Tab keeps its usual
 //        meaning (focus backwards) while text input has focus: a text field, the terminal, the
 //        code editor or any other text view; anywhere else it opens the switcher. With no project
 //        to list it is left alone too. Only the main window reacts, and not while it shows a
@@ -26,6 +27,7 @@ final class MainWindowEventMonitor {
     private var resignObserver: NSObjectProtocol?
 
     private static let keyTab: UInt16 = 48
+    private static let keyK: UInt16 = 40
     private static let keyEscape: UInt16 = 53
     private static let keyReturn: UInt16 = 36
     private static let keyLeft: UInt16 = 123
@@ -40,10 +42,10 @@ final class MainWindowEventMonitor {
         let windowNumber: Int
     }
 
-    func start(viewModel: AppViewModel, switcher: ProjectSwitcherModel) {
+    func start(viewModel: AppViewModel, switcher: ProjectSwitcherModel, search: GlobalSearchModel) {
         guard monitor == nil else { return }
         monitor = NSEvent.addLocalMonitorForEvents(matching: [.otherMouseDown, .keyDown, .flagsChanged]) {
-            [weak viewModel, weak switcher] event in
+            [weak viewModel, weak switcher, weak search] event in
             let input = Input(
                 type: event.type,
                 keyCode: event.type == .flagsChanged || event.type == .keyDown ? event.keyCode : 0,
@@ -51,8 +53,8 @@ final class MainWindowEventMonitor {
                 button: event.type == .otherMouseDown ? event.buttonNumber : -1,
                 windowNumber: event.windowNumber)
             let consumed = MainActor.assumeIsolated { () -> Bool in
-                guard let viewModel, let switcher else { return false }
-                return Self.handle(input, viewModel: viewModel, switcher: switcher)
+                guard let viewModel, let switcher, let search else { return false }
+                return Self.handle(input, viewModel: viewModel, switcher: switcher, search: search)
             }
             return consumed ? nil : event
         }
@@ -71,7 +73,9 @@ final class MainWindowEventMonitor {
     }
 
     /// True when the event was used and must not reach the window.
-    private static func handle(_ input: Input, viewModel: AppViewModel, switcher: ProjectSwitcherModel) -> Bool {
+    private static func handle(
+        _ input: Input, viewModel: AppViewModel, switcher: ProjectSwitcherModel, search: GlobalSearchModel
+    ) -> Bool {
         // The switcher, once open, takes every key until it closes.
         if switcher.isShown {
             switch input.type {
@@ -106,6 +110,10 @@ final class MainWindowEventMonitor {
             }
         case .keyDown:
             let modifiers = input.flags.intersection([.shift, .command, .control, .option])
+            if input.keyCode == keyK, modifiers == .command, window.isKeyWindow {
+                search.toggle(viewModel: viewModel)
+                return true
+            }
             guard input.keyCode == keyTab, modifiers == .shift, window.isKeyWindow,
                   !isTextInput(window.firstResponder)
             else { return false }

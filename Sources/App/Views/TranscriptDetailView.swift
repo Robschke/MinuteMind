@@ -7,7 +7,8 @@
 //               Sources/App/Views/SpeakerNamingSheet.swift (opened from the speaker chips),
 //               Sources/App/Components/SpeakerPalette.swift (speaker colours, shared with the cards)
 // RBAC: None.
-// Dependents: Sources/App/Components/SessionActions.swift (Transcript button)
+// Dependents: Sources/App/Components/SessionActions.swift (Transcript button),
+//             Sources/App/Views/GlobalSearchView.swift (a search hit, opened filtered to its query)
 // Notes: Two modes on purpose. Reading is the common case and gets a laid-out view — timestamps and
 //        speaker names as their own columns, a colour per speaker, click a line to hear it. Editing
 //        is the rare case and gets a plain monospaced TextEditor over the raw file format, because
@@ -35,7 +36,7 @@ struct TranscriptDetailView: View {
 
     @State private var isEditing = false
     @State private var draft = ""
-    @State private var search = ""
+    @State private var search: String
     @State private var playback = SessionAudioPlayback()
     @State private var didCopy = false
     @State private var hoveredLineID: Int?
@@ -48,6 +49,12 @@ struct TranscriptDetailView: View {
 
     /// The session as it currently is in the store, not the copy captured when the sheet opened —
     /// otherwise saving an edit (or running Polish) would leave the reader showing stale text.
+    /// `initialSearch` fills the search field, so only the lines containing it show.
+    init(session: RecordingSession, initialSearch: String = "") {
+        self.session = session
+        _search = State(initialValue: initialSearch)
+    }
+
     private var liveSession: RecordingSession {
         viewModel.sessions.first { $0.id == session.id } ?? session
     }
