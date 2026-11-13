@@ -70,12 +70,18 @@ struct AppNavigationTests {
     // MARK: - Switcher
 
     @Test func recentProjectsLeadThenTheRestInSidebarOrder() {
-        #expect(ProjectSwitcherOrder.items(recent: [c, a], all: [a, b, c]) == [c, a, b])
+        #expect(ProjectSwitcherOrder.items(recent: [c, a], all: [a, b, c], shown: [a, b, c]) == [c, a, b])
     }
 
     @Test func deletedProjectsLeaveTheList() {
         let gone = UUID()
-        #expect(ProjectSwitcherOrder.items(recent: [gone, b], all: [a, b]) == [b, a])
+        #expect(ProjectSwitcherOrder.items(recent: [gone, b], all: [a, b], shown: [gone, a, b]) == [b, a])
+    }
+
+    @Test func onlyShownProjectsAreListed() {
+        // b is neither starred nor running a session: it stays out, even when used recently.
+        #expect(ProjectSwitcherOrder.items(recent: [b, c], all: [a, b, c], shown: [a, c]) == [c, a])
+        #expect(ProjectSwitcherOrder.items(recent: [a], all: [a, b], shown: []).isEmpty)
     }
 
     @Test func touchingMovesToTheFront() {

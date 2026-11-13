@@ -1,10 +1,11 @@
 // Purpose: Navigation of the main window as one place (NavigationPlace): which place is shown,
 //          going to a place, back and forward through the history, each project's remembered
-//          section and the recently used projects for the Cmd+K switcher.
+//          section and the recently used projects for the Shift+Tab switcher.
 // Dependencies: Sources/App/Supporting/AppNavigation.swift (NavigationPlace, NavigationHistory,
 //               ProjectSwitcherOrder), Sources/App/ViewModels/AppViewModel.swift (the navigation
 //               flags, projectTabs, recentProjectIDs, navigationHistory, historyTarget),
-//               Sources/App/Services/ProjectRepositoryService.swift (generalProjectID)
+//               Sources/App/Services/ProjectRepositoryService.swift (generalProjectID),
+//               Sources/App/Supporting/WorkspaceTerminalStore.swift (running Claude sessions)
 // Used by: Sources/App/Views/ContentView.swift (records visits, mouse back and forward, switcher),
 //          Sources/App/Views/ProjectContextSidebar.swift, Sources/App/Views/HomeView.swift,
 //          Sources/App/Views/ProjectDetailView.swift, Sources/App/Views/GeneralWorkspaceView.swift
@@ -136,11 +137,14 @@ extension AppViewModel {
         return projectExists(id)
     }
 
-    /// The Cmd+K switcher's entries: recently used first, then the rest in the sidebar's order
-    /// (General first).
+    /// The switcher's entries: starred projects and projects (General included) with a running
+    /// Claude session, recently used first, then the rest in the sidebar's order (General first).
     var switcherProjectIDs: [UUID] {
-        ProjectSwitcherOrder.items(
-            recent: recentProjectIDs, all: [ProjectRepositoryService.generalProjectID] + projects.map(\.id))
+        let starred = projects.filter { $0.isStarred == true }.map(\.id)
+        let running = workspaceTerminals.claudeSessions.map(\.projectID)
+        return ProjectSwitcherOrder.items(
+            recent: recentProjectIDs, all: [ProjectRepositoryService.generalProjectID] + projects.map(\.id),
+            shown: Set(starred + running))
     }
 
     nonisolated static func loadProjectTabs() -> [UUID: ProjectTab] {
