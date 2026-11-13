@@ -1,8 +1,10 @@
 // Purpose: ProjectContextSidebar, the sidebar while a project (or General) is open: the project's
 //          creature and name with the way back Home, its sections (Overview, Workspace, Jobs),
-//          then its files with the branch row, and Settings at the bottom. It replaces the Home
-//          sidebar (ProjectsSidebarView) for as long as the project is shown.
+//          its agents (open Claude sessions), then its files with the branch row, and Settings
+//          at the bottom. It replaces the Home sidebar (ProjectsSidebarView) for as long as the
+//          project is shown.
 // Dependencies: Sources/App/ViewModels/AppViewModel+Navigation.swift (go(to:), project sections),
+//               Sources/App/Views/ProjectAgentsSection.swift (Agents),
 //               Sources/App/Views/WorkspaceFileTreeView.swift (tree and branch row),
 //               Sources/App/Supporting/WorkspaceEditorStore.swift (selection and the open file),
 //               Sources/App/Components/ProjectAvatarView.swift (creature),
@@ -55,6 +57,10 @@ struct ProjectContextSidebar: View {
                 }
                 .padding(.horizontal, DesignSystem.Dimensions.spacingS)
                 .padding(.top, DesignSystem.Dimensions.spacingS)
+
+                ProjectAgentsSection(projectID: projectID)
+                    .padding(.horizontal, DesignSystem.Dimensions.spacingS)
+                    .padding(.top, DesignSystem.Dimensions.spacingL)
 
                 filesHeading
                     .padding(.horizontal, DesignSystem.Dimensions.spacingL)
@@ -188,8 +194,8 @@ struct ProjectContextSidebar: View {
     }
 }
 
-/// A plain button that shades on hover, for the project header.
-private struct SidebarHoverButtonStyle: ButtonStyle {
+/// A plain button that shades on hover, for the project header and the agent rows.
+struct SidebarHoverButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         HoverShade(label: configuration.label, isPressed: configuration.isPressed)
     }

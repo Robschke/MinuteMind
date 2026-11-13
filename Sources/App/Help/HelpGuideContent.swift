@@ -356,7 +356,7 @@ enum HelpGuideContent {
 
         ## Inside a project
 
-        Entering a project (a tile on Home, or its row in the sidebar) gives the sidebar to the project: at the top its creature and name (click it to go back Home), then three sections: **Overview** (tasks and recordings), **Workspace** (the project folder with Claude Code, see Workspace) and **Jobs** (scheduled Claude jobs), then the project's files and its branch row. Each project remembers its last section; the first visit opens Workspace. The menu in the Overview header has Rename Project, Project Settings... (the export folder for transcripts and summaries), the project's own task auto-accept choice, and Delete Project.
+        Entering a project (a tile on Home, or its row in the sidebar) gives the sidebar to the project: at the top its creature and name (click it to go back Home), then three sections: **Overview** (tasks and recordings), **Workspace** (the project folder with Claude Code, see Workspace) and **Jobs** (scheduled Claude jobs), then its Agents (the open Claude sessions), the project's files and its branch row. Each project remembers its last section; the first visit opens Workspace. The menu in the Overview header has Rename Project, Project Settings... (the export folder for transcripts and summaries), the project's own task auto-accept choice, and Delete Project.
 
         A project without a creature of its own shows a Blob in its colour on Home and in the switcher; General shows your companion.
 
@@ -381,6 +381,7 @@ enum HelpGuideContent {
 
         ## The Workspace
 
+        - **Agents** in the project's sidebar: every open Claude session of the project with a dot for its state: blue working, orange waiting for you (or stopped with an error), grey idle. Click one to open it in the Workspace.
         - **Files** in the project's sidebar: browse, drag to move (Option copies), rename, New File / New Folder, Duplicate, Copy Path, Move to Trash (Cmd+Delete). meetings/, recordings/, knowledge/ and CLAUDE.md stay in place. The folder button beside Files shows the folder in Finder.
         - **Editor:** click a file to open it (from any section, it switches to Workspace), with syntax colours, a Markdown preview, images and PDFs. Changes save by themselves; double click opens a file in its usual app.
         - **Claude Code:** up to six sessions per project in tabs (the sparkle button; right click for Sonnet instead of Opus), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.
