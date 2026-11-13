@@ -3,15 +3,13 @@
 //          while the sidebar is hidden.
 // Dependencies: AppKit (NSWindow full screen notifications), SwiftUI NavigationSplitView
 // Used by: Sources/App/Views/ContentView.swift (state, corner button, full screen reader),
-//          Sources/App/Views/ProjectsSidebarView.swift (footer button),
-//          Sources/App/Views/WorkspaceGitBranchBar.swift (leaves room for the corner button)
+//          Sources/App/Views/ProjectsSidebarView.swift, Sources/App/Views/ProjectContextSidebar.swift
+//          (footer button)
 // Notes: In full screen the toolbar slides away (FullScreenToolbarAutoHide), and with it the
 //        system sidebar button, so these two stand in for it. In a window the toolbar button is
 //        always there and they stay hidden, so nothing shows twice. View > Show/Hide Sidebar
 //        (Ctrl+Cmd+S, SidebarCommands) works in both.
-//        The corner button floats over the page. On the Workspace tab that corner is the file
-//        tree's branch row, which reads `sidebarCornerButtonInset` and starts after the button
-//        instead of under it.
+//        The corner button floats over the page's bottom left corner.
 
 import AppKit
 import SwiftUI
@@ -26,21 +24,11 @@ private struct FullScreenSidebarControlKey: EnvironmentKey {
     static let defaultValue = FullScreenSidebarControl()
 }
 
-private struct SidebarCornerButtonInsetKey: EnvironmentKey {
-    static let defaultValue: CGFloat = 0
-}
-
 extension EnvironmentValues {
     /// Set by ContentView on the sidebar.
     var fullScreenSidebarControl: FullScreenSidebarControl {
         get { self[FullScreenSidebarControlKey.self] }
         set { self[FullScreenSidebarControlKey.self] = newValue }
-    }
-
-    /// The width the corner button takes at the page's bottom left while it shows, else 0.
-    var sidebarCornerButtonInset: CGFloat {
-        get { self[SidebarCornerButtonInsetKey.self] }
-        set { self[SidebarCornerButtonInsetKey.self] = newValue }
     }
 }
 
@@ -70,8 +58,6 @@ struct SidebarHideButton: View {
 
 /// The sidebar symbol in the page's bottom left corner while the sidebar is hidden.
 struct SidebarShowCornerButton: View {
-    static let inset: CGFloat = 30
-
     let action: @MainActor () -> Void
     @State private var isHovered = false
 

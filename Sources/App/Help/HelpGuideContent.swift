@@ -76,7 +76,9 @@ enum HelpGuideContent {
 
         ## The window
 
-        The sidebar lists Inbox (meetings waiting to be processed), All Transcripts (every recording, with the record button), All Tasks, Calendar, Clipboard (your dictation history), General (a workspace for meetings without a project) and your projects. Settings is the gear at the bottom of the sidebar (Cmd+,).
+        MinuteMind opens on Home: your projects as tiles with their creatures. The sidebar lists Home, Inbox (meetings waiting to be processed), All Transcripts (every recording, with the record button), All Tasks, Calendar, Clipboard (your dictation history), General (a workspace for meetings without a project) and your projects. Settings is the gear at the bottom of the sidebar (Cmd+,).
+
+        Click a project (its tile or its row) to enter it: the sidebar then belongs to that project, with its sections and its files. Click the project's name at the top of the sidebar to go back Home. The back and forward buttons of your mouse go to the previous and next place, like in a browser. Hold Cmd and press K to switch projects.
 
         ## Your data
 
@@ -343,7 +345,7 @@ enum HelpGuideContent {
         id: "projects",
         title: "Projects",
         icon: "folder",
-        summary: "Creating, arranging, starring and configuring projects, and the General workspace.",
+        summary: "Creating, arranging, starring and configuring projects, Home, moving around (back, forward, Cmd+K) and the General workspace.",
         body: """
         Projects group meetings, tasks, knowledge and a workspace folder. Create one with the + button in the sidebar (New Project: name, colour, optional companion creature; or Join shared, see Shared Projects).
 
@@ -352,13 +354,20 @@ enum HelpGuideContent {
         - Right click a project: Star / Unstar (starred projects come first in the project wheel and show their creature or a star), Companion (its creature), Make Shared Project..., Arrange Projects.
         - Long press a project (or Arrange Projects) to drag the projects into your order.
 
-        ## A project's page
+        ## Inside a project
 
-        Three tabs: **Overview** (tasks and recordings), **Workspace** (the project folder with Claude Code, see Workspace) and **Jobs** (scheduled Claude jobs). The menu in the project header has Rename Project, Project Settings... (the export folder for transcripts and summaries), the project's own task auto-accept choice, and Delete Project.
+        Entering a project (a tile on Home, or its row in the sidebar) gives the sidebar to the project: at the top its creature and name (click it to go back Home), then three sections: **Overview** (tasks and recordings), **Workspace** (the project folder with Claude Code, see Workspace) and **Jobs** (scheduled Claude jobs), then the project's files and its branch row. Each project remembers its last section; the first visit opens Workspace. The menu in the Overview header has Rename Project, Project Settings... (the export folder for transcripts and summaries), the project's own task auto-accept choice, and Delete Project.
+
+        A project without a creature of its own shows a Blob in its colour on Home and in the switcher; General shows your companion.
+
+        ## Moving around
+
+        - **Back and forward:** the back and forward buttons of your mouse (buttons 4 and 5) step through the places you visited: pages, projects and their sections.
+        - **Switch projects:** hold Cmd and press K. The projects you used last come first, so one Cmd+K jumps back to the previous project. Keep holding Cmd and press K again to move on (Shift+K or the arrow keys go back), let go of Cmd to enter the highlighted project, Esc cancels. A click on a creature enters it too.
 
         ## General
 
-        General is the workspace for meetings filed without a project. It has its own Workspace and Jobs. The Claude (General) window, opened from the companion, runs Claude in this folder.
+        General is the workspace for meetings filed without a project. Entering it works like a project, with its own Workspace and Jobs. The Claude (General) window, opened from the companion, runs Claude in this folder.
         """
     )
 
@@ -366,17 +375,17 @@ enum HelpGuideContent {
         id: "workspace",
         title: "Project Workspace and Claude Code",
         icon: "terminal",
-        summary: "The workspace folder, file tree and editor, Claude Code sessions, terminals, splits and git branches.",
+        summary: "The workspace folder, its files in the sidebar, the editor, Claude Code sessions, terminals, splits and git branches.",
         body: """
         Every project has a workspace: a folder (a git repository) holding its processed meetings (meetings/), quick recordings (recordings/), knowledge (knowledge/), jobs (jobs/) and anything you or Claude add, such as plans, notes or cloned code. Its CLAUDE.md tells Claude what the folder is; text you add outside the MinuteMind block is kept.
 
-        ## The Workspace tab
+        ## The Workspace
 
-        - **File tree** on the left: browse, drag to move (Option copies), rename, New File / New Folder, Duplicate, Copy Path, Move to Trash (Cmd+Delete). meetings/, recordings/, knowledge/ and CLAUDE.md stay in place. The tree folds away to a thin rail.
-        - **Editor:** click a file to open it, with syntax colours, a Markdown preview, images and PDFs. Changes save by themselves; double click opens a file in its usual app.
+        - **Files** in the project's sidebar: browse, drag to move (Option copies), rename, New File / New Folder, Duplicate, Copy Path, Move to Trash (Cmd+Delete). meetings/, recordings/, knowledge/ and CLAUDE.md stay in place. The folder button beside Files shows the folder in Finder.
+        - **Editor:** click a file to open it (from any section, it switches to Workspace), with syntax colours, a Markdown preview, images and PDFs. Changes save by themselves; double click opens a file in its usual app.
         - **Claude Code:** up to six sessions per project in tabs (the sparkle button; right click for Sonnet instead of Opus), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.
         - **Layout:** Claude sits below the file (default), beside it, or in its own window (buttons in Claude's tab strip). Drag a tab onto a pane to split it, or use Split Right / Split Down in the tab's menu; drag a tab out to give it its own window.
-        - **Branch row** under the tree: the checked-out git branch; switch or create branches there. Uncommitted changes come along or are kept for you on the branch you leave. If it says "git is not installed", click Install: it opens Apple's installer for the Command Line Tools (or run `xcode-select --install` in Terminal). Until then the workspace keeps no history and Shared Projects cannot sync.
+        - **Branch row** at the bottom of the project's sidebar: the checked-out git branch; switch or create branches there. Uncommitted changes come along or are kept for you on the branch you leave. If it says "git is not installed", click Install: it opens Apple's installer for the Command Line Tools (or run `xcode-select --install` in Terminal). Until then the workspace keeps no history and Shared Projects cannot sync.
 
         Claude in the workspace has MinuteMind's tools, so it can read meetings, tasks, the calendar and the knowledge, and change settings.
         """
@@ -594,6 +603,7 @@ enum HelpGuideContent {
         ## In MinuteMind
 
         - **Cmd+,:** Settings. **Cmd+I:** Import Audio. **Ctrl+Cmd+S:** show or hide the sidebar.
+        - **Cmd+K (hold Cmd):** switch projects. **Mouse buttons 4 and 5:** back and forward.
         - **Inbox:** Cmd+Return processes the selected meeting, Shift+Cmd+Return processes all, Cmd+Z undoes Skip.
         - **Workspace:** Shift+Opt+Cmd+N new terminal, Opt+Cmd+Left/Right switch sessions, Cmd+S save the open file, Cmd+Delete move the selected file to the Trash.
         - **Recordings:** Space plays or pauses the selected recording.

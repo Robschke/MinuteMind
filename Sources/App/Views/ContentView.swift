@@ -1,11 +1,27 @@
+// Purpose: ContentView, the main window: the sidebar (Home's, or the open project's own) beside the
+//          page of the current place, the Cmd+K project switcher over both, and the window-wide
+//          sheets and alerts.
+// Dependencies: Sources/App/Views/ProjectsSidebarView.swift (Home sidebar),
+//               Sources/App/Views/ProjectContextSidebar.swift (project sidebar),
+//               Sources/App/Views/HomeView.swift, Sources/App/Views/ProjectSwitcherView.swift,
+//               Sources/App/Components/MainWindowEventMonitor.swift (mouse back and forward, Cmd+K),
+//               Sources/App/ViewModels/AppViewModel+Navigation.swift (currentPlace, visits)
+// Used by: Sources/App/MinuteMindApp.swift (main window)
+// Notes: The sidebar slides: Home's goes out to the left as a project's comes in from the right,
+//        and back the other way; between two projects it crossfades (Reduce Motion: no slide).
+//        Every change of the current place is recorded here as a visit, whoever made it.
+
 import SwiftUI
 
 struct ContentView: View {
     @Environment(AppViewModel.self) private var viewModel
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var sidebarVisibility: NavigationSplitViewVisibility = .all
     @State private var isFullScreen = false
     @State private var updateChecker = AppUpdateChecker.shared
+    @State private var switcher = ProjectSwitcherModel()
+    @State private var eventMonitor = MainWindowEventMonitor()
 
     /// Full screen hides the toolbar's sidebar button; the page then offers its own way back.
     private var showsSidebarCornerButton: Bool {
@@ -98,7 +114,7 @@ struct ContentView: View {
     /// The app itself: sidebar and the selected page.
     private var splitView: some View {
         NavigationSplitView(columnVisibility: $sidebarVisibility) {
-            ProjectsSidebarView()
+            sidebar
                 .environment(viewModel)
                 .environment(\.fullScreenSidebarControl, FullScreenSidebarControl(
                     isFullScreen: isFullScreen,
@@ -125,6 +141,9 @@ struct ContentView: View {
                 } else if let project = viewModel.selectedProject {
                     ProjectDetailView(project: project)
                         .environment(viewModel)
+                } else if viewModel.isShowingHome {
+                    HomeView()
+                        .environment(viewModel)
                 } else {
                     AllTranscriptsView()
                         .environment(viewModel)
@@ -133,13 +152,47 @@ struct ContentView: View {
             // The page background follows the theme (Studio: the window background, as before).
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(DesignSystem.Colors.surface)
-            .environment(\.sidebarCornerButtonInset, showsSidebarCornerButton ? SidebarShowCornerButton.inset : 0)
             .overlay(alignment: .bottomLeading) {
                 if showsSidebarCornerButton {
                     SidebarShowCornerButton { withAnimation { sidebarVisibility = .all } }
                 }
             }
         }
+        .overlay {
+            if switcher.isShown {
+                ProjectSwitcherView(model: switcher)
+                    .environment(viewModel)
+                    .transition(.opacity)
+            }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: switcher.isShown)
+        .onChange(of: viewModel.currentPlace) { old, new in
+            viewModel.recordNavigation(from: old, to: new)
+        }
+        .onAppear { eventMonitor.start(viewModel: viewModel, switcher: switcher) }
+        .onDisappear { eventMonitor.stop() }
+    }
+
+    /// Home's sidebar, or the open project's own; they slide past each other.
+    private var sidebar: some View {
+        let projectID = viewModel.currentPlace.projectID
+        return ZStack {
+            if let projectID {
+                // The inner stack crossfades between projects; the outer one slides in and out.
+                ZStack {
+                    ProjectContextSidebar(projectID: projectID)
+                        .id(projectID)
+                        .transition(.opacity)
+                }
+                .transition(reduceMotion ? .opacity : .move(edge: .trailing))
+            } else {
+                ProjectsSidebarView()
+                    .transition(reduceMotion ? .opacity : .move(edge: .leading))
+            }
+        }
+        .clipped()
+        .animation(.smooth(duration: 0.3), value: projectID != nil)
+        .animation(.easeOut(duration: 0.15), value: projectID)
     }
 
     /// Shown while the checker offers a release; closing it any other way counts as Later.

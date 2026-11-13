@@ -19,9 +19,9 @@ enum TaskFilterOption: String, CaseIterable {
     case highPriority = "High Priority"
 }
 
-/// A project page has three tabs: Overview (its tasks and recordings), Workspace and Jobs (prompts
-/// Claude runs on a schedule). A stored tab that no longer exists (the old Tasks, Board and Notes)
-/// opens Overview. General shows only Workspace and Jobs.
+/// A project has three sections: Overview (its tasks and recordings), Workspace and Jobs (prompts
+/// Claude runs on a schedule), chosen in the project's sidebar (ProjectContextSidebar) and
+/// remembered per project (AppViewModel+Navigation.swift). General has only Workspace and Jobs.
 enum ProjectTab: String, CaseIterable, Identifiable {
     case overview = "Overview"
     case workspaces = "Workspace"
@@ -51,7 +51,6 @@ struct ProjectDetailView: View {
     @State private var filterOption: TaskFilterOption = .all
     @State private var filterPriority: TaskPriority?
     @State private var filterAssignee: String?
-    @SceneStorage("mm.lastProjectTab") private var selectedTabRaw: String = ProjectTab.overview.rawValue
     @State private var recordingsSearchQuery = ""
     @State private var showingProjectSettings = false
 
@@ -155,45 +154,21 @@ struct ProjectDetailView: View {
         }
     }
 
-    private var selectedTab: ProjectTab { ProjectTab(rawValue: selectedTabRaw) ?? .overview }
-
-    private var selectedTabBinding: Binding<ProjectTab> {
-        Binding(get: { selectedTab }, set: { selectedTabRaw = $0.rawValue })
-    }
-
-    private func applyRequestedTab() {
-        guard let tab = viewModel.requestedProjectTab else { return }
-        selectedTabRaw = tab.rawValue
-        viewModel.requestedProjectTab = nil
-    }
+    /// The section the project's sidebar has chosen.
+    private var selectedTab: ProjectTab { viewModel.projectTab(for: project.id) }
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            // The Workspace tab drops the big header (its file tree names the project) so the
-            // terminal gets the height.
+            // Workspace drops the big header (the sidebar names the project) so the terminal gets
+            // the height.
             let isWorkspace = selectedTab == .workspaces
             VStack(spacing: 0) {
                 if !isWorkspace {
                     projectHeader
                         .padding([.horizontal, .top], 24)
                         .padding(.bottom, 12)
+                    Divider()
                 }
-
-                Picker("", selection: selectedTabBinding) {
-                    ForEach(ProjectTab.allCases) { tab in
-                        Label(tab.rawValue, systemImage: tab.icon).tag(tab)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .padding(.horizontal, 24)
-                .padding(.top, isWorkspace ? 10 : 0)
-                .padding(.bottom, isWorkspace ? 8 : 16)
-                // The companion's Show on a Claude notice asks for the Workspace tab.
-                .onAppear(perform: applyRequestedTab)
-                .onChange(of: viewModel.requestedProjectTab) { _, _ in applyRequestedTab() }
-
-                Divider()
 
                 Group {
                     switch selectedTab {

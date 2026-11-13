@@ -1,5 +1,7 @@
-// Purpose: The sidebar: Inbox, All Transcripts and the other destinations, then the projects.
-//          Projects can be arranged: a long press makes them wiggle, dragging reorders them.
+// Purpose: The Home sidebar: Home, Inbox, All Transcripts and the other destinations, then the
+//          projects. A click on a project enters it, and ContentView swaps this sidebar for the
+//          project's own (ProjectContextSidebar). Projects can be arranged: a long press makes
+//          them wiggle, dragging reorders them.
 // Dependencies: Sources/App/ViewModels/AppViewModel.swift (projects, reorderProjects, setProjectStarred),
 //               Sources/App/Views/CompanionView.swift (StarredProjectMark, MascotCanvas),
 //               Sources/App/Supporting/CompanionCast.swift (firstFreeAvatar for the New Project sheet),
@@ -8,6 +10,7 @@
 //               Sources/App/Views/SharedProjectStatusViews.swift (SharedProjectMark),
 //               Sources/App/ViewModels/AppViewModel+SharedSetup.swift (beginMakeShared)
 // Used by: Sources/App/Views/ContentView.swift
+//          (Home's New Project tile opens this sidebar's sheet through `requestsNewProject`)
 // Notes: Project rows take one drag gesture with no minimum distance instead of a Button, so a
 //        click, a long press and the drag after it are a single gesture: a press held still for
 //        `longPressDelay` starts arranging and can be dragged on without letting go, as on the
@@ -66,12 +69,35 @@ struct ProjectsSidebarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                // Inbox: meetings waiting to be processed. First, because it is where decisions wait.
+                // Home: the project tiles, where the window opens.
                 Button {
-                    viewModel.selectedProjectID = nil
-                    viewModel.isShowingAllTasks = false
-                    viewModel.isShowingCalendar = false
-                    viewModel.isShowingInbox = true
+                    viewModel.go(to: .home)
+                } label: {
+                    HStack(spacing: DesignSystem.Dimensions.spacingS) {
+                        Image(systemName: "house")
+                            .font(.system(size: 14))
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+                            .frame(width: 18)
+                        Text("Home")
+                            .font(DesignSystem.Typography.callout)
+                            .lineLimit(1)
+                        Spacer()
+                    }
+                    .padding(.horizontal, DesignSystem.Dimensions.spacingM)
+                    .padding(.vertical, DesignSystem.Dimensions.spacingS)
+                    .background(
+                        RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
+                            .fill(viewModel.currentPlace == .home ? Color.accentColor.opacity(0.12) : Color.clear)
+                    )
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, DesignSystem.Dimensions.spacingS)
+                .padding(.top, DesignSystem.Dimensions.spacingM)
+
+                // Inbox: meetings waiting to be processed. Right after Home, because it is where decisions wait.
+                Button {
+                    viewModel.go(to: .inbox)
                 } label: {
                     let count = viewModel.inboxSessions.count
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
@@ -99,15 +125,11 @@ struct ProjectsSidebarView: View {
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, DesignSystem.Dimensions.spacingS)
-                .padding(.top, DesignSystem.Dimensions.spacingM)
+                .padding(.top, DesignSystem.Dimensions.spacingS)
 
                 // All Transcripts option
                 Button {
-                    viewModel.selectedProjectID = nil
-                    viewModel.isShowingAllTasks = false
-                    viewModel.isShowingCalendar = false
-                    viewModel.isShowingInbox = false
-                    viewModel.isShowingClipboard = false
+                    viewModel.go(to: .allTranscripts)
                 } label: {
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: "doc.text")
@@ -130,7 +152,7 @@ struct ProjectsSidebarView: View {
                     .background(
                         RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
                             .fill(
-                                viewModel.selectedProjectID == nil && !viewModel.isShowingAllTasks && !viewModel.isShowingCalendar && !viewModel.isShowingInbox && !viewModel.isShowingClipboard
+                                viewModel.currentPlace == .allTranscripts
                                     ? Color.accentColor.opacity(0.12) : Color.clear
                             )
                     )
@@ -142,9 +164,7 @@ struct ProjectsSidebarView: View {
 
                 // All Tasks option
                 Button {
-                    viewModel.selectedProjectID = nil
-                    viewModel.isShowingAllTasks = true
-                    viewModel.isShowingCalendar = false
+                    viewModel.go(to: .allTasks)
                 } label: {
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: "checklist")
@@ -179,9 +199,7 @@ struct ProjectsSidebarView: View {
 
                 // Calendar option
                 Button {
-                    viewModel.selectedProjectID = nil
-                    viewModel.isShowingAllTasks = false
-                    viewModel.isShowingCalendar = true
+                    viewModel.go(to: .calendar)
                 } label: {
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: "calendar")
@@ -207,10 +225,7 @@ struct ProjectsSidebarView: View {
 
                 // Clipboard: everything said through the dictation key (dictations and Claude tasks).
                 Button {
-                    viewModel.selectedProjectID = nil
-                    viewModel.isShowingAllTasks = false
-                    viewModel.isShowingCalendar = false
-                    viewModel.isShowingClipboard = true
+                    viewModel.go(to: .clipboard)
                 } label: {
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: "doc.on.clipboard")
@@ -371,6 +386,12 @@ struct ProjectsSidebarView: View {
         .sheet(isPresented: $showingNewProjectSheet) {
             newProjectSheet
         }
+        // Home's New Project tile.
+        .onChange(of: viewModel.requestsNewProject) { _, requested in
+            guard requested else { return }
+            viewModel.requestsNewProject = false
+            showingNewProjectSheet = true
+        }
         .sheet(item: $projectAwaitingName) { project in
             ContributorNameSheet { viewModel.beginMakeShared(project) }
         }
@@ -401,9 +422,7 @@ struct ProjectsSidebarView: View {
     /// first, never a real project, shown whether or not projects exist.
     private var generalRow: some View {
         Button {
-            viewModel.selectedProjectID = ProjectRepositoryService.generalProjectID
-            viewModel.isShowingAllTasks = false
-            viewModel.isShowingCalendar = false
+            viewModel.enterProject(ProjectRepositoryService.generalProjectID)
         } label: {
             ProjectRowView(
                 project: ProjectRepositoryService.generalProject,
@@ -423,7 +442,7 @@ struct ProjectsSidebarView: View {
     private var navigationKey: [String] {
         [
             viewModel.selectedProjectID?.uuidString ?? "",
-            "\(viewModel.isShowingInbox)\(viewModel.isShowingAllTasks)\(viewModel.isShowingCalendar)\(viewModel.isShowingClipboard)"
+            "\(viewModel.isShowingHome)\(viewModel.isShowingInbox)\(viewModel.isShowingAllTasks)\(viewModel.isShowingCalendar)\(viewModel.isShowingClipboard)"
         ]
     }
 
@@ -576,10 +595,9 @@ struct ProjectsSidebarView: View {
         }
     }
 
+    /// Enters the project: the sidebar turns into its ProjectContextSidebar.
     private func select(_ project: Project) {
-        viewModel.selectedProjectID = project.id
-        viewModel.isShowingAllTasks = false
-        viewModel.isShowingCalendar = false
+        viewModel.enterProject(project.id)
     }
 
     private func startArranging() {

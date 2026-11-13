@@ -102,16 +102,39 @@ final class AppViewModel {
     private(set) var projects: [Project] = []
     private(set) var tasks: [ProjectTask] = []
     private(set) var epics: [Epic] = []
-    var selectedProjectID: UUID? { didSet { if selectedProjectID != nil { isShowingInbox = false; isShowingClipboard = false } } }
-    var isShowingAllTasks = false { didSet { if isShowingAllTasks { isShowingInbox = false; isShowingClipboard = false } } }
+    var selectedProjectID: UUID? { didSet { if selectedProjectID != nil { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false } } }
+    var isShowingAllTasks = false { didSet { if isShowingAllTasks { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false } } }
     /// When set to true, all other exclusive navigation flags (isShowingAllTasks,
     /// isShowingAIAssistant) must be set to false.
-    var isShowingCalendar = false { didSet { if isShowingCalendar { isShowingInbox = false; isShowingClipboard = false } } }
+    var isShowingCalendar = false { didSet { if isShowingCalendar { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false } } }
     /// Inbox of meetings waiting to be processed. Turning any other destination on turns this
     /// off (didSets above), so existing navigation code needs no change.
-    var isShowingInbox = false { didSet { if isShowingInbox { isShowingClipboard = false } } }
+    var isShowingInbox = false { didSet { if isShowingInbox { isShowingClipboard = false; isShowingHome = false } } }
     /// The dictation history ("Clipboard" in the sidebar). Exclusive like the inbox.
-    var isShowingClipboard = false { didSet { if isShowingClipboard { isShowingInbox = false } } }
+    var isShowingClipboard = false { didSet { if isShowingClipboard { isShowingInbox = false; isShowingHome = false } } }
+    /// Home: the project tiles (HomeView). The window opens on it. Exclusive like the others:
+    /// turning it on clears every other destination, any other destination turns it off.
+    var isShowingHome = true {
+        didSet {
+            guard isShowingHome else { return }
+            selectedProjectID = nil
+            isShowingAllTasks = false
+            isShowingCalendar = false
+            isShowingInbox = false
+            isShowingClipboard = false
+        }
+    }
+    /// Each project's section (Overview, Workspace, Jobs), remembered across launches
+    /// (`mm.projectTabs`); read through `projectTab(for:)` (AppViewModel+Navigation.swift).
+    var projectTabs: [UUID: ProjectTab] = AppViewModel.loadProjectTabs()
+    /// Projects (and General) most recently visited first, for the Cmd+K switcher (`mm.recentProjects`).
+    var recentProjectIDs: [UUID] = AppViewModel.loadRecentProjects()
+    /// Back and forward between places (mouse buttons 4 and 5, AppViewModel+Navigation.swift).
+    var navigationHistory = NavigationHistory()
+    /// The place a back or forward step is going to, so arriving there is not recorded as a visit.
+    @ObservationIgnored var historyTarget: NavigationPlace?
+    /// Home's New Project tile asks the Home sidebar (ProjectsSidebarView) to open its sheet.
+    var requestsNewProject = false
 
     var audioDeviceManager = AudioDeviceManager()
     var teamsCallDetectionEnabled: Bool {
@@ -131,9 +154,12 @@ final class AppViewModel {
     let companion = CompanionController()
     /// Captured from the main window (ContentView), so non-view code can open scenes.
     @ObservationIgnored var openWindowAction: OpenWindowAction?
-    /// A project tab to switch to (ProjectDetailView consumes it), e.g. Workspace for a Claude
-    /// session the companion reveals.
-    var requestedProjectTab: ProjectTab?
+    /// A section of the selected project to switch to, e.g. Workspace for a Claude session the
+    /// companion reveals. Callers set `selectedProjectID` first; the request is applied to that
+    /// project's remembered section at once and cleared (AppViewModel+Navigation.swift).
+    var requestedProjectTab: ProjectTab? {
+        didSet { applyRequestedProjectTab() }
+    }
     /// A Settings page to switch to (MeetingMinutesSettingsView consumes it), set when Claude
     /// opens a page over MCP (AppViewModel+AppControl.swift).
     var requestedSettingsTab: MeetingMinutesSettingsView.Tab?

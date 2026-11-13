@@ -1,4 +1,4 @@
-// Purpose: WorkspaceFileTreeView, the file tree on the left of a project workspace: the repo's
+// Purpose: WorkspaceFileTreeView, the file tree in a project's sidebar: the repo's
 //          files and folders with Finder-like file management (move by drag and drop, rename in
 //          place, new file and folder, duplicate, copy path, trash), Quick Look and drops from
 //          Finder. Its selection drives the editor.
@@ -10,7 +10,7 @@
 //               QuickLook (SwiftUI .quickLookPreview), Sources/App/Views/WorkspaceGitBranchBar.swift
 //               (branch row at the bottom), Sources/App/ViewModels/AppViewModel+SharedPublishing.swift
 //               (publishPrivateItem)
-// Used by: Sources/App/Views/ProjectWorkspaceView.swift
+// Used by: Sources/App/Views/ProjectContextSidebar.swift
 // Notes: Extracted from ProjectWorkspaceView (2026-10-13), then given file management the same
 //        day. Decisions:
 //        - Selection: a click on a text or Markdown file shows it in the editor (the workspace
@@ -48,6 +48,8 @@
 //        - Nothing is committed: the app commits only what it writes itself.
 //        - The branch row (WorkspaceGitBranchBar) sits below the tree and its notice, always
 //          visible; its messages use the same notice.
+//        - No header and no background of its own: the sidebar (ProjectContextSidebar) names the
+//          project, puts Show in Finder in its Files heading and paints the background.
 //        - Shared Projects: private/ follows the managed-folder rules too (WorkspaceFileOperations,
 //          `isShared`). A right click on a meeting or recording folder directly in
 //          private/meetings/ or private/recordings/ offers Publish… in its own group after
@@ -65,8 +67,6 @@ struct WorkspaceFileTreeView: View {
     @Binding var selection: Set<URL>
     @Environment(AppViewModel.self) private var viewModel
 
-    /// Folds the tree to its rail (ProjectWorkspaceView); nil: no fold button.
-    var onCollapse: (() -> Void)?
     @State private var tree: [FileNode] = []
     @State private var hasLoaded = false
     /// Bumped by every load; a load that finishes after a newer one started is dropped.
@@ -104,8 +104,6 @@ struct WorkspaceFileTreeView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
-            Divider()
             WorkspaceFileOutline(tree: tree, repo: repo, selection: $selection, renaming: renaming,
                                  isShared: project.isShared, actions: actions)
                 .overlay {
@@ -132,7 +130,6 @@ struct WorkspaceFileTreeView: View {
             Divider()
             WorkspaceGitBranchBar(project: project, repo: repo, terminals: terminals) { show($0) }
         }
-        .background(DesignSystem.Colors.surfaceSecondary)
         .quickLookPreview($previewURL)
         .alert(clashTitle, isPresented: Binding(get: { pendingTransfer != nil }, set: { if !$0 { pendingTransfer = nil } }),
                presenting: pendingTransfer) { pending in
@@ -154,33 +151,6 @@ struct WorkspaceFileTreeView: View {
                 try? await Task.sleep(for: .seconds(2))
             }
         }
-    }
-
-    private var header: some View {
-        HStack(spacing: 6) {
-            Button {
-                NSWorkspace.shared.activateFileViewerSelecting([repo])
-            } label: {
-                Image(systemName: "folder")
-            }
-            .buttonStyle(.borderless)
-            .help("Show in Finder")
-            .accessibilityLabel("Show in Finder")
-            Text(project.name)
-                .font(.system(size: 13, weight: .semibold))
-                .lineLimit(1)
-            Spacer()
-            if let onCollapse {
-                Button(action: onCollapse) {
-                    Image(systemName: "sidebar.left")
-                }
-                .buttonStyle(.borderless)
-                .help("Hide Files")
-                .accessibilityLabel("Hide Files")
-            }
-        }
-        .padding(.horizontal, 12)
-        .frame(height: 36)
     }
 
     @ViewBuilder
@@ -205,7 +175,7 @@ struct WorkspaceFileTreeView: View {
             .padding(.vertical, 8)
             .background(.background.secondary)
         } else if !editorHintSeen {
-            Text("Click a file to open it here. Double-click opens it in its app.")
+            Text("Click a file to open it. Double-click opens it in its app.")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 12)

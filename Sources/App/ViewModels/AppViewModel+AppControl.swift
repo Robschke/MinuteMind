@@ -48,7 +48,7 @@ extension AppViewModel {
         isShowingClipboard = false
         switch destination {
         case .settings: break
-        case .allTranscripts: selectedProjectID = nil
+        case .allTranscripts: go(to: .allTranscripts)
         case .inbox: isShowingInbox = true
         case .allTasks: isShowingAllTasks = true
         case .calendar: isShowingCalendar = true

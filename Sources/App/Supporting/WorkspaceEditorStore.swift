@@ -4,7 +4,8 @@
 // Dependencies: Sources/App/Supporting/WorkspaceFileKinds.swift (what opens, and how), Foundation
 // Used by: Sources/App/ViewModels/AppViewModel.swift (workspaceEditors),
 //          Sources/App/Views/WorkspaceEditorPane.swift, Sources/App/Views/ProjectWorkspaceView.swift,
-//          Sources/App/Views/WorkspaceFileTreeView.swift (documentMoved after tree moves and renames)
+//          Sources/App/Views/WorkspaceFileTreeView.swift (documentMoved after tree moves and renames),
+//          Sources/App/Views/ProjectContextSidebar.swift (selection: the tree in the sidebar)
 // Notes: Lives in AppViewModel (like WorkspaceTerminalStore) so the open file and its state
 //        survive tab and project switches. One file per workspace, no editor tabs (design
 //        review 3, point 4: preview tabs are a developer convention); clicking another file
@@ -157,9 +158,13 @@ final class WorkspaceDocument {
 @MainActor
 final class WorkspaceEditorState {
     private(set) var document: WorkspaceDocument?
+    /// The rows selected in the file tree. Kept here, beside the open file, because the tree
+    /// sits in the sidebar (ProjectContextSidebar) and the editor in the page: both read it,
+    /// and the open file stays selected when the tree comes back.
+    var selection: Set<URL> = []
 
-    /// Shows the file in the editor, saving the previous one. Returns false when the editor
-    /// cannot show it (the editor then stays as it is).
+    /// Shows the file in the editor, saving the previous one, and selects it in the tree.
+    /// Returns false when the editor cannot show it (the editor then stays as it is).
     @discardableResult
     func open(_ url: URL) -> Bool {
         if document?.url == url { return true }
@@ -168,11 +173,13 @@ final class WorkspaceEditorState {
         let next = WorkspaceDocument(url: url, opened: opened)
         next.isEditingMarkdown = document?.isEditingMarkdown ?? false
         document = next
+        if selection != [url] { selection = [url] }
         return true
     }
 
     func close() {
         document?.save()
+        if let url = document?.url { selection.remove(url) }
         document = nil
     }
 

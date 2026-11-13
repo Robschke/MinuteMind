@@ -43,10 +43,10 @@ enum AppSettingsCatalog {
         "mm.companionPosition": "where the companion was dragged",
         "mm.companionDocked": "set by dragging the companion out of or into the window corner",
         "mm.dailyBriefingLastShown": "once-a-day briefing bookkeeping",
-        "mm.generalTab": "window state",
         "mm.inboxSince": "start date of the Inbox",
         "mm.jobRun": "notification category id",
-        "mm.lastProjectTab": "window state",
+        "mm.projectTabs": "window state",
+        "mm.recentProjects": "window state",
         "mm.launchAtLoginInitialized": "one-time switch-on of open at login",
         "mm.onboardingCompleted": "first-launch setup bookkeeping",
         "mm.onboardingScreenRecordingRequested": "first-launch setup bookkeeping",
@@ -66,8 +66,6 @@ enum AppSettingsCatalog {
         "mm.workspaceEditorHeight": "workspace layout",
         "mm.workspaceEditorHintSeen": "one-time hint",
         "mm.workspaceEditorWidth": "workspace layout",
-        "mm.workspaceTreeCollapsed": "workspace layout",
-        "mm.workspaceTreeWidth": "workspace layout",
     ]
 
     // MARK: - Automation

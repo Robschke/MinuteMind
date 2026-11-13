@@ -7,8 +7,6 @@
 //               app's own commits), Sources/App/Services/KnowledgeCurationService.swift
 //               (runningRepo), Sources/App/Supporting/WorkspaceEditorStore.swift (save before a
 //               switch), Sources/App/Supporting/WorkspaceTerminalStore.swift (Claude sessions),
-//               Sources/App/Components/FullScreenSidebarControls.swift (sidebarCornerButtonInset:
-//               the row starts after the full screen corner button while it shows),
 //               Sources/App/Views/SharedProjectStatusViews.swift (WorkspaceSharedSyncStatus)
 // Used by: Sources/App/Views/WorkspaceFileTreeView.swift
 // Notes: Modelled on VS Code's status bar item, reviewed by a design pass:
@@ -53,7 +51,6 @@ struct WorkspaceGitBranchBar: View {
     /// Shows a message in the tree's notice area.
     let notify: (String) -> Void
     @Environment(AppViewModel.self) private var viewModel
-    @Environment(\.sidebarCornerButtonInset) private var cornerButtonInset
 
     @State private var state: WorkspaceGitState?
     @State private var isPickerShown = false
@@ -158,7 +155,6 @@ struct WorkspaceGitBranchBar: View {
         .font(.system(size: 11))
         .foregroundStyle(Color.orange)
         .padding(.horizontal, 12)
-        .padding(.leading, cornerButtonInset)
         .frame(height: 26)
         .frame(maxWidth: .infinity, alignment: .leading)
         .help("Without git this workspace keeps no history and Shared Projects cannot sync. Install opens Apple's installer for the Command Line Tools, which include git.")
@@ -182,7 +178,6 @@ struct WorkspaceGitBranchBar: View {
         .font(.system(size: 11))
         .foregroundStyle(isOffMain ? Color.orange : Color.secondary)
         .padding(.horizontal, 12)
-        .padding(.leading, cornerButtonInset)
         .frame(height: 26)
         .frame(maxWidth: project.isShared ? nil : .infinity, alignment: .leading)
         .contentShape(Rectangle())
