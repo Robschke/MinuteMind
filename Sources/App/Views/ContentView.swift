@@ -9,6 +9,7 @@
 // Used by: Sources/App/MinuteMindApp.swift (main window)
 // Notes: The sidebar slides: Home's goes out to the left as a project's comes in from the right,
 //        and back the other way; between two projects it crossfades (Reduce Motion: no slide).
+//        It is clipped at its sides only, so its background reaches up under the traffic lights.
 //        Every change of the current place is recorded here as a visit, whoever made it.
 
 import SwiftUI
@@ -190,7 +191,7 @@ struct ContentView: View {
                     .transition(reduceMotion ? .opacity : .move(edge: .leading))
             }
         }
-        .clipped()
+        .clipShape(SidesOnlyClip())
         .animation(.smooth(duration: 0.3), value: projectID != nil)
         .animation(.easeOut(duration: 0.15), value: projectID)
     }
@@ -205,6 +206,15 @@ struct ContentView: View {
                 }
             }
         )
+    }
+
+    /// Clips the sliding sidebars at their sides only. A plain clip also cut their backgrounds
+    /// off at the top of the column's content, so the band under the traffic lights showed the
+    /// bare sidebar material above the sidebar's own colour.
+    private struct SidesOnlyClip: Shape {
+        func path(in rect: CGRect) -> Path {
+            Path(rect.insetBy(dx: 0, dy: -rect.height))
+        }
     }
 
     private func bindingForError() -> Binding<Bool> {
