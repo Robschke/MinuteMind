@@ -1,7 +1,7 @@
 // Purpose: The Cmd+K project switcher, styled and driven like the macOS app switcher (Cmd+Tab):
 //          hold Cmd, press K to open it and step right (Shift+K or the arrow keys step back), let
 //          go of Cmd to enter the highlighted project, Esc cancels. A row of creatures on a
-//          translucent panel in the middle of the window, the highlighted one's name below.
+//          translucent panel in the middle of the window, each with its project's name below.
 // Dependencies: Sources/App/Supporting/AppNavigation.swift (ProjectSwitcherOrder),
 //               Sources/App/ViewModels/AppViewModel+Navigation.swift (switcherProjectIDs,
 //               enterProject), Sources/App/Components/ProjectAvatarView.swift (creatures)
@@ -51,35 +51,27 @@ struct ProjectSwitcherView: View {
 
     /// Side of one creature pixel: the creatures are 60 by 80 points.
     private static let pixel: CGFloat = 5
-    private static let cell = CGSize(width: 92, height: 104)
+    /// One entry: the creature (92 by 104) with the project's name below it.
+    private static let cell = CGSize(width: 92, height: 126)
 
     var body: some View {
         GeometryReader { proxy in
-            VStack(spacing: 10) {
-                ScrollViewReader { scroller in
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 4) {
-                            ForEach(model.items, id: \.self) { id in
-                                cell(id)
-                                    .id(id)
-                            }
+            ScrollViewReader { scroller in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 4) {
+                        ForEach(model.items, id: \.self) { id in
+                            cell(id)
+                                .id(id)
                         }
-                        .padding(.horizontal, 2)
                     }
-                    .frame(width: min(rowWidth, proxy.size.width - 96))
-                    .onChange(of: model.index, initial: true) { _, _ in
-                        if let id = model.highlighted { scroller.scrollTo(id, anchor: .center) }
-                    }
+                    .padding(.horizontal, 2)
                 }
-                Text(name(of: model.highlighted))
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    .lineLimit(1)
-                    .frame(maxWidth: min(rowWidth, proxy.size.width - 96))
+                .frame(width: min(rowWidth, proxy.size.width - 96), height: Self.cell.height)
+                .onChange(of: model.index, initial: true) { _, _ in
+                    if let id = model.highlighted { scroller.scrollTo(id, anchor: .center) }
+                }
             }
-            .padding(.horizontal, 14)
-            .padding(.top, 14)
-            .padding(.bottom, 12)
+            .padding(14)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -97,7 +89,17 @@ struct ProjectSwitcherView: View {
 
     private func cell(_ id: UUID) -> some View {
         let selected = id == model.highlighted
-        return ProjectAvatarView(projectID: id, pixelSize: Self.pixel)
+        return VStack(spacing: 2) {
+            ProjectAvatarView(projectID: id, pixelSize: Self.pixel)
+                .frame(maxHeight: .infinity)
+            Text(name(of: id))
+                .font(.system(size: 12, weight: selected ? .semibold : .regular))
+                .foregroundStyle(selected ? DesignSystem.Colors.textPrimary : DesignSystem.Colors.textSecondary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .padding(.horizontal, 6)
+        }
+            .padding(.bottom, 8)
             .frame(width: Self.cell.width, height: Self.cell.height)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)

@@ -363,7 +363,7 @@ enum HelpGuideContent {
         ## Moving around
 
         - **Back and forward:** the back and forward buttons of your mouse (buttons 4 and 5) step through the places you visited: pages, projects and their sections.
-        - **Switch projects:** hold Cmd and press K. The switcher shows your starred projects and every project with a running Claude session; open the others from Home or the sidebar. The projects you used last come first, so one Cmd+K jumps back to the previous project. Keep holding Cmd and press K again to move on (Shift+K or the arrow keys go back), let go of Cmd to enter the highlighted project, Esc cancels. A click on a creature enters it too.
+        - **Switch projects:** hold Cmd and press K. The switcher shows your starred projects and every project with a running Claude session, each creature with its project's name below; open the others from Home or the sidebar. The projects you used last come first, so one Cmd+K jumps back to the previous project. Keep holding Cmd and press K again to move on (Shift+K or the arrow keys go back), let go of Cmd to enter the highlighted project, Esc cancels. A click on a creature enters it too.
 
         ## General
 
