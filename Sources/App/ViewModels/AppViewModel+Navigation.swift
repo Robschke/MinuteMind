@@ -1,6 +1,6 @@
 // Purpose: Navigation of the main window as one place (NavigationPlace): which place is shown,
 //          going to a place, back and forward through the history, each project's remembered
-//          section and the recently used projects for the Cmd+K switcher.
+//          section and the recently used projects for the Shift+Tab switcher.
 // Dependencies: Sources/App/Supporting/AppNavigation.swift (NavigationPlace, NavigationHistory,
 //               ProjectSwitcherOrder), Sources/App/ViewModels/AppViewModel.swift (the navigation
 //               flags, projectTabs, recentProjectIDs, navigationHistory, historyTarget),

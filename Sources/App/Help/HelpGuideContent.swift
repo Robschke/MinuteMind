@@ -345,7 +345,7 @@ enum HelpGuideContent {
         id: "projects",
         title: "Projects",
         icon: "folder",
-        summary: "Creating, arranging, starring and configuring projects, Home, moving around (back, forward, Cmd+K) and the General workspace.",
+        summary: "Creating, arranging, starring and configuring projects, Home, moving around (back, forward, Shift+Tab) and the General workspace.",
         body: """
         Projects group meetings, tasks, knowledge and a workspace folder. Create one with the + button in the sidebar (New Project: name, colour, optional companion creature; or Join shared, see Shared Projects).
 
@@ -363,7 +363,7 @@ enum HelpGuideContent {
         ## Moving around
 
         - **Back and forward:** the back and forward buttons of your mouse (buttons 4 and 5) step through the places you visited: pages, projects and their sections.
-        - **Switch projects:** hold Cmd and press K. The switcher shows your starred projects and every project with a running Claude session, each creature with its project's name below; open the others from Home or the sidebar. The projects you used last come first, so one Cmd+K jumps back to the previous project. Keep holding Cmd and press K again to move on (Shift+K or the arrow keys go back), let go of Cmd to enter the highlighted project, Esc cancels. A click on a creature enters it too.
+        - **Switch projects:** hold Shift and press Tab. The switcher shows your starred projects and every project with a running Claude session, each creature with its project's name below; open the others from Home or the sidebar. The projects you used last come first, so one Shift+Tab jumps back to the previous project. Keep holding Shift and press Tab again to move on (the arrow keys go both ways), let go of Shift to enter the highlighted project, Esc cancels. A click on a creature enters it too. While you type in a text field, the terminal or the editor, Shift+Tab keeps its usual meaning there.
 
         ## General
 
@@ -603,7 +603,7 @@ enum HelpGuideContent {
         ## In MinuteMind
 
         - **Cmd+,:** Settings. **Cmd+I:** Import Audio. **Ctrl+Cmd+S:** show or hide the sidebar.
-        - **Cmd+K (hold Cmd):** switch projects. **Mouse buttons 4 and 5:** back and forward.
+        - **Shift+Tab (hold Shift):** switch projects (not while typing in a text field, the terminal or the editor). **Mouse buttons 4 and 5:** back and forward.
         - **Inbox:** Cmd+Return processes the selected meeting, Shift+Cmd+Return processes all, Cmd+Z undoes Skip.
         - **Workspace:** Shift+Opt+Cmd+N new terminal, Opt+Cmd+Left/Right switch sessions, Cmd+S save the open file, Cmd+Delete move the selected file to the Trash.
         - **Recordings:** Space plays or pauses the selected recording.

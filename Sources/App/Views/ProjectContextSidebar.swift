@@ -14,7 +14,7 @@
 //        so a click on the open file itself still changes the selection and brings Workspace
 //        back (the outline reports selection changes, not clicks).
 //        The header goes Home; the mouse's back button goes to the previous place instead
-//        (AppViewModel+Navigation.swift), and Cmd+K switches projects (ProjectSwitcherView).
+//        (AppViewModel+Navigation.swift), and Shift+Tab switches projects (ProjectSwitcherView).
 //        The repo is ensured here as well as in the workspace, since the tree shows in every section.
 
 import AppKit
@@ -126,14 +126,14 @@ struct ProjectContextSidebar: View {
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
                 }
                 Spacer(minLength: 0)
-                Text("\u{2318}K")
+                Text("\u{21E7}\u{21E5}")
                     .font(.system(size: 10.5, weight: .medium))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
                     .padding(.horizontal, 4)
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
                             .stroke(DesignSystem.Colors.border, lineWidth: 1))
-                    .help("Hold \u{2318} and press K to switch projects")
+                    .help("Hold \u{21E7} and press Tab to switch projects")
             }
             .padding(.horizontal, DesignSystem.Dimensions.spacingS)
             .padding(.vertical, DesignSystem.Dimensions.spacingXS)

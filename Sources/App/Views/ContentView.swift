@@ -1,10 +1,10 @@
 // Purpose: ContentView, the main window: the sidebar (Home's, or the open project's own) beside the
-//          page of the current place, the Cmd+K project switcher over both, and the window-wide
+//          page of the current place, the Shift+Tab project switcher over both, and the window-wide
 //          sheets and alerts.
 // Dependencies: Sources/App/Views/ProjectsSidebarView.swift (Home sidebar),
 //               Sources/App/Views/ProjectContextSidebar.swift (project sidebar),
 //               Sources/App/Views/HomeView.swift, Sources/App/Views/ProjectSwitcherView.swift,
-//               Sources/App/Components/MainWindowEventMonitor.swift (mouse back and forward, Cmd+K),
+//               Sources/App/Components/MainWindowEventMonitor.swift (mouse back and forward, Shift+Tab),
 //               Sources/App/ViewModels/AppViewModel+Navigation.swift (currentPlace, visits)
 // Used by: Sources/App/MinuteMindApp.swift (main window)
 // Notes: The sidebar slides: Home's goes out to the left as a project's comes in from the right,
