@@ -333,7 +333,7 @@ enum HelpGuideContent {
 
         ## Project creatures
 
-        A project can have its own creature (sidebar right click > Companion, or when creating the project). While that project runs Claude sessions its creature stands next to the companion and shows their state; when one needs you it steps to the front. Click a small one to bring it forward, double click to open its session.
+        A project can have its own creature (sidebar right click > Companion or Edit Project..., or when creating the project), in its own colour if you pick one in Edit Project.... While that project runs Claude sessions its creature stands next to the companion and shows their state; when one needs you it steps to the front. Click a small one to bring it forward, double click to open its session.
 
         ## Appearance
 
@@ -351,14 +351,15 @@ enum HelpGuideContent {
 
         ## In the sidebar
 
-        - Right click a project: Star / Unstar (starred projects come first in the project wheel and show their creature or a star), Companion (its creature), Make Shared Project..., Arrange Projects.
+        - Right click a project: Star / Unstar (starred projects come first in the project wheel and show their creature or a star), Edit Project..., Companion (its creature), Make Shared Project..., Arrange Projects.
+        - **Edit Project...** (also a right click on the project's name at the top of its own sidebar, or on its creature in the switcher) opens the project settings: name, companion creature, avatar colour (Default is the creature's natural colour; Own Colour opens the system colour panel with wheel, sliders and hex code, and paints the creature's body only, the headphones and other details keep theirs) and the export folder.
         - Long press a project (or Arrange Projects) to drag the projects into your order.
 
         ## Inside a project
 
-        Entering a project (a tile on Home, or its row in the sidebar) gives the sidebar to the project: at the top its creature and name (click it to go back Home), then three sections: **Overview** (tasks and recordings), **Workspace** (the project folder with Claude Code, see Workspace) and **Jobs** (scheduled Claude jobs), then the project's files and its branch row. Each project remembers its last section; the first visit opens Workspace. The menu in the Overview header has Rename Project, Project Settings... (the export folder for transcripts and summaries), the project's own task auto-accept choice, and Delete Project.
+        Entering a project (a tile on Home, or its row in the sidebar) gives the sidebar to the project: at the top its creature and name (click it to go back Home), then three sections: **Overview** (tasks and recordings), **Workspace** (the project folder with Claude Code, see Workspace) and **Jobs** (scheduled Claude jobs), then the project's files and its branch row. Each project remembers its last section; the first visit opens Workspace. The menu in the Overview header has Rename Project, Project Settings... (the same sheet as Edit Project...: name, companion, avatar colour and the export folder for transcripts and summaries), the project's own task auto-accept choice, and Delete Project.
 
-        A project without a creature of its own shows a Blob; General shows your companion.
+        A project without a creature of its own shows a Blob (in its avatar colour, if set); General shows your companion.
 
         ## Moving around
 

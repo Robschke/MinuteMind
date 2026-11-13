@@ -25,7 +25,8 @@
 //        every drop. A cancelled gesture never calls onEnded, so `gestureActive` cleans up.
 //        No autoscroll yet: a row can only be dragged within the visible part of the list.
 //        General is not a project and stays first, dimmed while arranging.
-//        Right click stars or unstars a project (`setProjectStarred`); a starred row shows the
+//        Right click offers Edit Project… (the settings sheet: name, companion, avatar colour) and
+//        stars or unstars a project (`setProjectStarred`); a starred row shows the
 //        project's own creature in tiny, or the companion's avatar without one (StarredProjectMark) and the project leads the companion's
 //        project wheel (user request 2026-10-28).
 //        Shared Projects: a people mark after the name (orange dot and tooltip on a sync problem);
@@ -499,6 +500,7 @@ struct ProjectsSidebarView: View {
             } else {
                 Button("Star") { viewModel.setProjectStarred(project, true) }
             }
+            Button("Edit Project…") { viewModel.editingProjectID = project.id }
             companionMenu(for: project)
             if !project.isShared, project.id != ProjectRepositoryService.generalProjectID {
                 Button("Make Shared Project…") { makeShared(project) }

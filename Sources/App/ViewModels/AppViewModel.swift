@@ -135,6 +135,9 @@ final class AppViewModel {
     @ObservationIgnored var historyTarget: NavigationPlace?
     /// Home's New Project tile asks the Home sidebar (ProjectsSidebarView) to open its sheet.
     var requestsNewProject = false
+    /// The project whose settings sheet is open from "Edit Project…" (a right click in the
+    /// sidebars or the switcher); ContentView shows the sheet.
+    var editingProjectID: UUID?
 
     var audioDeviceManager = AudioDeviceManager()
     var teamsCallDetectionEnabled: Bool {
@@ -3703,6 +3706,14 @@ final class AppViewModel {
     func setProjectStarred(_ project: Project, _ starred: Bool) {
         guard let index = projects.firstIndex(where: { $0.id == project.id }) else { return }
         projects[index].isStarred = starred ? true : nil
+        projects[index].updatedAt = Date()
+        projectStore.debouncedSaveProjects(projects)
+    }
+
+    /// The body colour of the project's creature (`#RRGGBB`; nil: Default, its natural colour).
+    func setProjectAvatarColor(_ project: Project, _ hex: String?) {
+        guard let index = projects.firstIndex(where: { $0.id == project.id }) else { return }
+        projects[index].avatarColorHex = hex
         projects[index].updatedAt = Date()
         projectStore.debouncedSaveProjects(projects)
     }

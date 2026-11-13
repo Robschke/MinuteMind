@@ -97,6 +97,11 @@ struct ContentView: View {
                 return model.updateBlockedReason != nil || OnboardingFlow.shared.isActive
             }
         }
+        // "Edit Project…" from a right click in the sidebars or the switcher.
+        .sheet(item: editingProjectBinding()) { project in
+            ProjectSettingsSheet(project: project)
+                .environment(viewModel)
+        }
         .sheet(isPresented: updateSheetBinding()) {
             if let release = updateChecker.offeredRelease {
                 AppUpdateSheet(release: release, checker: updateChecker)
@@ -193,6 +198,13 @@ struct ContentView: View {
         .clipped()
         .animation(.smooth(duration: 0.3), value: projectID != nil)
         .animation(.easeOut(duration: 0.15), value: projectID)
+    }
+
+    /// The project "Edit Project…" opened; nil once it is closed or the project is gone.
+    private func editingProjectBinding() -> Binding<Project?> {
+        Binding(
+            get: { viewModel.editingProjectID.flatMap { id in viewModel.projects.first { $0.id == id } } },
+            set: { if $0 == nil { viewModel.editingProjectID = nil } })
     }
 
     /// Shown while the checker offers a release; closing it any other way counts as Later.

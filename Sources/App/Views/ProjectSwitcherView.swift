@@ -107,6 +107,14 @@ struct ProjectSwitcherView: View {
                 model.cancel()
                 viewModel.enterProject(id)
             }
+            .contextMenu {
+                if id != ProjectRepositoryService.generalProjectID {
+                    Button("Edit Project…") {
+                        model.cancel()
+                        viewModel.editingProjectID = id
+                    }
+                }
+            }
             .accessibilityElement()
             .accessibilityLabel(name(of: id))
             .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
