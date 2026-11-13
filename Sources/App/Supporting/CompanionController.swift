@@ -218,7 +218,7 @@ final class CompanionController {
     private var waitingSince: [UUID: Date] = [:]
     private var notifiedWaiting: Set<UUID> = []
     // Coming to the pointer when the mouse is shaken.
-    private var shakeDetector = MouseShakeDetector()
+    private var shakeDetector = MouseShakeDetector(strength: CompanionAppearance.shared.shakeStrength)
     private var mouseMonitors: [Any] = []
     private var travel: (from: CGPoint, to: CGPoint, start: Date, duration: TimeInterval)?
     private var travelTimer: Timer?
@@ -965,6 +965,8 @@ final class CompanionController {
     /// Watches the pointer only while a shake can do something: the creature shows and the
     /// switch is on.
     private func updateMouseMonitors() {
+        let strength = CompanionAppearance.shared.shakeStrength
+        if shakeDetector.strength != strength { shakeDetector = MouseShakeDetector(strength: strength) }
         let wanted = creatureFrame != nil && CompanionAppearance.shared.comesOnShake
         guard wanted == mouseMonitors.isEmpty else { return }
         if wanted {

@@ -335,7 +335,7 @@ enum HelpGuideContent {
 
         ## Appearance
 
-        Settings > Appearance > Companion: show or hide it, the creature (blob, duck, dog, puppy, pug, several cats, lime), size, colour, "come to the pointer when I shake the mouse", and "Show the companion in screen shares" (off by default, so others do not see it).
+        Settings > Appearance > Companion: show or hide it, the creature (blob, duck, dog, puppy, pug, several cats, lime), size, colour, "come to the pointer when I shake the mouse" with a Sensitivity slider below it (Gentle: two short flips are enough, Hard: five wide ones), and "Show the companion in screen shares" (off by default, so others do not see it).
         """
     )
 

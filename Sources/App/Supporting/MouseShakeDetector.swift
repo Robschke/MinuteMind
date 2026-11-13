@@ -12,16 +12,24 @@
 //          button is held) stay below that.
 //        - 1.5 s cooldown after a shake, so one long shake moves the creature once.
 //        - Moves under 1 pt are ignored for the direction, so sensor noise cannot fake a flip.
+//        - Strength 1 (gentle) to 5 (hard), set with the sensitivity slider in Settings,
+//          Appearance. Harder needs more flips and wider strokes; the window grows with the
+//          flips so a hard shake stays doable. 3 is the tuning above. Stroke duration and the
+//          600 pt cap stay fixed at every level, so scrubbing and sweeps never count.
 
 import CoreGraphics
 import Foundation
 
 struct MouseShakeDetector {
-    var minStroke: CGFloat = 50
+    static let strengths = 1...5
+    static let defaultStrength = 3
+
+    let strength: Int
+    var minStroke: CGFloat
     var maxStroke: CGFloat = 600
     var maxStrokeDuration: TimeInterval = 0.25
-    var reversalsNeeded = 3
-    var window: TimeInterval = 0.9
+    var reversalsNeeded: Int
+    var window: TimeInterval
     var cooldown: TimeInterval = 1.5
 
     private var lastX: CGFloat?
@@ -31,6 +39,17 @@ struct MouseShakeDetector {
     private var strokeStartTime: TimeInterval = 0
     private var reversals: [TimeInterval] = []
     private var lastShake: TimeInterval = -.infinity
+
+    /// `strength` from 1 (gentle: two short flips) to 5 (hard: five wide flips); out of range
+    /// values are clamped.
+    init(strength: Int = MouseShakeDetector.defaultStrength) {
+        let level = min(max(strength, Self.strengths.lowerBound), Self.strengths.upperBound)
+        self.strength = level
+        let index = level - Self.strengths.lowerBound
+        reversalsNeeded = [2, 2, 3, 4, 5][index]
+        minStroke = [30, 40, 50, 70, 90][index]
+        window = [0.9, 0.9, 0.9, 1.2, 1.5][index]
+    }
 
     /// Forgets the movement so far (the pointer was not watched for a while).
     mutating func reset() {

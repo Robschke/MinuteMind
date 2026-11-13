@@ -415,6 +415,25 @@ private struct CompanionAppearanceSection: View {
                             .disabled(companion.model.isHiddenByUser)
                     }
                     GridRow {
+                        Text("Sensitivity").frame(width: 80, alignment: .leading)
+                        HStack(spacing: 8) {
+                            Text("Gentle").font(.caption).foregroundStyle(.secondary)
+                            Slider(
+                                value: Binding(
+                                    get: { Double(appearance.shakeStrength) },
+                                    set: { appearance.shakeStrength = Int($0.rounded()) }),
+                                in: Double(MouseShakeDetector.strengths.lowerBound)...Double(MouseShakeDetector.strengths.upperBound),
+                                step: 1)
+                                .labelsHidden()
+                                .accessibilityLabel("Shake sensitivity")
+                                .accessibilityValue(CompanionAppearance.shakeStrengthLabel(appearance.shakeStrength))
+                            Text("Hard").font(.caption).foregroundStyle(.secondary)
+                        }
+                        .frame(width: 240)
+                        .help("How hard you shake the mouse before the companion comes. Gentle: two short flips. Hard: five wide ones.")
+                        .disabled(companion.model.isHiddenByUser || !appearance.comesOnShake)
+                    }
+                    GridRow {
                         Text("Sharing").frame(width: 80, alignment: .leading)
                         Toggle("Show the companion in screen shares", isOn: $appearance.visibleInScreenShares)
                             .disabled(companion.model.isHiddenByUser)

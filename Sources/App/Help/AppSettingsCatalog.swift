@@ -347,6 +347,20 @@ enum AppSettingsCatalog {
                 read: { _ in .bool(CompanionAppearance.shared.comesOnShake) },
                 write: { _, value in CompanionAppearance.shared.comesOnShake = value.flag; return nil }),
             AppSetting(
+                id: "companion_shake_sensitivity", title: "Shake sensitivity", location: companionPlace,
+                summary: "How hard the mouse must be shaken before the companion comes: 1 gentle (two short flips) to 5 hard (five wide flips), 3 is normal.",
+                helpTopic: "companion", storageKeys: ["mm.companionShakeStrength"], kind: .choice,
+                options: { _ in
+                    MouseShakeDetector.strengths.map {
+                        Option(value: "\($0)", label: CompanionAppearance.shakeStrengthLabel($0))
+                    }
+                },
+                read: { _ in .string("\(CompanionAppearance.shared.shakeStrength)") },
+                write: { _, value in
+                    CompanionAppearance.shared.shakeStrength = Int(value.string) ?? MouseShakeDetector.defaultStrength
+                    return nil
+                }),
+            AppSetting(
                 id: "companion_in_screen_shares", title: "Show the companion in screen shares", location: companionPlace,
                 summary: "On: others see the companion when the screen is shared, and it stays on screen meanwhile. Off: it hides during screen shares.",
                 helpTopic: "companion", storageKeys: ["mm.companionVisibleInScreenShares"], kind: .toggle,

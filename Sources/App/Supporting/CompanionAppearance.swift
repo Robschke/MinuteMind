@@ -14,6 +14,7 @@
 //        mm.companionLastColor (the last own colour, restored when switching back to it),
 //        mm.companionAvatar (blob, duck, dog, puppy, pug, cat, coolCat, sweetCat, lime; MascotAvatar), mm.companionComesOnShake
 //        (default on: shaking the mouse brings the creature to the pointer),
+//        mm.companionShakeStrength (1 gentle to 5 hard, default 3; MouseShakeDetector levels),
 //        mm.companionVisibleInScreenShares (default off: the creature is hidden from screen
 //        capture and during a screen share; on, viewers see it and it stays).
 
@@ -77,6 +78,28 @@ final class CompanionAppearance {
         }
     }
 
+    /// How hard the mouse must be shaken: 1 gentle to 5 hard (MouseShakeDetector.strengths).
+    var shakeStrength: Int {
+        didSet {
+            let clamped = min(max(shakeStrength, MouseShakeDetector.strengths.lowerBound),
+                              MouseShakeDetector.strengths.upperBound)
+            guard clamped == shakeStrength else { shakeStrength = clamped; return }
+            defaults.set(shakeStrength, forKey: "mm.companionShakeStrength")
+            announceChange()
+        }
+    }
+
+    /// The name of a shake strength, for VoiceOver and the settings catalog.
+    static func shakeStrengthLabel(_ strength: Int) -> String {
+        switch strength {
+        case ...1: "Gentle"
+        case 2: "Light"
+        case 3: "Normal"
+        case 4: "Firm"
+        default: "Hard"
+        }
+    }
+
     /// Others see the creature when the screen is shared, and it stays on screen meanwhile.
     var visibleInScreenShares: Bool {
         didSet {
@@ -121,6 +144,9 @@ final class CompanionAppearance {
         self.defaults = defaults
         avatar = MascotAvatar(rawValue: defaults.string(forKey: "mm.companionAvatar") ?? "") ?? .blob
         comesOnShake = defaults.object(forKey: "mm.companionComesOnShake") as? Bool ?? true
+        let storedStrength = defaults.object(forKey: "mm.companionShakeStrength") as? Int ?? MouseShakeDetector.defaultStrength
+        shakeStrength = min(max(storedStrength, MouseShakeDetector.strengths.lowerBound),
+                            MouseShakeDetector.strengths.upperBound)
         visibleInScreenShares = defaults.bool(forKey: "mm.companionVisibleInScreenShares")
         size = Size(rawValue: defaults.string(forKey: "mm.companionSize") ?? "") ?? .medium
         customColor = (defaults.object(forKey: "mm.companionColor") as? Int).map { UInt32(truncatingIfNeeded: $0) }

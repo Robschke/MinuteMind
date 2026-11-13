@@ -1,5 +1,5 @@
 // Purpose: Tests for the mouse shake that calls the desktop companion: a real shake fires once,
-//          slow panning, small jitter and a single swipe do not.
+//          slow panning, small jitter and a single swipe do not; gentle and hard strengths.
 // Dependencies: Sources/App/Supporting/MouseShakeDetector.swift
 
 import CoreGraphics
@@ -12,8 +12,9 @@ import Testing
 struct MouseShakeDetectorTests {
     /// Feeds a back-and-forth movement at 60 Hz: `amplitude` pt each way, `strokes` strokes of
     /// `strokeDuration` seconds; returns how often it fired.
-    private func shakes(amplitude: CGFloat, strokes: Int, strokeDuration: TimeInterval) -> Int {
-        var detector = MouseShakeDetector()
+    private func shakes(amplitude: CGFloat, strokes: Int, strokeDuration: TimeInterval,
+                        strength: Int = MouseShakeDetector.defaultStrength) -> Int {
+        var detector = MouseShakeDetector(strength: strength)
         var fired = 0
         let steps = Int(strokeDuration * 60)
         var time: TimeInterval = 0
@@ -59,5 +60,26 @@ struct MouseShakeDetectorTests {
     @Test("Long fast sweeps across the screen are no shake")
     func longSweeps() {
         #expect(shakes(amplitude: 900, strokes: 6, strokeDuration: 0.2) == 0)
+    }
+
+    @Test("Gentle fires after two short flips that normal ignores")
+    func gentle() {
+        #expect(shakes(amplitude: 40, strokes: 3, strokeDuration: 0.1, strength: 1) == 1)
+        #expect(shakes(amplitude: 40, strokes: 3, strokeDuration: 0.1) == 0)
+        #expect(shakes(amplitude: 20, strokes: 20, strokeDuration: 0.05, strength: 1) == 0)
+        #expect(shakes(amplitude: 120, strokes: 8, strokeDuration: 0.3, strength: 1) == 0)
+    }
+
+    @Test("Hard needs five wide flips")
+    func hard() {
+        #expect(shakes(amplitude: 120, strokes: 4, strokeDuration: 0.1, strength: 5) == 0)
+        #expect(shakes(amplitude: 80, strokes: 8, strokeDuration: 0.1, strength: 5) == 0)
+        #expect(shakes(amplitude: 120, strokes: 6, strokeDuration: 0.2, strength: 5) == 1)
+    }
+
+    @Test("Out of range strengths are clamped")
+    func clamped() {
+        #expect(MouseShakeDetector(strength: 0).strength == 1)
+        #expect(MouseShakeDetector(strength: 9).strength == 5)
     }
 }
