@@ -1501,6 +1501,7 @@ final class AppViewModel {
         migrateWaveformsToSidecar()
         migrateOldRecordingsToM4A()
         startAudioRetentionLoop()
+        CrashReporter.shared.sendPending(after: .seconds(15))
         setupWorkspaceKnowledge()
         setupScheduledJobs()
         setupSharedSync()

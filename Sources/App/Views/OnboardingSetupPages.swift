@@ -1,8 +1,10 @@
 // Purpose: The onboarding's setup pages around the permissions and the tour: Welcome, Claude
 //          (Claude Code check + one-click MCP, and git when it is missing), the speech models
-//          (Parakeet and Nemotron 3) and the finish page with what is still missing and the restart.
+//          (Parakeet and Nemotron 3) and the finish page with what is still missing, the crash
+//          report opt-in and the restart.
 // Dependencies: Sources/App/Supporting/OnboardingFlow.swift (downloads, finish, restart),
 //               Sources/App/Supporting/OnboardingClaudeSetup.swift (CLI, MCP and git),
+//               Sources/App/Services/CrashReporter.swift (crash report opt-in on the finish page),
 //               Sources/App/Supporting/OnboardingPermissions.swift (missing permissions),
 //               Sources/App/Views/OnboardingView.swift (page layout, creature),
 //               Sources/App/ViewModels/AppViewModel.swift (Parakeet progress, MCP server)
@@ -351,6 +353,7 @@ struct OnboardingFinishPage: View {
             }
         }
         OnboardingChecklistRow(title: "General workspace ready for meetings without a project", isDone: true) {}
+        OnboardingCrashReportsRow()
     }
 
     private var speechModelsTitle: String {
@@ -368,6 +371,35 @@ struct OnboardingFinishPage: View {
         case .checking, .found:
             flow.claude.mcp == .added ? "Claude Code connected to MinuteMind" : "MinuteMind not yet added to Claude Code"
         }
+    }
+}
+
+/// The opt-in for crash reports: off until the user switches it on (never pre-selected).
+struct OnboardingCrashReportsRow: View {
+    @State private var reporter = CrashReporter.shared
+
+    var body: some View {
+        HStack(spacing: DesignSystem.Dimensions.spacingM) {
+            // Same width as the checklist rows' status circles, so the titles line up.
+            Image(systemName: "ladybug")
+                .foregroundStyle(DesignSystem.Colors.textSecondary)
+                .frame(width: 16)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Send crash reports")
+                    .font(DesignSystem.Typography.callout)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                Text(CrashReportsRow.contents)
+                    .font(DesignSystem.Typography.footnote)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+            Toggle("Send crash reports", isOn: $reporter.isEnabled)
+                .toggleStyle(.switch)
+                .labelsHidden()
+        }
+        .padding(DesignSystem.Dimensions.spacingM)
+        .background(RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius).fill(DesignSystem.Colors.card))
     }
 }
 

@@ -37,6 +37,8 @@ enum AppSettingsCatalog {
     static let internalKeys: [String: String] = [
         "mm.autoPipelineEnabled": "declared in AutomationSettings but read nowhere and not shown in Settings",
         "mm.companionCoachSeen": "one-time hint",
+        "mm.crashReportsEnabled": "consent to crash reports: only the user's own click in Settings or the setup may change it, never Claude",
+        "mm.crashReportsSent": "ids of crash reports already sent",
         "mm.companionLastColor": "remembers the last own colour for the companion colour switch",
         "mm.companionPosition": "where the companion was dragged",
         "mm.companionDocked": "set by dragging the companion out of or into the window corner",

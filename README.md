@@ -20,6 +20,8 @@ MinuteMind runs the official Claude Code CLI on your Mac. You sign in to Claude 
 
 > **Not affiliated with Anthropic.** MinuteMind is an independent open-source project. It is not built, endorsed or sponsored by Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic, PBC.
 
+> **Crash reports are opt-in.** They are off unless you switch them on (in the first-launch setup or in Settings, Help). A report holds where MinuteMind crashed, the app and macOS version, the Mac model and the day; no recordings, transcripts or names. It goes to the project's endpoint on Cloudflare, is stored in the EU for 90 days to fix bugs, and IP addresses are not stored. Settings, Help, Show Last Report shows exactly what is sent.
+
 > **Recording consent.** Many countries require the consent of everyone in a conversation before it is recorded (in Germany, for example, §201 StGB). You are responsible for getting that consent before you record a meeting with MinuteMind.
 
 ## Features

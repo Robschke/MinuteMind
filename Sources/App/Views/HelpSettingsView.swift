@@ -1,6 +1,7 @@
 // Purpose: Help tab for Settings: the MinuteMind user guide, one expandable section per topic, with
 //          a search field. Shows the same text Claude reads over MCP (get_help).
 // Dependencies: Sources/App/Help/HelpGuide.swift (topics, search),
+//               Sources/App/Views/CrashReportsRow.swift (crash report switch above the guide),
 //               Sources/App/Components/MarkdownDisplayView.swift (topic bodies)
 // Used by: Sources/App/Views/MeetingMinutesSettingsView.swift (Help tab)
 // Notes: The guide's text lives in HelpGuideContent.swift, not here, so the tab and Claude never
@@ -14,6 +15,7 @@ struct HelpSettingsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            CrashReportsRow()
             searchField
 
             ScrollView {

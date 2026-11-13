@@ -17,8 +17,22 @@ enum HelpGuideContent {
         gettingStarted, recording, meetingDetection, inbox, transcription, speakers, dictionary,
         summaries, quickDictation, voiceAssistant, companion, projects, workspace, knowledge,
         jobs, sharedProjects, calendar, tasks, claudeIntegration, appearance, storage, settings,
-        updating, shortcuts,
+        updating, crashReports, shortcuts,
     ]
+
+    static let crashReports = HelpGuideTopic(
+        id: "crash-reports",
+        title: "Crash Reports",
+        icon: "ladybug",
+        summary: "What the optional crash reports contain, where they go, and how to switch them on or off.",
+        body: """
+        Crash reports are off unless you switch them on: on the last page of the first-launch setup, or in Settings, Help ("Send crash reports automatically").
+
+        When MinuteMind has crashed, macOS writes a crash log on your Mac. With the switch on, MinuteMind sends a short version of it at the next launch: where in MinuteMind it crashed (the functions on the crashed thread), the app and macOS version, the Mac model and the day. No recordings, transcripts, meeting titles, names or file contents, and user names in paths are replaced. **Show Last Report** in Settings, Help shows exactly what is sent.
+
+        Reports go to the project's own endpoint on Cloudflare and are stored in the EU for 90 days, only to fix bugs. IP addresses are not stored. Each crash is sent once; crashes from the last 14 days count. Switching it off stops sending at once.
+        """
+    )
 
     static let updating = HelpGuideTopic(
         id: "updating",
