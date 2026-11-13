@@ -32,7 +32,7 @@
 //        session, its right click offers Sonnet (at most six per project, windows included). Closing a
 //        session where Claude still runs asks first; the workspace's own last tab cannot be
 //        closed, a window's last tab closes the window. The status strip speaks for the focused
-//        session. Shortcuts: Opt+Cmd+N new session, Opt+Cmd+Left/Right move between sessions
+//        session. Shortcuts: Shift+Opt+Cmd+N new terminal, Opt+Cmd+Left/Right move between sessions
 //        (no backtick or bracket chords: dead keys on a German layout). A one-time banner
 //        explains Claude's folder trust question.
 //        Status (user request 2026-10-13, design review 5): each pane gets a frame in the
@@ -50,8 +50,8 @@
 //        Claude beside the open file, below it, or all tabs in their own window.
 //        Plain terminals (user decision 2026-10-13): the strip has two icon buttons instead of a
 //        "+" menu, a Claude one (sparkle, Opus; right click offers Opus or Sonnet) and a terminal
-//        one (Shift+Opt+Cmd+N, next to Opt+Cmd+N; Opt+Cmd+T is the system's Show Toolbar). The
-//        empty state offers New Claude Session beside New Terminal, with the same icons. A
+//        one (Shift+Opt+Cmd+N; Opt+Cmd+T is the system's Show Toolbar). The empty state offers
+//        New Claude Session beside New Terminal, with the same icons. A
 //        terminal tab shows the terminal icon, "Terminal N" and the program in front as a second
 //        label ("vim", or "Claude" when typed by hand); no status frame unless Claude runs in it.
 //        Closing one asks only while a program besides the shell runs. Its menu says "Restart
@@ -560,7 +560,7 @@ struct WorkspaceTerminalPane: View {
                 Button("New Sonnet Session") { addSession(.claude(model: "sonnet")) }
             }
             .help(canAddClaude
-                ? "New Claude Session (\u{2325}\u{2318}N). Right click for Sonnet. Sessions share the folder: give them different files to work on."
+                ? "New Claude Session. Right click for Sonnet. Sessions share the folder: give them different files to work on."
                 : "Up to \(WorkspaceTerminalStore.maxSessions) Claude sessions per workspace, windows included.")
             Button { addSession(.terminal) } label: {
                 Image(systemName: "apple.terminal").frame(width: 22, height: 22).contentShape(Rectangle())
@@ -577,8 +577,6 @@ struct WorkspaceTerminalPane: View {
     /// Hidden buttons carrying the strip's keyboard shortcuts.
     private var shortcuts: some View {
         ZStack {
-            Button("New Claude Session") { addSession(.claude(model: "opus")) }
-                .keyboardShortcut("n", modifiers: [.command, .option])
             Button("New Terminal") { addSession(.terminal) }
                 .keyboardShortcut("n", modifiers: [.command, .option, .shift])
             Button("Previous Session") { moveFocus(by: -1) }

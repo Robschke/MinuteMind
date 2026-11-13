@@ -1,19 +1,18 @@
-// Purpose: The onboarding's introduction: one illustrated card per topic (recording, dictation and
-//          the Claude key, Claude, the desktop companion, projects) with drawn key caps for the
-//          shortcuts.
+// Purpose: The onboarding's introduction: one illustrated card per topic (dictation and the Claude
+//          key, the desktop companion, projects) with drawn key caps for the dictation keys.
 // Dependencies: Sources/App/Views/OnboardingView.swift (page layout, key caps, creature),
 //               Sources/App/Config/AutomationSettings.swift (which dictation key is set)
 // Used by: Sources/App/Supporting/OnboardingFlow.swift (tour steps),
 //          Sources/App/Views/OnboardingView.swift (page switch)
-// Notes: The shortcuts shown are the ones registered in MinuteMindApp.setupHotkeys and the
-//        workspace strip; when one changes there, change it here too. The dictation key follows the
-//        user's setting (fn by default); the toggle mode has no hold key, so the Claude key and
-//        quick recording are described as needing a hold key.
+// Notes: The keys shown are the ones registered in MinuteMindApp.setupHotkeys; when one changes
+//        there, change it here too. The dictation key follows the user's setting (fn by default);
+//        the toggle mode has no hold key, so the Claude key and quick recording are described as
+//        needing a hold key.
 
 import SwiftUI
 
 enum OnboardingTourTopic: String, CaseIterable, Identifiable, Sendable {
-    case recording, voice, claude, companion, projects
+    case voice, companion, projects
     var id: String { rawValue }
 }
 
@@ -23,31 +22,13 @@ struct OnboardingTourPage: View {
 
     var body: some View {
         switch topic {
-        case .recording: recording
         case .voice: voice
-        case .claude: claude
         case .companion: companion
         case .projects: projects
         }
     }
 
     // MARK: - Pages
-
-    private var recording: some View {
-        OnboardingPage(
-            symbol: "record.circle", title: "Record your meetings",
-            subtitle: "MinuteMind notices calls and turns them into transcripts, summaries and tasks."
-        ) {
-            OnboardingPoint(symbol: "dot.radiowaves.left.and.right",
-                            text: "When Teams, Zoom, Meet or another call app uses your microphone, the companion offers to record. Calendar meetings are offered too.")
-            OnboardingShortcutRow(keys: ["\u{21E7}", "\u{2318}", "R"], text: "Start recording, or record the meeting on offer")
-            OnboardingPoint(symbol: "stop.circle",
-                            text: "A recording only ends when you stop it. When the call is over, the companion asks.")
-            OnboardingPoint(symbol: "folder",
-                            text: "Afterwards pick the project. Transcript, summary, tasks and knowledge follow on their own.")
-            OnboardingShortcutRow(keys: ["\u{2303}", "\u{2325}", "P"], text: "Process the meeting just saved")
-        }
-    }
 
     private var voice: some View {
         let mode = viewModel.automationSettings.quickDictationMode
@@ -67,23 +48,6 @@ struct OnboardingTourPage: View {
             }
             OnboardingPoint(symbol: "character.book.closed",
                             text: "Names it gets wrong go into the Dictionary (Settings), and every transcript uses them.")
-        }
-    }
-
-    private var claude: some View {
-        OnboardingPage(
-            symbol: "sparkles", title: "Claude does the thinking",
-            subtitle: "Claude Code runs on your own Claude subscription; MinuteMind needs no API key."
-        ) {
-            OnboardingPoint(symbol: "doc.text.magnifyingglass",
-                            text: "Cleans up transcripts and writes summaries, titles, tasks and the project knowledge.")
-            OnboardingPoint(symbol: "terminal",
-                            text: "Every project's Workspace tab has Claude sessions that know its meetings and knowledge.")
-            OnboardingShortcutRow(keys: ["\u{2325}", "\u{2318}", "N"], text: "New Claude session in the open workspace")
-            OnboardingPoint(symbol: "cursorarrow.click",
-                            text: "The Claude button on the companion's card opens Claude (General), your assistant outside any project.")
-            OnboardingPoint(symbol: "point.3.connected.trianglepath.dotted",
-                            text: "Through MCP, any Claude Code session on this Mac can read and change your meetings, tasks and notes.")
         }
     }
 

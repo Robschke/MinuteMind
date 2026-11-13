@@ -91,7 +91,6 @@ enum HelpGuideContent {
         ## Starting a recording
 
         - The record button on All Transcripts. The project picker next to it decides where the meeting is filed (a project, General, or none).
-        - Shift+Cmd+R from any app. It starts a recording (or records the meeting the companion is offering) and never stops one.
         - The desktop companion: right click (or Ctrl click) and choose Record.
         - When MinuteMind detects a call it offers to record it beside the companion (see Meeting Detection).
         - Calendar events with auto-record switched on start by themselves at event time.
@@ -157,7 +156,7 @@ enum HelpGuideContent {
 
         ## The Inbox
 
-        Inbox in the sidebar lists recent meetings without a summary: transcribing, ready, processing (with its steps) or failed (Retry). Meetings without a project show "Choose project". Process (Cmd+Return on the selected one), Process All (Shift+Cmd+Return; skips meetings without a project; can be stopped) and Skip (hides it from the Inbox, with Undo and a Skipped filter). Ctrl+Opt+P processes the meeting the companion just saved.
+        Inbox in the sidebar lists recent meetings without a summary: transcribing, ready, processing (with its steps) or failed (Retry). Meetings without a project show "Choose project". Process (Cmd+Return on the selected one), Process All (Shift+Cmd+Return; skips meetings without a project; can be stopped) and Skip (hides it from the Inbox, with Undo and a Skipped filter).
 
         Claude can list the Inbox and process meetings for you too.
         """
@@ -373,7 +372,7 @@ enum HelpGuideContent {
 
         - **File tree** on the left: browse, drag to move (Option copies), rename, New File / New Folder, Duplicate, Copy Path, Move to Trash (Cmd+Delete). meetings/, recordings/, knowledge/ and CLAUDE.md stay in place. The tree folds away to a thin rail.
         - **Editor:** click a file to open it, with syntax colours, a Markdown preview, images and PDFs. Changes save by themselves; double click opens a file in its usual app.
-        - **Claude Code:** up to six sessions per project in tabs (the sparkle button or Opt+Cmd+N; right click for Sonnet instead of Opus), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.
+        - **Claude Code:** up to six sessions per project in tabs (the sparkle button; right click for Sonnet instead of Opus), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.
         - **Layout:** Claude sits below the file (default), beside it, or in its own window (buttons in Claude's tab strip). Drag a tab onto a pane to split it, or use Split Right / Split Down in the tab's menu; drag a tab out to give it its own window.
         - **Branch row** under the tree: the checked-out git branch; switch or create branches there. Uncommitted changes come along or are kept for you on the branch you leave. If it says "git is not installed", click Install: it opens Apple's installer for the Command Line Tools (or run `xcode-select --install` in Terminal). Until then the workspace keeps no history and Shared Projects cannot sync.
 
@@ -579,12 +578,10 @@ enum HelpGuideContent {
         body: """
         ## Anywhere on the Mac
 
-        - **Shift+Cmd+R:** start a recording (never stops one).
         - **Hold fn** (or right Option, per Settings): quick dictation; release to insert.
         - **Ctrl+Opt+D:** quick dictation when the trigger is set to press-to-start.
         - **Double tap fn:** start a quick recording; press again to stop.
         - **fn + Control (hold):** voice assistant.
-        - **Ctrl+Opt+P:** process the meeting the companion just saved.
         - **Shift+Cmd+T:** Task Commander.
         - **Shift+Cmd+D:** live dictation.
 
@@ -592,7 +589,7 @@ enum HelpGuideContent {
 
         - **Cmd+,:** Settings. **Cmd+I:** Import Audio. **Ctrl+Cmd+S:** show or hide the sidebar.
         - **Inbox:** Cmd+Return processes the selected meeting, Shift+Cmd+Return processes all, Cmd+Z undoes Skip.
-        - **Workspace:** Opt+Cmd+N new Claude session, Shift+Opt+Cmd+N new terminal, Opt+Cmd+Left/Right switch sessions, Cmd+S save the open file, Cmd+Delete move the selected file to the Trash.
+        - **Workspace:** Shift+Opt+Cmd+N new terminal, Opt+Cmd+Left/Right switch sessions, Cmd+S save the open file, Cmd+Delete move the selected file to the Trash.
         - **Recordings:** Space plays or pauses the selected recording.
         """
     )

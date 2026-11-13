@@ -169,28 +169,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             self?.taskCommanderController.toggle()
         }
 
-        // Shift+Cmd+R → Start recording. When the meeting pill offers a detected meeting, this
-        // records exactly that meeting (with its calendar data and project). It never stops a
-        // recording (user decision 2026-10-08): the hotkey service watches keys in every app, so
-        // Shift+Cmd+R pressed elsewhere (a hard reload in a browser) could end a meeting.
-        hotkeyService.register(key: "r", modifiers: [.shift, .command]) { [weak self] in
-            guard let vm = self?.viewModel else { return }
-            Task { @MainActor in
-                guard !vm.isRecording else {
-                    vm.meetingPill.flashRecordingHint("Already recording")
-                    return
-                }
-                if vm.meetingPill.hotkeyRecord() { return }
-                await vm.startRecording()
-            }
-        }
-
-        // Ctrl+Opt+P → Process the meeting the pill just saved.
-        hotkeyService.register(key: "p", modifiers: [.control, .option]) { [weak self] in
-            guard let vm = self?.viewModel else { return }
-            Task { @MainActor in vm.meetingPill.hotkeyProcess() }
-        }
-
         // Shift+Cmd+D → Live Dictation overlay
         hotkeyService.register(key: "d", modifiers: [.shift, .command]) { [weak self] in
             self?.liveDictationController.toggle()

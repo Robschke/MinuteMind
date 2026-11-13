@@ -8,7 +8,7 @@
 // Used by: Sources/App/Supporting/MeetingPillController.swift (recordingStopped, projectChosen,
 //          publicationAnswered, finishSaved), Tests/SharedPublishCardTests.swift
 // Notes: - No answer means private: nothing leaves the Mac until the user says Publish. The 30 s
-//          timeout, Escape, Later and the process hotkey all close the question as Keep private.
+//          timeout, Escape and Later all close the question as Keep private.
 //        - Only a Shared Project asks. A Private project or General keeps the "Filed to X" card
 //          as it is; picking another Shared Project with Change asks again (the question belongs
 //          to the project, so an earlier pick's question never carries over).

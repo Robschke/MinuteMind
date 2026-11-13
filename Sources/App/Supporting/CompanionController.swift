@@ -928,8 +928,8 @@ final class CompanionController {
         if viewModel?.isRecording == true {
             add("Stop Recording") { pill.model.stop() }
         } else {
-            // A detected meeting is recorded as that meeting, like the hotkey does.
-            add("Record") { if !pill.hotkeyRecord() { pill.model.recordNow() } }
+            // A detected meeting is recorded as that meeting.
+            add("Record") { if !pill.recordOfferedMeeting() { pill.model.recordNow() } }
         }
         if !pill.model.attentionRows.isEmpty {
             menu.addItem(.separator())

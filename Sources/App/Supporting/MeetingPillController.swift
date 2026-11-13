@@ -8,7 +8,7 @@
 //               Sources/App/Supporting/SharedPublishCard.swift (the saved card's publish rules)
 // Used by: Sources/App/ViewModels/AppViewModel.swift (owns the controller, feeds radar events),
 //          Sources/App/Supporting/QuickDictationController.swift (dictation states),
-//          Sources/App/MinuteMindApp.swift (hotkeys: Shift+Cmd+R record, Ctrl+Opt+P process)
+//          Sources/App/Supporting/CompanionController.swift (Record in the companion's menu)
 // Notes: UX decisions by the user (2026-09-29), refined by design review 1:
 //        - Hidden when idle. A detected meeting shows a one-row glass card; ignored for 10 s it
 //          shrinks to a hollow record ring that stays until the call ends. Nothing is ever
@@ -1175,22 +1175,16 @@ final class MeetingPillController {
         applyVisibility()
     }
 
-    // MARK: - Hotkeys
+    // MARK: - Recording the offered meeting
 
-    /// Shift+Cmd+R: records the meeting the pill offers, if any. Returns false when the pill has
-    /// nothing to record, so the caller falls back to a plain start.
-    func hotkeyRecord() -> Bool {
+    /// Records the meeting the pill offers, if any. Returns false when the pill has nothing to
+    /// record, so the caller falls back to a plain start.
+    func recordOfferedMeeting() -> Bool {
         switch model.state {
         case .detected(let meeting), .dot(let meeting): recordTapped(meeting); return true
         case .consent(let meeting): model.confirmConsent(meeting); return true
         default: return false
         }
-    }
-
-    /// Ctrl+Opt+P: Open Inbox while the card asks for a project, otherwise Process Now.
-    func hotkeyProcess() {
-        guard case .saved(let sessionID, _, _, let next, _) = model.state else { return }
-        next.asksForProject ? model.openInbox(sessionID) : model.process(sessionID)
     }
 
     // MARK: - Actions
@@ -1219,9 +1213,8 @@ final class MeetingPillController {
         setState(.recording)
     }
 
-    /// Closes the saved card. Closed while it asks to publish (no answer in 30 s, Escape, Later,
-    /// Process Now from the hotkey) the recording stays private, said explicitly so it is filed
-    /// under private/.
+    /// Closes the saved card. Closed while it asks to publish (no answer in 30 s, Escape, Later)
+    /// the recording stays private, said explicitly so it is filed under private/.
     private func finishSaved(_ action: () -> Void) {
         countdownTask?.cancel()
         if case .saved(let sessionID, _, _, let next, _) = model.state, let unanswered = next.unansweredPublication {

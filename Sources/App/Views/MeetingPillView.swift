@@ -260,7 +260,7 @@ struct MeetingPillView: View {
                         }
                     }
                     .buttonStyle(PillButtonStyle(.neutral))
-                    .help("Record a meeting now (\u{21E7}\u{2318}R)")
+                    .help("Record a meeting now")
                 }
                 .padding(.leading, model.dictationHint == nil ? 4 : 12)
                 .padding(.trailing, 4)
@@ -469,7 +469,7 @@ struct MeetingPillView: View {
                     }
                 }
                 .buttonStyle(PillButtonStyle(.neutral))
-                .help("Record a meeting now (\u{21E7}\u{2318}R)")
+                .help("Record a meeting now")
                 toolButtons(openApp: true)
             }
             if let hint = model.dictationHint {
