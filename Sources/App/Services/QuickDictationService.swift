@@ -494,10 +494,7 @@ final class QuickDictationService {
         case .authorized:
             return
         case .notDetermined:
-            let granted = await withCheckedContinuation { continuation in
-                SFSpeechRecognizer.requestAuthorization { continuation.resume(returning: $0 == .authorized) }
-            }
-            guard granted else { throw ServiceError.unauthorized }
+            guard await SpeechAuthorization.request() == .authorized else { throw ServiceError.unauthorized }
         default:
             throw ServiceError.unauthorized
         }

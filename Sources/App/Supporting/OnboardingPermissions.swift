@@ -173,9 +173,7 @@ enum OnboardingPermissionCheck {
             guard Bundle.main.bundleIdentifier != nil else { break }
             _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
         case .speechRecognition:
-            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                SFSpeechRecognizer.requestAuthorization { _ in continuation.resume() }
-            }
+            _ = await SpeechAuthorization.request()
         }
         return await state(of: permission)
     }
