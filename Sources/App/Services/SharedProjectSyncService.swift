@@ -1,9 +1,12 @@
 // Purpose: SharedProjectSync, keeps every Shared Project's workspace repo in step with its git
-//          remote in the background (fetch, rebase, push), replays shared knowledge updates in a
-//          clean worktree, and publishes a status per project for the sidebar icon and the
-//          workspace branch row. SharedRepoGit holds the blocking git steps.
+//          remote in the background (commit, fetch, rebase, push), resolves conflicts with a
+//          merge commit, replays shared knowledge updates in a clean worktree, and publishes a
+//          status per project for the sidebar icon and the workspace branch row. SharedRepoGit
+//          holds the blocking git steps.
 // Dependencies: Sources/App/Models/SharedProject.swift (SharedSyncStatus),
-//               Sources/App/Services/WorkspaceGitService.swift (repo state, app-managed commits),
+//               Sources/App/Services/SharedSyncCommit.swift (what gets committed, held back files),
+//               Sources/App/Services/SharedSyncMerge.swift (in-memory merge and its rules),
+//               Sources/App/Services/WorkspaceGitService.swift (repo state),
 //               Sources/App/Services/GitAvailability.swift (no git calls while git is missing),
 //               Sources/App/Services/KnowledgeCurationService.swift (the replayed agent step and
 //               the cleanup of emptied knowledge files)
@@ -11,12 +14,14 @@
 // Dependents: Sources/App/ViewModels/AppViewModel.swift (sharedSync),
 //             Sources/App/ViewModels/AppViewModel+SharedSync.swift (wiring, shared replay),
 //             Sources/App/Views/ProjectsSidebarView.swift, WorkspaceGitBranchBar (status),
-//             Tests/SharedProjectBackendTests.swift
+//             Tests/SharedProjectBackendTests.swift, Tests/SharedProjectSyncMergeTests.swift
 // Notes: Never force-pushes.
 //        Syncs only on main or master with no merge or rebase running, because the app commits
 //        and rebases on the checked-out branch; anywhere else the status asks to switch back.
-//        A rebase conflict is aborted at once and reported with the first conflicting file;
-//        hand-edited files are not merged automatically.
+//        Every change that is not gitignored is committed before the pull (SharedSyncCommit).
+//        A rebase conflict is aborted at once; the conflict is then resolved in memory and
+//        pushed as a merge commit (SharedSyncMerge), and the next rebase only fast-forwards.
+//        What the rules and Claude cannot resolve is reported with the first conflicting file.
 //        Shared knowledge is replayed, not merged: the agent step runs in a detached worktree at
 //        the remote's state (only tracked files, so private/ does not exist there), the result
 //        is committed and pushed, and a rejected push starts over on the new remote state. The
@@ -45,6 +50,14 @@ final class SharedProjectSync {
     @ObservationIgnored var onPulled: (UUID, URL) -> Void = { _, _ in }
     /// How often a replay starts over after its push was rejected.
     @ObservationIgnored var maxReplayAttempts = 3
+    /// How often one sync resolves conflicts before it reports them (the remote kept changing).
+    @ObservationIgnored var maxMergeRounds = 3
+    /// The size limits of the commit step.
+    @ObservationIgnored var largeFileLimits = SharedLargeFiles.Limits.standard
+    /// Merges one conflicted text file (Claude by default; the app passes the chosen model).
+    @ObservationIgnored var mergeText: @MainActor (SharedTextMerge) async throws -> String = { merge in
+        try await SharedTextMerger.mergeWithClaude(merge, model: "sonnet")
+    }
     static let periodicInterval: Duration = .seconds(180)
 
     @ObservationIgnored private var tails: [UUID: Task<Void, Never>] = [:]
@@ -96,9 +109,63 @@ final class SharedProjectSync {
 
     private func performSync(_ projectID: UUID, repo: URL) async -> SharedRepoGit.SyncOutcome {
         markSyncing(projectID)
-        let outcome = await Self.offMain { SharedRepoGit.sync(repo: repo) }
-        finish(projectID, repo: repo, outcome)
+        let limits = largeFileLimits
+        var outcome = await Self.offMain { SharedRepoGit.sync(repo: repo, limits: limits) }
+        var rounds = 0
+        while case .conflicts(let plan) = outcome {
+            rounds += 1
+            guard rounds <= maxMergeRounds else {
+                outcome = .problem("Sync conflict in \(plan.firstPath)")
+                break
+            }
+            outcome = await resolveConflicts(plan, repo: repo)
+        }
+        let heldBack = await Self.offMain { SharedLargeFiles.heldBack(in: repo, limits: limits) }
+        finish(projectID, repo: repo, outcome, heldBack: heldBack)
         return outcome
+    }
+
+    /// Resolves a conflict by the rules and Claude, pushes the merge commit and syncs again
+    /// (which then fast-forwards). A conflict nothing resolves is reported by its file.
+    private func resolveConflicts(_ plan: SharedMergePlan, repo: URL) async -> SharedRepoGit.SyncOutcome {
+        guard plan.unsupported.isEmpty else { return .problem("Sync conflict in \(plan.firstPath)") }
+        let resolutions = await Self.offMain {
+            plan.conflicts.map { conflict in
+                (path: conflict.path, resolution: SharedMergeRules.resolve(conflict) { SharedRepoGit.blobText($0, in: repo) })
+            }
+        }
+        if let stuck = resolutions.first(where: { $0.resolution == .unresolvable }) {
+            NSLog("SharedSync: \(stuck.path) cannot be merged automatically (\(repo.lastPathComponent))")
+            return .problem("Sync conflict in \(stuck.path)")
+        }
+        var merged: [String: String] = [:]
+        for item in resolutions {
+            guard case .text(let merge, _) = item.resolution else { continue }
+            do {
+                merged[item.path] = try await mergeText(merge)
+            } catch {
+                NSLog("SharedSync: merging \(item.path) failed: \(error.localizedDescription) (\(repo.lastPathComponent))")
+                return .problem("Sync conflict in \(item.path)")
+            }
+        }
+        let message = SharedMergeRules.commitMessage(for: resolutions)
+        let limits = largeFileLimits
+        let mergedFiles = merged
+        return await Self.offMain {
+            guard case .success(let branch) = SharedRepoGit.syncBranch(of: repo) else {
+                return .problem(SharedRepoGit.switchBackMessage)
+            }
+            switch SharedRepoGit.commitAndPushMerge(repo: repo, branch: branch, plan: plan, resolutions: resolutions,
+                                                     merged: mergedFiles, message: message) {
+            case .pushed:
+                NSLog("SharedSync: pushed a merge of \(resolutions.map(\.path).joined(separator: ", ")) (\(repo.lastPathComponent))")
+                return SharedRepoGit.sync(repo: repo, limits: limits)
+            case .rejected:
+                return SharedRepoGit.sync(repo: repo, limits: limits)
+            case .failed(let text):
+                return .problem(text)
+            }
+        }
     }
 
     // MARK: - Shared knowledge replay
@@ -163,13 +230,17 @@ final class SharedProjectSync {
         statuses[projectID] = status
     }
 
-    private func finish(_ projectID: UUID, repo: URL, _ outcome: SharedRepoGit.SyncOutcome) {
+    private func finish(_ projectID: UUID, repo: URL, _ outcome: SharedRepoGit.SyncOutcome, heldBack: [SharedHeldBackFile]) {
         switch outcome {
         case .synced(let pulled):
-            statuses[projectID] = SharedSyncStatus(state: .idle, lastSynced: Date())
+            statuses[projectID] = SharedSyncStatus(state: .idle, lastSynced: Date(), heldBack: heldBack)
             if pulled { onPulled(projectID, repo) }
         case .problem(let message):
             markProblem(projectID, message)
+            statuses[projectID]?.heldBack = heldBack
+        case .conflicts(let plan):
+            markProblem(projectID, "Sync conflict in \(plan.firstPath)")
+            statuses[projectID]?.heldBack = heldBack
         }
     }
 
@@ -205,6 +276,8 @@ enum SharedRepoGit {
     enum SyncOutcome: Equatable, Sendable {
         /// `pulled`: commits from the remote arrived (files may have changed).
         case synced(pulled: Bool)
+        /// The rebase conflicted (and was aborted); the plan holds the in-memory merge to resolve.
+        case conflicts(SharedMergePlan)
         case problem(String)
     }
 
@@ -231,17 +304,18 @@ enum SharedRepoGit {
         return .success(branch)
     }
 
-    /// Fetch, rebase onto the remote branch (uncommitted changes stashed and restored), push.
-    /// Retries when the push is rejected because someone pushed in between. Never forces.
-    static func sync(repo: URL, attempts: Int = 3) -> SyncOutcome {
+    /// Commit everything not gitignored (held back files aside), fetch, rebase onto the remote
+    /// branch (what is left uncommitted is stashed and restored), push. Retries when the push is
+    /// rejected because someone pushed in between. A conflict comes back as the in-memory merge
+    /// to resolve. Never forces.
+    static func sync(repo: URL, attempts: Int = 3, limits: SharedLargeFiles.Limits = .standard) -> SyncOutcome {
         let branch: String
         switch syncBranch(of: repo) {
         case .success(let name): branch = name
         case .failure(let problem): return .problem(problem.text)
         }
         guard run(["remote", "get-url", remote], in: repo).succeeded else { return .problem("This workspace has no remote to sync with") }
-        // What the app wrote while its commits paused belongs in this sync.
-        if let failure = WorkspaceGit.commitAppManagedChanges(in: repo) {
+        if let failure = commitWorkspaceChanges(repo: repo, limits: limits) {
             return .problem("Could not commit the workspace's changes: \(failure)")
         }
         let upstream = "\(remote)/\(branch)"
@@ -257,6 +331,7 @@ enum SharedRepoGit {
                     let conflicted = run(["diff", "--name-only", "--diff-filter=U"], in: repo).stdout
                         .split(separator: "\n").map(String.init)
                     if WorkspaceGit.operation(in: repo) == .rebasing { _ = run(["rebase", "--abort"], in: repo) }
+                    if let plan = mergePlan(repo: repo, upstream: upstream) { return .conflicts(plan) }
                     if let file = conflicted.first { return .problem("Sync conflict in \(file)") }
                     return .problem("Could not bring in the remote's changes: \(firstLine(rebase.stderr))")
                 }
@@ -343,10 +418,21 @@ enum SharedRepoGit {
         return cleaned.isEmpty ? "git did not say why." : cleaned
     }
 
-    /// git without a terminal: no credential prompt, no editor, English messages.
-    static func run(_ arguments: [String], in directory: URL) -> WorkspaceGit.Output {
+    /// git without a terminal: no credential prompt, no editor, English messages. `environment`
+    /// adds variables (e.g. GIT_INDEX_FILE).
+    static func run(_ arguments: [String], in directory: URL, environment: [String: String] = [:]) -> WorkspaceGit.Output {
+        let output = runData(arguments, in: directory, environment: environment)
+        return WorkspaceGit.Output(status: output.status,
+                                   stdout: String(decoding: output.data, as: UTF8.self),
+                                   stderr: output.stderr)
+    }
+
+    /// Like `run`, with stdout as raw bytes (blob contents that may be binary).
+    static func runData(
+        _ arguments: [String], in directory: URL, environment extra: [String: String] = [:]
+    ) -> (status: Int32, data: Data, stderr: String, succeeded: Bool) {
         guard GitAvailability.isInstalled else {
-            return WorkspaceGit.Output(status: -1, stdout: "", stderr: GitAvailability.missingMessage)
+            return (-1, Data(), GitAvailability.missingMessage, false)
         }
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
@@ -357,19 +443,18 @@ enum SharedRepoGit {
         environment["GIT_TERMINAL_PROMPT"] = "0"
         environment["GIT_EDITOR"] = "true"
         environment["GIT_MERGE_AUTOEDIT"] = "no"
+        environment.merge(extra) { _, new in new }
         process.environment = environment
         process.standardInput = FileHandle.nullDevice
         let out = Pipe()
         let err = Pipe()
         process.standardOutput = out
         process.standardError = err
-        do { try process.run() } catch { return WorkspaceGit.Output(status: -1, stdout: "", stderr: error.localizedDescription) }
+        do { try process.run() } catch { return (-1, Data(), error.localizedDescription, false) }
         // Read before waiting, so a full pipe never blocks git.
         let stdout = out.fileHandleForReading.readDataToEndOfFile()
         let stderr = err.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
-        return WorkspaceGit.Output(status: process.terminationStatus,
-                                   stdout: String(decoding: stdout, as: UTF8.self),
-                                   stderr: String(decoding: stderr, as: UTF8.self))
+        return (process.terminationStatus, stdout, String(decoding: stderr, as: UTF8.self), process.terminationStatus == 0)
     }
 }

@@ -551,15 +551,17 @@ final class ProjectRepositoryService {
             - `private/` is this user's own content and never leaves this Mac: `private/meetings/` and \
             `private/recordings/` hold the items they kept private, `private/knowledge/` the knowledge from them \
             (cited as `(private/meetings/...)`). Read it to answer the user, but never copy anything from `private/` \
-            into shared files (`knowledge/`, `meetings/`, `recordings/`, `CLAUDE.md` or anything else that is \
-            tracked by git).
+            into shared files (`knowledge/`, `meetings/`, `recordings/`, `CLAUDE.md` or any other file outside \
+            `private/`, since the sync shares them all).
             - `private/CLAUDE.private.md`, if present, holds this user's private instructions for this workspace: \
             read it at the start and follow it like this file.
             - `knowledge/` is shared and cites only published items; MinuteMind curates it from published items only.
             - `jobs/` holds this user's own scheduled jobs and their run results. Like `private/` it is \
             gitignored and never leaves this Mac; other members do not see these jobs.
-            - MinuteMind syncs this workspace with the remote in the background (fetch, rebase, push on main). \
-            Sync conflicts are the app's job: do not pull, push, rebase or resolve them yourself.
+            - MinuteMind syncs this workspace with the remote in the background on main: it commits every change \
+            that is not gitignored (files over 50 MB stay on this Mac until the user allows them), then fetches, \
+            rebases and pushes. A file you create, change or delete here outside `private/` and `jobs/` reaches \
+            every member. Sync conflicts are the app's job: do not commit, pull, push, rebase or resolve them yourself.
             """
     }
 

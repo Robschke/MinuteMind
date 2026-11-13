@@ -1,6 +1,7 @@
 // Purpose: Wires SharedProjectSync into the app: starts the periodic sync of Shared Projects,
 //          syncs after mirror commits and publishing, runs shared knowledge curation as a replay
-//          in the clean worktree, and reindexes knowledge after a pull.
+//          in the clean worktree, merges conflicted text with the chosen Claude model, lets a
+//          held back large file sync anyway, and reindexes knowledge after a pull.
 // Dependencies: Sources/App/Services/SharedProjectSyncService.swift,
 //               Sources/App/Services/KnowledgeCurationService.swift (sharedReplay, runStep),
 //               Sources/App/Services/ProjectRepositoryService.swift (repos),
@@ -28,6 +29,9 @@ extension AppViewModel {
             guard let self else { return }
             Task { await self.reindexWorkspaceKnowledge(repo: repo) }
         }
+        sync.mergeText = { [weak self] merge in
+            try await SharedTextMerger.mergeWithClaude(merge, model: self?.automationSettings.claudeModel ?? "sonnet")
+        }
         curator.sharedReplay = { [weak self] repo, step, title in
             guard let self, let projectID = UUID(uuidString: repo.lastPathComponent) else { return }
             let message: String
@@ -53,5 +57,13 @@ extension AppViewModel {
     func syncSharedProjectNow(_ projectID: UUID) {
         guard let project = projects.first(where: { $0.id == projectID }), project.isShared else { return }
         sharedSync.requestSync(projectID, repo: projectRepositories.ensureRepository(for: project))
+    }
+
+    /// Sync anyway for a held back file: remembers the path on this Mac and syncs now.
+    func syncLargeFileAnyway(_ path: String, in projectID: UUID) {
+        guard let project = projects.first(where: { $0.id == projectID }), project.isShared else { return }
+        let repo = projectRepositories.ensureRepository(for: project)
+        SharedLargeFiles.allow(path, in: repo)
+        sharedSync.requestSync(projectID, repo: repo)
     }
 }

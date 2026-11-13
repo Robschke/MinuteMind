@@ -391,7 +391,7 @@ struct SharedProjectBackendTests {
         git(["commit", "-q", "-m", message], in: repo)
     }
 
-    @Test("Sync pushes, pulls, reports conflicts without leaving a rebase, and stays off side branches")
+    @Test("Sync pushes, pulls, hands back conflicts without leaving a rebase, and stays off side branches")
     func syncLoop() throws {
         let (_, robin, anna) = try makeRemote()
         try commit("# Weekly\n", to: "meetings/2026-11-12-weekly-robin/summary.md", in: robin, message: "Mirror meeting: Weekly")
@@ -401,11 +401,17 @@ struct SharedProjectBackendTests {
         #expect(exists("meetings/2026-11-12-weekly-robin/summary.md", in: anna))
         #expect(!exists("private", in: anna))
 
-        // Both members edit the same line by hand: the second sync stops with the file named.
+        // Both members edit the same line by hand: the second sync aborts the rebase and hands
+        // back the in-memory merge (resolved in SharedProjectSyncMergeTests).
         try commit("# Decisions\n\n- Robin's version.\n", to: "knowledge/decisions.md", in: robin, message: "Robin edits")
         try commit("# Decisions\n\n- Anna's version.\n", to: "knowledge/decisions.md", in: anna, message: "Anna edits")
         #expect(SharedRepoGit.sync(repo: robin) == .synced(pulled: false))
-        #expect(SharedRepoGit.sync(repo: anna) == .problem("Sync conflict in knowledge/decisions.md"))
+        guard case .conflicts(let plan) = SharedRepoGit.sync(repo: anna) else {
+            Issue.record("expected a conflict")
+            return
+        }
+        #expect(plan.conflicts.map(\.path) == ["knowledge/decisions.md"])
+        #expect(plan.unsupported.isEmpty)
         #expect(WorkspaceGit.operation(in: anna) == nil)
         #expect(WorkspaceGit.state(of: anna)?.branchName == "main")
 

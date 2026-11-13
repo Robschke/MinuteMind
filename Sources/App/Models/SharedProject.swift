@@ -153,6 +153,8 @@ struct SharedSyncStatus: Equatable {
 
     var state: State = .idle
     var lastSynced: Date?
+    /// Files over the size limit the last sync kept on this Mac.
+    var heldBack: [SharedHeldBackFile] = []
 
     var hasProblem: Bool {
         if case .problem = state { return true }

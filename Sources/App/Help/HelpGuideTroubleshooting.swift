@@ -46,7 +46,7 @@ enum HelpGuideTroubleshooting {
 
         ## Shared Project does not sync
 
-        Sync runs only on the main branch and needs network access and your git login for the project's repository. The branch row shows the problem; Sync now retries. A conflict is reported with the file it is in.
+        Sync runs only on the main branch and needs network access and your git login for the project's repository. The branch row shows the problem; Sync now retries. Conflicts are merged by themselves (an edit wins over a deletion, Claude merges text); one that cannot be merged (a binary file, Claude Code missing) is reported with the file it is in. A file missing for the others may be over 50 MB: the branch row then says "1 file not synced", with Sync anyway in its list.
 
         ## Jobs or meeting detection did not run
 

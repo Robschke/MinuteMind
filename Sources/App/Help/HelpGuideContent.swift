@@ -443,7 +443,11 @@ enum HelpGuideContent {
 
         ## Sync
 
-        MinuteMind syncs in the background (at launch, every 3 minutes, after changes) while you are on the main branch. The branch row shows "Synced 2 min ago" and Sync now; problems show in orange there and as a dot on the project in the sidebar.
+        MinuteMind syncs in the background (at launch, every 3 minutes, after changes) while you are on the main branch. Every file you add, change or delete in the workspace reaches the other members, except private/, jobs/ and code/. The branch row shows "Synced 2 min ago" and Sync now; problems show in orange there and as a dot on the project in the sidebar.
+
+        Files over 50 MB stay on your Mac: the branch row shows "1 file not synced", and a click on it lists them with Sync anyway (remembered for that file; files over 100 MB cannot sync).
+
+        When two members changed the same file, MinuteMind merges it: a file deleted by one and edited by the other keeps the edit, and text both edited is merged by Claude. The commit "Sync: merge with the other members' changes" names the merged files. What cannot be merged (binary files, or without Claude Code) shows as "Sync conflict in <file>".
         """
     )
 
