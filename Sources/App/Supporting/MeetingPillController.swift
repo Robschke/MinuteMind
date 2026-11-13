@@ -5,7 +5,8 @@
 // Dependencies: AppKit (NSPanel, NSStatusItem), SwiftUI (Sources/App/Views/MeetingPillView.swift),
 //               UserNotifications (heads-up for "Meeting over?" during a screen share),
 //               Sources/App/ViewModels/AppViewModel.swift (actions via closures, mic level),
-//               Sources/App/Supporting/SharedPublishCard.swift (the saved card's publish rules)
+//               Sources/App/Supporting/SharedPublishCard.swift (the saved card's publish rules),
+//               Sources/App/Supporting/PillCardCountdown.swift (real hovers, notice countdown)
 // Used by: Sources/App/ViewModels/AppViewModel.swift (owns the controller, feeds radar events),
 //          Sources/App/Supporting/QuickDictationController.swift (dictation states),
 //          Sources/App/Supporting/CompanionController.swift (Record in the companion's menu)
@@ -656,7 +657,7 @@ final class MeetingPillController {
             while left > 0 {
                 try? await Task.sleep(for: .seconds(1))
                 guard let self, !Task.isCancelled else { return }
-                if !self.model.isHovering { left -= 1 }
+                if !self.pointerHolds() { left -= 1 }
             }
             self?.clearAssistant()
         }
@@ -779,14 +780,17 @@ final class MeetingPillController {
         applyVisibility()
         resizeIfVisible()
         noticeTask?.cancel()
-        // A chat card gives time to read; hovering or a started reply holds it.
+        // A chat card gives time to read; hovering or a started reply holds it (NoticeCountdown).
         let seconds = row.request == nil ? 7 : (row.kind == .done ? 15 : 30)
         noticeTask = Task { [weak self] in
-            var left = seconds
-            while left > 0 {
+            var countdown = NoticeCountdown(seconds: seconds)
+            while true {
                 try? await Task.sleep(for: .seconds(1))
                 guard let self, !Task.isCancelled else { return }
-                if !self.model.isHovering, self.model.sessionDraft.isEmpty, self.panel?.isKeyWindow != true { left -= 1 }
+                let expired = countdown.tick(
+                    hovering: self.pointerHolds(), typing: !self.model.sessionDraft.isEmpty,
+                    focused: self.panel?.isKeyWindow == true)
+                if expired { break }
             }
             self?.clearNotice()
         }
@@ -1074,6 +1078,16 @@ final class MeetingPillController {
         return panel.frame
     }
 
+    /// Whether the pointer really is on the card or the creature, for the countdowns. A hover
+    /// flag left over from a card that went away under the pointer (no hover exit arrives then,
+    /// see PillHover) is cleared here, so it can never hold a card for good.
+    private func pointerHolds() -> Bool {
+        let areas = [panelFrame, companionAnchor()].compactMap { $0 }
+        let real = PillHover.isReal(flag: model.isHovering, pointer: NSEvent.mouseLocation, areas: areas)
+        if model.isHovering, !real { model.isHovering = false }
+        return real
+    }
+
     /// A project was picked on the saved card (or in the wheel opened from it): file it, then
     /// confirm for a moment with Change still at hand, or offer Process Now when automatic
     /// processing is off. A Shared Project turns the card into the publish question instead,
@@ -1235,6 +1249,8 @@ final class MeetingPillController {
             while left > 0 {
                 try? await Task.sleep(for: .seconds(1))
                 guard let self, !Task.isCancelled else { return }
+                // Clears a hover flag the pointer left behind, so only a real hover holds.
+                _ = self.pointerHolds()
                 if self.model.holdsCountdown {
                     wasHovering = true
                     continue

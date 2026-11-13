@@ -19,6 +19,10 @@
 //        there, centre: show it there; the pane draws the highlight). Releasing over its own
 //        strip where no zone applies does nothing (earlier it opened a window); outside every
 //        strip it still opens a window.
+//        SwiftUI drops a drag without `onEnded` when the gesture is cancelled (the tab's view
+//        goes away mid-drag, e.g. its session ends), and the ghost panel would then float on
+//        for good. A watchdog checks the mouse button while a drag runs: up on two checks in a
+//        row (0.5 s, well after a normal `onEnded`) means the drag is over, and it is reset.
 
 import AppKit
 import SwiftUI
@@ -47,6 +51,8 @@ final class TerminalTabDragController {
     private var cancelled = false
     private var ghost: NSPanel?
     private var escapeMonitor: Any?
+    private var watchdog: Timer?
+    private var buttonUpChecks = 0
 
     /// Distance the pointer leaves the strip by before the tab tears off.
     private static let tearOffDistance: CGFloat = 24
@@ -104,6 +110,21 @@ final class TerminalTabDragController {
             MainActor.assumeIsolated { self?.cancel() }
             return nil
         }
+        let watchdog = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.checkButtonReleased() }
+        }
+        RunLoop.main.add(watchdog, forMode: .common)
+        self.watchdog = watchdog
+    }
+
+    /// Ends a drag whose `onEnded` never came: the left button has been up for two checks.
+    private func checkButtonReleased() {
+        guard NSEvent.pressedMouseButtons & 1 == 0 else {
+            buttonUpChecks = 0
+            return
+        }
+        buttonUpChecks += 1
+        if buttonUpChecks >= 2 { reset() }
     }
 
     private func cancel() {
@@ -117,6 +138,9 @@ final class TerminalTabDragController {
         ghost = nil
         if let escapeMonitor { NSEvent.removeMonitor(escapeMonitor) }
         escapeMonitor = nil
+        watchdog?.invalidate()
+        watchdog = nil
+        buttonUpChecks = 0
         if store?.dropTarget != nil { store?.dropTarget = nil }
         session = nil
         sourceGroupID = nil
