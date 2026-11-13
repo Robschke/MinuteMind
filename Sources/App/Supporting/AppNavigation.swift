@@ -8,9 +8,11 @@
 // Notes: A place includes the project's section (Overview, Workspace, Jobs), so switching sections
 //        inside a project is a step back like switching pages. The history drops places that no
 //        longer exist (a deleted project) when it walks over them instead of when they disappear,
-//        so it needs no hook into project deletion. The switcher lists projects most recently
-//        used first, like the app switcher: inside a project the current one leads and the
-//        highlight starts on the one before it, so a single Cmd+K goes back to the previous one.
+//        so it needs no hook into project deletion. The switcher lists only starred projects and
+//        projects with a running Claude session, so it stays short; the others are opened from
+//        Home or the sidebar. It lists them most recently used first, like the app switcher:
+//        inside a project the current one leads and the highlight starts on the one before it, so
+//        a single press goes back to the previous one.
 
 import Foundation
 
@@ -85,13 +87,15 @@ enum ProjectSwitcherOrder {
         Array(([id] + recent.filter { $0 != id }).prefix(recentLimit))
     }
 
-    /// The switcher's entries: the recently used ones that still exist, most recent first, then
-    /// every other project in `all`'s order (the sidebar's).
-    static func items(recent: [UUID], all: [UUID]) -> [UUID] {
-        let known = Set(all)
+    /// The switcher's entries: of the projects in `all` that `shown` holds (starred or with a
+    /// running Claude session), the recently used ones first, most recent first, then the rest in
+    /// `all`'s order (the sidebar's).
+    static func items(recent: [UUID], all: [UUID], shown: Set<UUID>) -> [UUID] {
+        let listed = all.filter { shown.contains($0) }
+        let known = Set(listed)
         let used = recent.filter { known.contains($0) }
         let usedSet = Set(used)
-        return used + all.filter { !usedSet.contains($0) }
+        return used + listed.filter { !usedSet.contains($0) }
     }
 
     /// Where the highlight starts: on the previous project when the current one leads the list,

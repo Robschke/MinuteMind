@@ -351,7 +351,7 @@ enum HelpGuideContent {
 
         ## In the sidebar
 
-        - Right click a project: Star / Unstar (starred projects come first in the project wheel and show their creature or a star), Companion (its creature), Make Shared Project..., Arrange Projects.
+        - Right click a project: Star / Unstar (starred projects come first in the project wheel, show their creature or a star, and are always in the project switcher), Companion (its creature), Make Shared Project..., Arrange Projects.
         - Long press a project (or Arrange Projects) to drag the projects into your order.
 
         ## Inside a project
@@ -363,7 +363,7 @@ enum HelpGuideContent {
         ## Moving around
 
         - **Back and forward:** the back and forward buttons of your mouse (buttons 4 and 5) step through the places you visited: pages, projects and their sections.
-        - **Switch projects:** hold Cmd and press K. The projects you used last come first, so one Cmd+K jumps back to the previous project. Keep holding Cmd and press K again to move on (Shift+K or the arrow keys go back), let go of Cmd to enter the highlighted project, Esc cancels. A click on a creature enters it too.
+        - **Switch projects:** hold Cmd and press K. The switcher shows your starred projects and every project with a running Claude session; open the others from Home or the sidebar. The projects you used last come first, so one Cmd+K jumps back to the previous project. Keep holding Cmd and press K again to move on (Shift+K or the arrow keys go back), let go of Cmd to enter the highlighted project, Esc cancels. A click on a creature enters it too.
 
         ## General
 
