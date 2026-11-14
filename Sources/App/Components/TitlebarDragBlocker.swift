@@ -15,10 +15,7 @@
 //        they give the window its handle.
 //        hidesTitlebarScrollEdge(): on macOS 26 a scroll view under the title bar gets a top
 //        scroll edge effect that covers the whole band, so a scroll view living in the band
-//        (the terminal tab strip) would hide itself and everything beside it. The page applies
-//        it as a whole too, so no scroll view in it lays that effect over the band.
-//        hidesWindowToolbarBackground(): in a window (not full screen) the toolbar spans the
-//        whole width over the band; its background must not cover what the page puts there.
+//        (the terminal tab strip) would hide itself and everything beside it.
 
 import AppKit
 import SwiftUI
@@ -36,16 +33,6 @@ extension View {
             scrollEdgeEffectHidden(true, for: .top)
         } else {
             self
-        }
-    }
-
-    /// No window toolbar background over the content, in a window as well as in full screen.
-    @ViewBuilder
-    func hidesWindowToolbarBackground() -> some View {
-        if #available(macOS 15, *) {
-            toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-        } else {
-            toolbarBackground(.hidden, for: .windowToolbar)
         }
     }
 }
