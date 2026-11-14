@@ -3,7 +3,6 @@
 //          project's own (ProjectContextSidebar). Projects can be arranged: a long press makes
 //          them wiggle, dragging reorders them.
 // Dependencies: Sources/App/ViewModels/AppViewModel.swift (projects, reorderProjects, setProjectStarred),
-//               Sources/App/Views/CompanionView.swift (StarredProjectMark, MascotCanvas),
 //               Sources/App/Supporting/CompanionCast.swift (firstFreeAvatar for the New Project sheet),
 //               Sources/App/Components/ProjectCompanionChooser.swift (its creature tiles),
 //               Sources/App/Components/ProjectAvatarView.swift (each row's creature),
@@ -26,9 +25,8 @@
 //        No autoscroll yet: a row can only be dragged within the visible part of the list.
 //        General is not a project and stays first, dimmed while arranging.
 //        Right click offers Edit Project… (the settings sheet: name, companion, avatar colour) and
-//        stars or unstars a project (`setProjectStarred`); a starred row shows the
-//        project's own creature in tiny, or the companion's avatar without one (StarredProjectMark) and the project leads the companion's
-//        project wheel (user request 2026-10-28).
+//        stars or unstars a project (`setProjectStarred`); a starred row shows a yellow star
+//        after the name and the project leads the companion's project wheel.
 //        Shared Projects: a people mark after the name (orange dot and tooltip on a sync problem);
 //        "Make Shared Project…" in the context menu asks for the display name first when none is
 //        set; the New Project sheet switches between Create new and Join shared.
@@ -470,7 +468,6 @@ struct ProjectsSidebarView: View {
             project: project,
             isSelected: viewModel.selectedProjectID == project.id,
             openTaskCount: viewModel.tasksForProject(project.id).filter { !$0.isCompleted }.count,
-            mark: viewModel.companionMark(for: project),
             syncStatus: project.isShared ? viewModel.sharedSync.status(for: project.id) : nil,
             isArranging: isArranging,
             isLifted: isDragged,
@@ -741,8 +738,6 @@ private struct ProjectRowView: View {
     let project: Project
     let isSelected: Bool
     let openTaskCount: Int
-    /// The starred mark's creature (the project's own, or nil for the home companion).
-    var mark: (avatar: MascotAvatar?, color: Color?) = (nil, nil)
     /// Set for a Shared Project: shows the people mark (with a dot on a sync problem).
     var syncStatus: SharedSyncStatus?
     /// Arranging: a grabber replaces the task count and hover stays off.
@@ -767,7 +762,11 @@ private struct ProjectRowView: View {
             }
 
             if project.isStarred == true {
-                StarredProjectMark(avatar: mark.avatar, bodyColor: mark.color)
+                Image(systemName: "star.fill")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.yellow)
+                    .help("Starred")
+                    .accessibilityLabel("Starred")
             }
 
             Spacer()
