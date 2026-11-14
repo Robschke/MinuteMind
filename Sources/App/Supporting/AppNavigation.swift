@@ -1,5 +1,5 @@
 // Purpose: Where the main window is (NavigationPlace), the browser-like back and forward history
-//          between places (NavigationHistory) and the order and stepping of the Option+Tab project
+//          between places (NavigationHistory) and the order and stepping of the Ctrl+Tab project
 //          switcher (ProjectSwitcherOrder). Pure value types, no UI.
 // Dependencies: Sources/App/Views/ProjectDetailView.swift (ProjectTab)
 // Used by: Sources/App/ViewModels/AppViewModel+Navigation.swift (current place, history, recent
@@ -77,7 +77,7 @@ struct NavigationHistory: Equatable, Sendable {
     }
 }
 
-/// Order and stepping of the Option+Tab switcher.
+/// Order and stepping of the Ctrl+Tab switcher.
 enum ProjectSwitcherOrder {
     /// How many recently used projects are remembered.
     static let recentLimit = 30

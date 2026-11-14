@@ -1,13 +1,13 @@
-// Purpose: The Option+Tab project switcher, styled and driven like the macOS app switcher (Cmd+Tab):
-//          hold Option, press Tab to open it and step right (the arrow keys step both ways), let go
-//          of Option to enter the highlighted project, Esc cancels. A row of creatures on a
+// Purpose: The Ctrl+Tab project switcher, styled and driven like the macOS app switcher (Cmd+Tab):
+//          hold Control, press Tab to open it and step right (the arrow keys step both ways), let go
+//          of Control to enter the highlighted project, Esc cancels. A row of creatures on a
 //          translucent panel in the middle of the window, each with its project's name below.
 // Dependencies: Sources/App/Supporting/AppNavigation.swift (ProjectSwitcherOrder),
 //               Sources/App/ViewModels/AppViewModel+Navigation.swift (switcherProjectIDs,
 //               enterProject), Sources/App/Components/ProjectAvatarView.swift (creatures)
 // Used by: Sources/App/Views/ContentView.swift (overlay),
 //          Sources/App/Components/MainWindowEventMonitor.swift (keys)
-// Notes: Projects are listed most recently used first, so a quick Option+Tab goes back to the
+// Notes: Projects are listed most recently used first, so a quick Ctrl+Tab goes back to the
 //        previous project, as Cmd+Tab does with apps. A click on a creature enters it at once. The panel
 //        lives in the window (not on the screen like Cmd+Tab), since it switches inside the app.
 //        Too many projects for the window's width scroll so the highlighted one stays in view.
