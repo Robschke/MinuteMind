@@ -351,7 +351,7 @@ enum HelpGuideContent {
 
         ## In the sidebar
 
-        - Right click a project: Star / Unstar (starred projects come first in the project wheel and show their creature or a star, and are always in the project switcher), Edit Project..., Companion (its creature), Make Shared Project..., Arrange Projects.
+        - Right click a project: Star / Unstar (starred projects show a star in the sidebar, come first in the project wheel with their creature or a star, and are always in the project switcher), Edit Project..., Companion (its creature), Make Shared Project..., Arrange Projects.
         - **Edit Project...** (also a right click on the project's name at the top of its own sidebar, or on its creature in the switcher) opens the project settings: name, companion creature, avatar colour (Default is the creature's natural colour; Own Colour opens the system colour panel with wheel, sliders and hex code, and paints the creature's body only, the headphones and other details keep theirs) and the export folder.
         - Long press a project (or Arrange Projects) to drag the projects into your order.
 
