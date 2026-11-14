@@ -216,7 +216,9 @@ struct WorkspaceTerminalPane: View {
             terminals.setFocused(session.id)
         }
         .padding(insets)
-        .background(Color(nsColor: .textBackgroundColor))
+        // Not into the safe area: under a window's toolbar the strip above sits in it, and the
+        // pane, drawn after the strip, would paint over the tabs there.
+        .background(Color(nsColor: .textBackgroundColor), ignoresSafeAreaEdges: [])
         // Selecting text in the top rows must not move the window when they sit under the title bar.
         .excludedFromWindowDrag()
         .overlay { statusFrame(session) }
