@@ -37,16 +37,16 @@ struct AgentSessionStateTests {
 
 @Suite("AgentCreatureMood Tests")
 struct AgentCreatureMoodTests {
-    @Test("No sessions or idle ones stand still")
+    @Test("Without sessions it stands awake, idle sessions sleep")
     func idle() {
         #expect(AgentCreatureMood.mood([]) == .idle)
-        #expect(AgentCreatureMood.mood([(.idle, false)]) == .idle)
+        #expect(AgentCreatureMood.mood([(.idle, false)]) == .sleeping)
     }
 
     @Test("A finished turn shows a thumb up only while unseen")
     func finished() {
         #expect(AgentCreatureMood.mood([(.done, true)]) == .thumbsUp)
-        #expect(AgentCreatureMood.mood([(.done, false)]) == .idle)
+        #expect(AgentCreatureMood.mood([(.done, false)]) == .sleeping)
     }
 
     @Test("Working types, waiting waves, error shows the error face")

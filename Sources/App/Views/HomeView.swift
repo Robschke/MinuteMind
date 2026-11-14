@@ -1,15 +1,12 @@
 // Purpose: HomeView, the page the main window opens on: a greeting and every project as a tile
 //          with its creature (General first, then the sidebar's order) plus a New Project tile. A
 //          click on a tile enters the project in its remembered section. The creature shows what
-//          the project's Claude sessions do (typing, waving, thumb up with a check).
+//          the project's Claude sessions do (typing, waving, thumb up with a check, asleep).
 // Dependencies: Sources/App/ViewModels/AppViewModel+Navigation.swift (enterProject),
 //               Sources/App/Components/AgentStatusCreatureView.swift (creature and its pose),
-//               Sources/App/Supporting/WorkspaceTerminalStore.swift (Claude sessions per project),
-//               Sources/App/Supporting/CompanionCast.swift (worst: one status for several sessions)
+//               Sources/App/Supporting/WorkspaceTerminalStore.swift (Claude sessions per project)
 // Used by: Sources/App/Views/ContentView.swift
-// Notes: A tile names a running Claude only when it needs a look (working, waiting, error); done
-//        and idle say nothing, so the line stays rare enough to notice. An unseen finished turn
-//        shows only on the creature (thumb up and check, until that session is focused).
+// Notes: The creature is a tile's only Claude status sign; there is no status line or dot.
 //        New Project asks the Home sidebar to open its sheet (`requestsNewProject`), so there is
 //        one New Project sheet.
 
@@ -76,17 +73,6 @@ struct HomeView: View {
         viewModel.workspaceTerminals.sessions(rootedAt: projectID).filter { !$0.isTerminal }
     }
 
-    /// The Claude line of a tile, when one of the project's sessions needs a look.
-    private func claudeStatus(of projectID: UUID) -> (text: String, color: Color)? {
-        let statuses = claudeSessions(of: projectID).map(\.status)
-        switch CompanionCast.worst(statuses) {
-        case .working: return ("Claude working", DesignSystem.Colors.accent)
-        case .waiting: return ("Claude waiting for you", DesignSystem.Colors.warning)
-        case .error: return ("Claude stopped with an error", DesignSystem.Colors.error)
-        default: return nil
-        }
-    }
-
     // MARK: - Tiles
 
     private func tile(_ projectID: UUID, name: String, meta: String) -> some View {
@@ -99,14 +85,6 @@ struct HomeView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
                     .lineLimit(1)
-                if let status = claudeStatus(of: projectID) {
-                    HStack(spacing: 5) {
-                        Circle().fill(status.color).frame(width: 6, height: 6)
-                        Text(status.text)
-                    }
-                    .font(DesignSystem.Typography.caption1)
-                    .foregroundStyle(DesignSystem.Colors.textSecondary)
-                }
                 Spacer(minLength: 0)
                 Text(meta)
                     .font(DesignSystem.Typography.caption1)
