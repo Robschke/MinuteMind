@@ -16,7 +16,7 @@
 //        so a click on the open file itself still changes the selection and brings Workspace
 //        back (the outline reports selection changes, not clicks).
 //        The header goes Home; the mouse's back button goes to the previous place instead
-//        (AppViewModel+Navigation.swift), and Option+Tab switches projects (ProjectSwitcherView); the
+//        (AppViewModel+Navigation.swift), and Ctrl+Tab switches projects (ProjectSwitcherView); the
 //        header shows that shortcut as a quiet hint beside the name.
 //        The repo is ensured here as well as in the workspace, since the tree shows in every section.
 
@@ -134,10 +134,10 @@ struct ProjectContextSidebar: View {
                 }
                 Spacer(minLength: 0)
                 // Plain tertiary text, no outline: a quiet reminder, not a control.
-                Text("\u{2325}\u{21E5}")
+                Text("\u{2303}\u{21E5}")
                     .font(.system(size: 10.5, weight: .medium))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
-                    .help("Hold \u{2325} and press Tab to switch projects")
+                    .help("Hold \u{2303} and press Tab to switch projects")
             }
             .padding(.horizontal, DesignSystem.Dimensions.spacingS)
             .padding(.vertical, DesignSystem.Dimensions.spacingXS)
