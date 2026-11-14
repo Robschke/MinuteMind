@@ -60,8 +60,9 @@ struct ContentView: View {
         }
         .frame(minWidth: 960, minHeight: 600)
         .background(WindowFullScreenReader(isFullScreen: $isFullScreen))
-        // No toolbar band of its own: in full screen it was a dark bar above the page.
-        .toolbarBackground(.hidden, for: .windowToolbar)
+        // No toolbar band of its own: it would be a dark bar over the page's top, the tab strip
+        // included, in a window as in full screen.
+        .hidesWindowToolbarBackground()
         .onAppear {
             OnboardingFlow.shared.prepare(for: viewModel)
             viewModel.runOnboardingLaunchWork()
@@ -175,6 +176,8 @@ struct ContentView: View {
             // traffic lights, like the sidebar. Views that take drags up there keep them with
             // excludedFromWindowDrag() (TitlebarDragBlocker).
             .ignoresSafeArea(.container, edges: pageReachesTitleBar ? .top : [])
+            // No scroll edge effect under the toolbar covers what sits in the band.
+            .hidesTitlebarScrollEdge()
             // The page background follows the theme (Studio: the window background, as before).
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(DesignSystem.Colors.surface)
