@@ -1,14 +1,17 @@
 // Purpose: HomeView, the page the main window opens on: a greeting and every project as a tile
 //          with its creature (General first, then the sidebar's order) plus a New Project tile. A
-//          click on a tile enters the project in its remembered section.
+//          click on a tile enters the project in its remembered section. The creature shows what
+//          the project's Claude sessions do (typing, waving, thumb up with a check).
 // Dependencies: Sources/App/ViewModels/AppViewModel+Navigation.swift (enterProject),
-//               Sources/App/Components/ProjectAvatarView.swift (creature),
+//               Sources/App/Components/AgentStatusCreatureView.swift (creature and its pose),
 //               Sources/App/Supporting/WorkspaceTerminalStore.swift (Claude sessions per project),
 //               Sources/App/Supporting/CompanionCast.swift (worst: one status for several sessions)
 // Used by: Sources/App/Views/ContentView.swift
 // Notes: A tile names a running Claude only when it needs a look (working, waiting, error); done
-//        and idle say nothing, so the line stays rare enough to notice. New Project asks the Home
-//        sidebar to open its sheet (`requestsNewProject`), so there is one New Project sheet.
+//        and idle say nothing, so the line stays rare enough to notice. An unseen finished turn
+//        shows only on the creature (thumb up and check, until that session is focused).
+//        New Project asks the Home sidebar to open its sheet (`requestsNewProject`), so there is
+//        one New Project sheet.
 
 import SwiftUI
 
@@ -68,11 +71,14 @@ struct HomeView: View {
         return "\(meetingText) · \(taskText)"
     }
 
+    /// The project's Claude sessions; plain terminals are left out.
+    private func claudeSessions(of projectID: UUID) -> [WorkspaceTerminalSession] {
+        viewModel.workspaceTerminals.sessions(rootedAt: projectID).filter { !$0.isTerminal }
+    }
+
     /// The Claude line of a tile, when one of the project's sessions needs a look.
     private func claudeStatus(of projectID: UUID) -> (text: String, color: Color)? {
-        let statuses = viewModel.workspaceTerminals.sessions(rootedAt: projectID)
-            .filter { !$0.isTerminal }
-            .map(\.status)
+        let statuses = claudeSessions(of: projectID).map(\.status)
         switch CompanionCast.worst(statuses) {
         case .working: return ("Claude working", DesignSystem.Colors.accent)
         case .waiting: return ("Claude waiting for you", DesignSystem.Colors.warning)
@@ -88,7 +94,7 @@ struct HomeView: View {
             viewModel.enterProject(projectID)
         } label: {
             VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingS) {
-                ProjectAvatarView(projectID: projectID, pixelSize: 4)
+                AgentStatusCreatureView(projectID: projectID, sessions: claudeSessions(of: projectID), pixelSize: 4)
                 Text(name)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(DesignSystem.Colors.textPrimary)

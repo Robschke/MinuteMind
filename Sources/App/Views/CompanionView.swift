@@ -146,6 +146,8 @@ struct MascotCanvas: View {
 struct MascotBubbleView: View {
     let bubble: MascotBubble
     var mirrored = false
+    /// A fixed pixel size instead of the Settings one (the done check beside an agent's creature).
+    var pixelSize: CGFloat?
 
     private static let shape = [
         ".xxxxx.",
@@ -158,7 +160,7 @@ struct MascotBubbleView: View {
     ]
 
     var body: some View {
-        let pixel = MascotCanvas.pixel
+        let pixel = pixelSize ?? MascotCanvas.pixel
         let (fill, ink) = colors
         let glyph = glyphPixels
         let mirrored = mirrored

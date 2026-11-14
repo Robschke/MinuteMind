@@ -1,19 +1,19 @@
 // Purpose: ProjectAgentsSection, the "Agents" section of the project sidebar: one row per open
 //          Claude Code session of the project (its workspace strip and the windows torn off it),
-//          with the project's creature, the session's name and a status dot. A click goes to the
-//          Workspace section and focuses that session's tab.
+//          with the project's creature showing the session's status and the session's name. A
+//          click goes to the Workspace section and focuses that session's tab.
 // Dependencies: Sources/App/Supporting/WorkspaceTerminalStore.swift (sessions, focus, status),
 //               Sources/App/Supporting/TerminalSessionStatus.swift (the five statuses folded
-//               into three here), Sources/App/Components/ProjectAvatarView.swift (creature),
+//               into four here), Sources/App/Components/AgentStatusCreatureView.swift (creature),
 //               Sources/App/ViewModels/AppViewModel+Navigation.swift (setProjectTab)
 // Used by: Sources/App/Views/ProjectContextSidebar.swift
 // Notes: Agents are Claude sessions only; plain terminals are left out, as for the desktop
 //        companion (`WorkspaceTerminalStore.claudeSessions`).
-//        The dot shows three states. `TerminalSessionStatus` knows five: done counts as idle
-//        (the turn is over, Claude waits for a new prompt), error counts as waiting (it needs
-//        the user, as `CompanionCastMember.needsUser` has it). Working blue and waiting orange
-//        are the pane frames' system colours (`TerminalSessionStatus.frameColor`); idle has no
-//        status colour there, so its dot is neutral.
+//        The creature is the only status sign in a row (typing, waving, thumb up with a check,
+//        error face; AgentStatusCreatureView); tooltip and VoiceOver name the state.
+//        `AgentSessionState` folds `TerminalSessionStatus`'s five into four for that label:
+//        error counts as waiting (it needs the user, as `CompanionCastMember.needsUser` has it),
+//        done is finished while unseen (`finishedUnseen`) and idle once the user looked at it.
 //        The list shows up to `maxVisibleRows` rows and scrolls beyond that, so the file tree
 //        below keeps its room.
 //        A click on a session of the workspace's own strip also brings a minimized Claude back
@@ -23,26 +23,20 @@
 import AppKit
 import SwiftUI
 
-/// The three states the sidebar shows for an agent session.
+/// The states the sidebar names for an agent session (tooltip and VoiceOver).
 enum AgentSessionState: Equatable {
     case working
     case waiting
+    /// The turn finished and the user has not looked at the session since.
+    case finished
     case idle
 
-    init(_ status: TerminalSessionStatus) {
+    init(_ status: TerminalSessionStatus, finishedUnseen: Bool = false) {
         switch status {
         case .working: self = .working
         case .waiting, .error: self = .waiting
-        case .idle, .done: self = .idle
-        }
-    }
-
-    /// Theme tokens live on the main actor.
-    @MainActor var dotColor: Color {
-        switch self {
-        case .working: .blue
-        case .waiting: .orange
-        case .idle: DesignSystem.Colors.textTertiary
+        case .done: self = finishedUnseen ? .finished : .idle
+        case .idle: self = .idle
         }
     }
 
@@ -50,6 +44,7 @@ enum AgentSessionState: Equatable {
         switch self {
         case .working: "working"
         case .waiting: "waiting for input"
+        case .finished: "finished"
         case .idle: "idle"
         }
     }
@@ -103,12 +98,12 @@ struct ProjectAgentsSection: View {
     }
 
     private func row(_ session: WorkspaceTerminalSession) -> some View {
-        let state = AgentSessionState(session.status)
+        let state = AgentSessionState(session.status, finishedUnseen: session.finishedUnseen)
         return Button {
             open(session)
         } label: {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
-                ProjectAvatarView(projectID: projectID, pixelSize: 1)
+                AgentStatusCreatureView(projectID: projectID, sessions: [session], pixelSize: 1)
                     .frame(width: 18)
                 Text(session.displayName)
                     .font(DesignSystem.Typography.callout)
@@ -116,9 +111,6 @@ struct ProjectAgentsSection: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer(minLength: DesignSystem.Dimensions.spacingXS)
-                Circle()
-                    .fill(state.dotColor)
-                    .frame(width: 7, height: 7)
             }
             // Lined up with the section rows above (icon column 18 pt wide).
             .padding(.horizontal, DesignSystem.Dimensions.spacingM)
