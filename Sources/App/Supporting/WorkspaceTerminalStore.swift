@@ -25,6 +25,8 @@
 //        cleared at launch, deleted on close) written by Claude Code hooks; a 1 s timer reads it
 //        together with output, input and bell times (TerminalStatusTracker) and the foreground
 //        process. A session that starts waiting while it is not focused is announced to VoiceOver.
+//        A turn that finishes while its tab is not focused in the key window is `finishedUnseen`
+//        until the user focuses it, so Home and the Agents list can hold the done sign until then.
 //        Restart replaces a session's view with a fresh one: SwiftTerm refuses to start a second
 //        process while one runs, and with `exec zsh` there always is one.
 //        The terminal follows the theme's background with SF Mono 12; text and ANSI colours come
@@ -87,6 +89,9 @@ final class WorkspaceTerminalSession: Identifiable {
     /// Replaced on restart, so views showing it re-attach the new one.
     fileprivate(set) var view: WorkspaceTerminalView
     fileprivate(set) var status: TerminalSessionStatus = .idle
+    /// The turn finished while the user was not looking at this session, and they have not
+    /// focused it since. Only ever true while `status` is done.
+    fileprivate(set) var finishedUnseen = false
     fileprivate(set) var foreground: WorkspaceTerminalStore.Foreground
     /// Plain terminals: the program in front when it is not the shell ("vim", "npm"), else nil.
     fileprivate(set) var program: String?
@@ -563,12 +568,18 @@ final class WorkspaceTerminalStore {
             var status = session.tracker.update(sample)
             // With the plain shell in front only an error (Claude exited non-zero) is worth showing.
             if foreground != .claude, status != .error { status = .idle }
+            let focused = isFocused(session)
+            let justFinished = status == .done && session.status != .done
             if session.status != status {
-                if status == .waiting, !isFocused(session) {
+                if status == .waiting, !focused {
                     AccessibilityNotification.Announcement("\(session.displayName) is waiting for you").post()
                 }
                 session.status = status
             }
+            // A turn that ends while the user looks at it is seen; one that ends elsewhere stays
+            // unseen until its tab is focused in the key window.
+            let unseen = status == .done && !focused && (justFinished || session.finishedUnseen)
+            if session.finishedUnseen != unseen { session.finishedUnseen = unseen }
         }
     }
 

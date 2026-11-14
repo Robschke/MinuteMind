@@ -76,7 +76,7 @@ enum HelpGuideContent {
 
         ## The window
 
-        MinuteMind opens on Home: your projects as tiles with their creatures. The sidebar lists Home, Inbox (meetings waiting to be processed), All Transcripts (every recording, with the record button), All Tasks, Calendar, Clipboard (your dictation history), General (a workspace for meetings without a project) and your projects. Settings is the gear at the bottom of the sidebar (Cmd+,).
+        MinuteMind opens on Home: your projects as tiles with their creatures. A creature shows what the project's Claude sessions do: it types on its laptop while one works, waves while one waits for you, holds its thumb up with a green check when one has finished and you have not opened that session yet, and sleeps while its sessions are idle. The sidebar lists Home, Inbox (meetings waiting to be processed), All Transcripts (every recording, with the record button), All Tasks, Calendar, Clipboard (your dictation history), General (a workspace for meetings without a project) and your projects. Settings is the gear at the bottom of the sidebar (Cmd+,).
 
         Click a project (its tile or its row) to enter it: the sidebar then belongs to that project, with its sections and its files. Click the project's name at the top of the sidebar to go back Home. The back and forward buttons of your mouse go to the previous and next place, like in a browser. Hold Cmd and press K to switch projects.
 
@@ -351,7 +351,7 @@ enum HelpGuideContent {
 
         ## In the sidebar
 
-        - Right click a project: Star / Unstar (starred projects come first in the project wheel and show their creature or a star, and are always in the project switcher), Edit Project..., Companion (its creature), Make Shared Project..., Arrange Projects.
+        - Right click a project: Star / Unstar (starred projects show a star in the sidebar, come first in the project wheel with their creature or a star, and are always in the project switcher), Edit Project..., Companion (its creature), Make Shared Project..., Arrange Projects.
         - **Edit Project...** (also a right click on the project's name at the top of its own sidebar, or on its creature in the switcher) opens the project settings: name, companion creature, avatar colour (Default is the creature's natural colour; Own Colour opens the system colour panel with wheel, sliders and hex code, and paints the creature's body only, the headphones and other details keep theirs) and the export folder.
         - Long press a project (or Arrange Projects) to drag the projects into your order.
 
@@ -383,7 +383,7 @@ enum HelpGuideContent {
 
         ## The Workspace
 
-        - **Agents** in the project's sidebar: every open Claude session of the project with a dot for its state: blue working, orange waiting for you (or stopped with an error), grey idle. Click one to open it in the Workspace.
+        - **Agents** in the project's sidebar: every open Claude session of the project, its creature showing the state: typing while it works, waving while it waits for you, the error face when it stopped with an error, a thumb up with a green check when it finished and you have not opened it since, asleep while it is idle. Click one to open it in the Workspace.
         - **Files** in the project's sidebar: browse, drag to move (Option copies), rename, New File / New Folder, Duplicate, Copy Path, Move to Trash (Cmd+Delete). meetings/, recordings/, knowledge/ and CLAUDE.md stay in place. The folder button beside Files shows the folder in Finder.
         - **Editor:** click a file to open it (from any section, it switches to Workspace), with syntax colours, a Markdown preview, images and PDFs. Changes save by themselves; double click opens a file in its usual app.
         - **Claude Code:** up to six sessions per project in tabs (the sparkle button; right click for Sonnet instead of Opus), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.

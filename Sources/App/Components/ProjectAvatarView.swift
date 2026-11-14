@@ -5,7 +5,7 @@
 //               Sources/App/Supporting/AssistantMascotPose.swift (idle frame),
 //               Sources/App/ViewModels/AppViewModel+Companion.swift (projectAvatar: creature and
 //               body colour, shared with the desktop companion and the pill)
-// Used by: Sources/App/Views/HomeView.swift, Sources/App/Views/ProjectContextSidebar.swift,
+// Used by: Sources/App/Views/ProjectContextSidebar.swift,
 //          Sources/App/Views/ProjectSwitcherView.swift, Sources/App/Views/ProjectsSidebarView.swift,
 //          Sources/App/Views/ProjectSettingsSheet.swift and the project lists and calendar views
 // Notes: Projects have no colour of their own; this creature is what identifies them. A project
