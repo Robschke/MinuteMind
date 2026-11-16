@@ -4,7 +4,9 @@
 // Dependencies: Sources/App/Supporting/ThemeStore.swift (active theme, mode, custom settings,
 //               saved profiles), Sources/App/Config/AppTheme.swift (themes, ThemeColor,
 //               CustomThemeSettings, SavedThemeProfile), Sources/App/Supporting/CompanionAppearance.swift
-//               (size, colour), Sources/App/Supporting/CompanionController.swift (show / hide)
+//               (size, colour), Sources/App/Supporting/CompanionController.swift (show / hide),
+//               Sources/App/Components/AvatarPickerSupport.swift (delete menu, hint, restore
+//               button and the row layout of the avatar picker)
 // Used by: Sources/App/Views/MeetingMinutesSettingsView.swift (Appearance tab)
 // Notes: User decisions 2026-10-05: four built-in themes plus Custom; Custom starts from one of
 //        them and overrides accent, background, card and border with a colour picker for light
@@ -18,8 +20,9 @@
 //        duplicated and deleted (with confirmation; the app falls back to the profile's base
 //        theme). A bookmark marks profile cards; the Custom card says it is a draft.
 //        Companion section (same day): show on the desktop, come to the pointer on a mouse
-//        shake, avatar (blob, duck, dog, puppy, pug, three cats, lime; each
-//        shown as a still preview at its size), size (2, 3 or 4 pt pixels) and colour (default or a
+//        shake, avatar (every avatar of the catalog, the built-in ones and the user's own, each
+//        shown as a still preview at its size; a right click deletes one, and deleted or edited
+//        built-ins can be restored below), size (2, 3 or 4 pt pixels) and colour (default or a
 //        picked one) with a live preview.
 
 import SwiftUI
@@ -441,16 +444,21 @@ private struct CompanionAppearanceSection: View {
                     }
                     GridRow {
                         Text("Avatar").frame(width: 80, alignment: .leading)
-                        // One row while it fits, two at large sizes or in a narrow window.
-                        ViewThatFits(in: .horizontal) {
-                            avatarRow(MascotAvatarCatalog.all)
-                            VStack(alignment: .leading, spacing: 8) {
-                                let half = (MascotAvatarCatalog.all.count + 1) / 2
-                                avatarRow(Array(MascotAvatarCatalog.all.prefix(half)))
-                                avatarRow(Array(MascotAvatarCatalog.all.dropFirst(half)))
+                        VStack(alignment: .leading, spacing: 8) {
+                            // One row while it fits, else even rows: more at large sizes, in a
+                            // narrow window and with avatars of the user's own.
+                            BalancedRows(spacing: 8) {
+                                ForEach(MascotAvatarCatalog.all) { avatar in
+                                    AvatarChoice(avatar: avatar, isSelected: appearance.avatar == avatar) {
+                                        appearance.avatar = avatar
+                                    }
+                                    .avatarDeleteMenu(avatar)
+                                }
                             }
+                            .disabled(companion.model.isHiddenByUser)
+                            AvatarDesignHint()
+                            RestoreBuiltInAvatarsButton()
                         }
-                        .disabled(companion.model.isHiddenByUser)
                     }
                     GridRow {
                         Text("Size").frame(width: 80, alignment: .leading)
@@ -496,18 +504,6 @@ private struct CompanionAppearanceSection: View {
         }
         .padding(16)
         .background(RoundedRectangle(cornerRadius: 12).fill(Color.primary.opacity(0.04)))
-    }
-}
-
-private extension CompanionAppearanceSection {
-    func avatarRow(_ avatars: [MascotAvatar]) -> some View {
-        HStack(spacing: 8) {
-            ForEach(avatars) { avatar in
-                AvatarChoice(avatar: avatar, isSelected: appearance.avatar == avatar) {
-                    appearance.avatar = avatar
-                }
-            }
-        }
     }
 }
 

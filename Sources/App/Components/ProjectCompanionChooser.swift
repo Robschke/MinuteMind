@@ -1,12 +1,14 @@
 // Purpose: ProjectCompanionChooser, picking a project's creature: None, then every avatar as a
-//          tile, drawn in the colour it will have on the project. Shared by the New Project sheet
-//          and the project settings sheet.
+//          tile (the built-in ones, then the user's own), drawn in the colour it will have on
+//          the project. Shared by the New Project sheet and the project settings sheet.
 // Dependencies: Sources/App/Components/ProjectAvatarView.swift (ProjectCreatureMark),
-//               Sources/App/Supporting/CompanionAppearance.swift (projectBodyColor, home avatar)
+//               Sources/App/Supporting/CompanionAppearance.swift (projectBodyColor, home avatar),
+//               Sources/App/Supporting/MascotAvatarCatalog.swift (the avatars),
+//               Sources/App/Components/AvatarPickerSupport.swift (delete menu, hint)
 // Used by: Sources/App/Views/ProjectsSidebarView.swift (New Project sheet, Companion menu labels),
 //          Sources/App/Views/ProjectSettingsSheet.swift
 // Notes: Avatars already in use are named in the tooltip, not blocked: an avatar colour tells two
-//        projects with the same creature apart.
+//        projects with the same creature apart. A right click on a tile deletes that avatar.
 
 import SwiftUI
 
@@ -21,25 +23,29 @@ struct ProjectCompanionChooser: View {
     private static let tileSize: CGFloat = 40
 
     var body: some View {
-        HStack(alignment: .top, spacing: DesignSystem.Dimensions.spacingS) {
-            tile(nil) {
-                Text("None")
-                    .font(DesignSystem.Typography.caption1)
-                    .foregroundStyle(DesignSystem.Colors.textSecondary)
-            }
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.fixed(Self.tileSize), spacing: DesignSystem.Dimensions.spacingS), count: 5),
-                alignment: .leading, spacing: DesignSystem.Dimensions.spacingS
-            ) {
-                ForEach(MascotAvatarCatalog.all) { avatar in
-                    tile(avatar) {
-                        ProjectCreatureMark(
-                            avatar: avatar,
-                            color: CompanionAppearance.projectBodyColor(avatar, hex: avatarColorHex),
-                            pixelSize: 2)
+        VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingS) {
+            HStack(alignment: .top, spacing: DesignSystem.Dimensions.spacingS) {
+                tile(nil) {
+                    Text("None")
+                        .font(DesignSystem.Typography.caption1)
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                }
+                LazyVGrid(
+                    columns: Array(repeating: GridItem(.fixed(Self.tileSize), spacing: DesignSystem.Dimensions.spacingS), count: 5),
+                    alignment: .leading, spacing: DesignSystem.Dimensions.spacingS
+                ) {
+                    ForEach(MascotAvatarCatalog.all) { avatar in
+                        tile(avatar) {
+                            ProjectCreatureMark(
+                                avatar: avatar,
+                                color: CompanionAppearance.projectBodyColor(avatar, hex: avatarColorHex),
+                                pixelSize: 2)
+                        }
+                        .avatarDeleteMenu(avatar)
                     }
                 }
             }
+            AvatarDesignHint()
         }
     }
 

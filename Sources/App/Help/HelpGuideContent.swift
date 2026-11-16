@@ -337,13 +337,15 @@ enum HelpGuideContent {
 
         ## Appearance
 
-        Settings > Appearance > Companion: show or hide it, the creature (blob, duck, dog, puppy, pug, several cats, lime), size, colour, "come to the pointer when I shake the mouse" with a Sensitivity slider below it (Gentle: two short flips are enough, Hard: five wide ones), and "Show the companion in screen shares" (off by default, so others do not see it).
+        Settings > Appearance > Companion: show or hide it, the creature (blob, duck, dog, puppy, pug, several cats, lime, plus your own avatars, see below), size, colour, "come to the pointer when I shake the mouse" with a Sensitivity slider below it (Gentle: two short flips are enough, Hard: five wide ones), and "Show the companion in screen shares" (off by default, so others do not see it).
 
         ## Your own avatars
 
         Claude can design new avatars for you. In a Claude session that has the MinuteMind tools (any workspace, or the Claude window behind the companion), describe what you want, for example: "Design a new MinuteMind avatar: a red fox with a white tail tip." Claude draws it, checks a picture of it in every mood (idle, blinking, working, waiting, celebrating, error, sleeping, recording, running, thumb up) and saves it. It then appears among the avatars in Settings > Appearance and in a project's companion chooser, where you pick it like any other.
 
         - **Change an avatar:** ask Claude, for example "Give my fox avatar bigger ears" or "Make the built-in duck white". The avatar keeps its place; projects and the companion wearing it show the new drawing at once. A changed built-in keeps its name and its special trait (the Cool Cat's sunglasses, the Sweet Cat's heart, the Lime without arms).
+        - **Delete an avatar:** right click it in either picker (Settings > Appearance, or the companion chooser of a project) and choose Delete avatar; Claude can do it too. This works for the built-in ones as well. Projects and the companion that wear it keep their choice and show the Blob until you pick another one; the confirmation names them.
+        - **Restore built-in avatars** (Settings > Appearance, under the avatars; shown only while a built-in is deleted or changed) brings the built-in ones back as they shipped. Avatars you added stay.
         - **Every avatar does everything:** the moods are drawn over the body by MinuteMind, so a new avatar types, waves, sleeps and wears headphones like the built-in ones. Own avatars have no special traits.
         - Avatars are stored on this Mac in `~/Library/Application Support/MinuteMind/Avatars/`, one file each. In a Shared Project, members who do not have a project's avatar see the Blob.
         """
