@@ -1,290 +1,321 @@
-// Purpose: MascotAvatar, the creatures the desktop companion can be: the original blob, a cute
-//          duck, a funny dog, a puppy, a pug, three cats and a sour lime. Each is a 12 x 13 pixel body plus its
-//          colours; the moods (eyes, mouths, arms, headphones, laptop, bubbles) are shared.
+// Purpose: MascotAvatar, one creature the desktop companion or a project can be, as data: an id,
+//          a name, its kind (how it is drawn), a 12 x 13 pixel body, its colours and its neutral
+//          mouth. The built-in ones (blob, duck, dog, puppy, pug, three cats, lime) are static
+//          instances; the moods (eyes, mouths, arms, headphones, laptop, bubbles) are shared.
 // Dependencies: Sources/App/Supporting/AssistantMascotPose.swift (MascotGrid, MascotInk)
-// Used by: Sources/App/Supporting/AssistantMascotPose.swift (bodies), Sources/App/Supporting/
-//          CompanionAppearance.swift (the chosen one), Sources/App/Views/CompanionView.swift
-//          (colours), Sources/App/Views/AppearanceSettingsView.swift (picker)
-// Notes: User request 2026-10-13: a choice of avatars, "a cute duck, a funny dog and a sour lime",
-//        picked in Settings, Appearance. Decisions:
+// Used by: Sources/App/Supporting/MascotAvatarCatalog.swift (lists and resolves them),
+//          Sources/App/Supporting/AssistantMascotPose.swift (bodies and traits),
+//          Sources/App/Supporting/CreatureRenderer.swift (picks the renderer by kind),
+//          Sources/App/Supporting/CompanionAppearance.swift (the chosen one, colours),
+//          Sources/App/Views/CreatureView.swift (colours), Sources/App/Models/Project.swift
+// Notes: - The id is what projects and settings store. The built-in ids never change, or stored
+//          choices would fall back to the Blob.
 //        - Every body keeps the face where the blob has it (eyes at x 4 and 7 in rows 5 to 8,
 //          mouth in rows 9 and 10, cheeks at (2,8) and (9,8), head top in row 1), so every mood
 //          works for every creature without per-creature poses.
-//        - Character lives in the body and one feature colour (design review): the duck's dark
-//          cowlick, flat wide bill and feet (a pointed beak and orange tuft read as a chick); the
-//          dog's floppy left ear, perked right ear, black nose and a lopsided grin with the tongue
-//          out; the lime's citrus leaf lying on the fruit (a stem read as an apple) and a sour
-//          squiggle of a mouth.
-//        - Two more dogs (user request 2026-10-14, after two pixel art references): a sitting
-//          orange puppy (left ear flipped up, right ear folded down, a "u" smile under the nose,
-//          a little tail at the bottom right) and a pug (fawn, dark folded ears, a dark forehead
-//          mark, a dark muzzle with jowls and the tongue out). The pug reference is a side view;
-//          it is drawn from the front because every creature shares the face layout.
-//        - A cat (user request 2026-10-19, after a draft): triangular ears with pink insides, a
-//          small forehead patch (stripes above the eyes made it look grumpy), a pink nose over a
-//          "u" smile, a tail curling up at the bottom right; no whiskers (beside the tail they
-//          read as extra legs). Orange by default.
-//        - Two more cats after a pixel art reference (an orange cat in sunglasses and a yellow cat
-//          with content closed eyes and a heart above it, both side views drawn from the front):
-//          the Cool Cat wears its shades over whatever eyes the mood has (no blinks or glances;
-//          mouth, arms and bubbles carry the mood) and pushes them up onto its forehead when it
-//          waits, errs or sleeps, so those eyes show (design review: with the shades down its error
-//          face was its idle face); light ear insides, a sideways smirk, a glint in the same corner
-//          of each lens (centred glints read as pupils). The Sweet Cat has an orange patch on its
-//          head, orange ear insides and an orange nose, rests its eyes half closed while idle (open
-//          on hover and in every other mood; flat lines would read as asleep) and now and then a
-//          heart rises beside its head. The heart is pink and comes and goes (design review: a
-//          steady red heart in the bubble's place read as the error bubble).
-//        - Natural colours (yellow duck, tan dog, orange puppy, fawn pug, orange cats, yellow Sweet Cat,
-//          green lime); the blob
-//          takes the theme accent.
-//          An own colour from Settings recolours the body only, never the feature colour.
+//        - Character lives in the body and one feature colour: the duck's dark cowlick, flat wide
+//          bill and feet (a pointed beak and orange tuft read as a chick); the dog's ears, black
+//          nose and lopsided grin; the lime's leaf lying on the fruit (a stem read as an apple).
+//          The pug is drawn from the front like all the others, since they share the face layout.
+//          The cat has no whiskers (beside the tail they read as extra legs) and a small forehead
+//          patch (stripes above the eyes made it look grumpy).
+//        - The traits are built-in only. The Cool Cat wears its shades over whatever eyes the
+//          mood has and pushes them up onto its forehead when it waits, errs or sleeps, so those
+//          eyes show (with the shades down its error face was its idle face); the glint sits in
+//          the same corner of each lens (centred glints read as pupils). The Sweet Cat rests its
+//          eyes half closed while idle (open on hover and in every other mood; flat lines would
+//          read as asleep) and now and then a pink heart rises beside its head (a steady red
+//          heart in the bubble's place read as the error bubble). The lime has no arms.
+//        - Natural colours (yellow duck, tan dog, orange puppy, fawn pug, orange cats, yellow
+//          Sweet Cat, green lime); the blob takes the theme accent. An own colour from Settings
+//          recolours the body only, never the feature colour.
+//        - `kind` says which renderer draws the avatar (CreatureRenderer); `pixel` is the only
+//          one. The grids are built once per avatar, since frames are sampled many times a second.
 
 import Foundation
 
-enum MascotAvatar: String, CaseIterable, Identifiable, Sendable {
-    case blob, duck, dog, puppy, pug, cat, coolCat, sweetCat, lime
-
-    var id: String { rawValue }
-
-    var name: String {
-        switch self {
-        case .blob: "Blob"
-        case .duck: "Duck"
-        case .dog: "Dog"
-        case .puppy: "Puppy"
-        case .pug: "Pug"
-        case .cat: "Cat"
-        case .coolCat: "Cool Cat"
-        case .sweetCat: "Sweet Cat"
-        case .lime: "Lime"
-        }
+struct MascotAvatar: Identifiable, Hashable, Sendable, CustomStringConvertible {
+    /// How an avatar is drawn.
+    enum Kind: String, Sendable {
+        /// A 12 x 13 grid of inks, the moods painted over it (AssistantMascotPose).
+        case pixel
     }
 
+    /// What projects and settings store.
+    let id: String
+    let name: String
+    let kind: Kind
+
+    /// The body at rest, 13 rows of 12 characters: o outline, b body, h shine, c pink,
+    /// e near-black, f feature colour, anything else empty.
+    let rows: [String]
     /// The body colour without an own colour; nil = the theme's accent.
-    var naturalBody: UInt32? {
-        switch self {
-        case .blob: nil
-        case .duck: 0xFFD43B
-        case .dog: 0xC98B4E
-        case .puppy: 0xF2A65A
-        case .pug: 0xEDCB98
-        case .cat: 0xF5A65B
-        case .coolCat: 0xEE8A2E
-        case .sweetCat: 0xF7C948
-        case .lime: 0x9CCB3B
-        }
-    }
-
+    let naturalBody: UInt32?
     /// Beak and feet, ears, stem and leaf ("f" in the rows).
-    var featureColor: UInt32 {
-        switch self {
-        case .blob: 0x000000
-        case .duck: 0xFF8A1F
-        case .dog: 0x7A4A24
-        case .puppy: 0xC8702A
-        case .pug: 0x6B4128
-        case .cat: 0xC8702A
-        case .coolCat: 0xB4531A
-        case .sweetCat: 0xE8892B
-        case .lime: 0x3F7D1C
-        }
-    }
+    let featureColor: UInt32
+    /// The mouth when the mood has nothing to say (empty: the body already draws it, as the
+    /// duck's bill and the Sweet Cat's nose do).
+    let neutralMouth: [(Int, Int)]
 
     /// The side nubs (arms at rest); waving and laptop hands replace them.
-    var nubs: [(Int, Int)] {
-        self == .lime ? [] : [(0, 8), (11, 8)]
-    }
-
-    /// The mouth when the mood has nothing to say: the duck's bill is its mouth, the dog grins
-    /// lopsided with its tongue out, the puppy and the cat smile under their noses, the pug's flat mouth sits
-    /// under its muzzle above the tongue, the Cool Cat smirks, the Sweet Cat's nose is all it
-    /// needs, the lime has a sour squiggle.
-    var neutralMouth: [(Int, Int)] {
-        switch self {
-        case .lime: [(4, 10), (5, 9), (6, 10), (7, 9)]
-        case .duck: []
-        case .dog: [(4, 9), (5, 10), (7, 9)]
-        case .puppy: [(4, 9), (5, 10), (6, 10), (7, 9)]
-        case .pug: [(4, 9), (5, 9), (6, 9), (7, 9)]
-        case .cat: [(4, 9), (5, 10), (6, 10), (7, 9)]
-        case .coolCat: [(5, 10), (6, 10), (7, 9)]
-        case .sweetCat: []
-        case .blob: [(5, 9), (6, 9)]
-        }
-    }
-
+    let nubs: [(Int, Int)]
     /// Sunglasses over the eyes in every mood (the pose paints them last).
-    var wearsShades: Bool { self == .coolCat }
-
+    let wearsShades: Bool
     /// Idle with half closed eyes and now and then a heart beside the head.
-    var isContent: Bool { self == .sweetCat }
+    let isContent: Bool
 
-    /// The body at rest. o outline, b body, h shine, c pink, e near-black, f feature colour.
-    private var rows: [String] {
-        switch self {
-        case .blob:
-            return [
-                "............",
-                "....oooo....",
-                "..oobbbboo..",
-                ".obhhbbbbbo.",
-                ".obhbbbbbbo.",
-                ".obbbbbbbbo.",
-                ".obbbbbbbbo.",
-                ".obbbbbbbbo.",
-                "oobbbbbbbboo",
-                ".obbbbbbbbo.",
-                "..obbbbbbo..",
-                "...oooooo...",
-                "...oo..oo...",
-            ]
-        case .duck:
-            return [
-                "......oo....",
-                "....oooo....",
-                "..oobbbboo..",
-                ".obhhbbbbbo.",
-                ".obhbbbbbbo.",
-                ".obbbbbbbbo.",
-                ".obbbbbbbbo.",
-                ".obbbbbbbbo.",
-                "oobbffffbboo",
-                ".obbffffbbo.",
-                "..obbbbbbo..",
-                "...oooooo...",
-                "...ff..ff...",
-            ]
-        case .dog:
-            return [
-                ".........oo.",
-                "...ooooooffo",
-                ".oobbbbbbffo",
-                "offbhbbbbbo.",
-                "offbbbbbbbo.",
-                "offbbbbbbbo.",
-                ".ofbbbbbbbo.",
-                ".obbbbbbbbo.",
-                "oobbbeebbboo",
-                ".obbbbbbbbo.",
-                "..obbbcbbo..",
-                "...oooooo...",
-                "...oo..oo...",
-            ]
-        case .puppy:
-            return [
-                ".oo.........",
-                "offoooooo...",
-                "offfbbbbbooo",
-                ".offbhbbbffo",
-                ".obhbbbbbffo",
-                ".obbbbbbbffo",
-                ".obbbbbbbbfo",
-                ".obbbbbbbbo.",
-                "oobbbeebbboo",
-                ".obbbbbbbbof",
-                "..obbbbbbof.",
-                "...oooooo...",
-                "...ff..ff...",
-            ]
-        case .pug:
-            return [
-                "............",
-                "...oooooo...",
-                "..oobffboo..",
-                ".offbbbbffo.",
-                "offfbbbbfffo",
-                "offbbbbbbffo",
-                ".obbbbbbbbo.",
-                ".obbbbbbbbo.",
-                "oobffeeffboo",
-                ".obfbbbbfbo.",
-                "..obbcbbbo..",
-                "...oooooo...",
-                "...ff..ff...",
-            ]
-        case .cat:
-            return [
-                "..o......o..",
-                ".oco....oco.",
-                ".obboooobbo.",
-                ".obbbffbbbo.",
-                ".obhbbbbbbo.",
-                ".obhbbbbbbo.",
-                ".obbbbbbbbo.",
-                ".obbbbbbbbo.",
-                "oobbbbbbbboo",
-                ".obbbccbbbof",
-                "..obbbbbbofo",
-                "...oooooo.o.",
-                "...oo..oo...",
-            ]
-        case .coolCat:
-            return [
-                "..o......o..",
-                ".oho....oho.",
-                ".obboooobbo.",
-                ".obhbffbbbo.",
-                ".obbbbbbbbo.",
-                ".obbbbbbbbo.",
-                ".obbbbbbbbo.",
-                ".obbbbbbbbo.",
-                "oobbbbbbbboo",
-                ".obbbbbbbbof",
-                "..obbbbbbofo",
-                "...oooooo.o.",
-                "...ff..ff...",
-            ]
-        case .sweetCat:
-            return [
-                "..o......o..",
-                ".ofo....ofo.",
-                ".offoooobbo.",
-                ".offbbbbbbo.",
-                ".obbhbbbbbo.",
-                ".obhbbbbbbo.",
-                ".obbbbbbbbo.",
-                ".obbbbbbbbo.",
-                "oobbbbbbbboo",
-                ".obbbffbbbof",
-                "..obbbbbbofo",
-                "...oooooo.f.",
-                "...oo..oo...",
-            ]
-        case .lime:
-            return [
-                ".....oof....",
-                "...ooooooff.",
-                "..obbbbbbo..",
-                ".obhhbbbbbo.",
-                ".obhbbbbbbo.",
-                "obbbbbbbbbbo",
-                "obbbbbbbbbbo",
-                "obbbbbbbbbbo",
-                "obbbbbbbbbbo",
-                ".obbbbbbbbo.",
-                "..obbbbbbo..",
-                "...oooooo...",
-                "....o..o....",
-            ]
+    let body: MascotGrid
+    /// Breathing out: everything above the face sinks one row (row 4 drops out).
+    let squashed: MascotGrid
+
+    init(
+        id: String, name: String, kind: Kind = .pixel, rows: [String], naturalBody: UInt32?,
+        featureColor: UInt32, neutralMouth: [(Int, Int)], hasArms: Bool = true,
+        wearsShades: Bool = false, isContent: Bool = false
+    ) {
+        self.id = id
+        self.name = name
+        self.kind = kind
+        self.rows = rows
+        self.naturalBody = naturalBody
+        self.featureColor = featureColor
+        self.neutralMouth = neutralMouth
+        self.nubs = hasArms ? [(0, 8), (11, 8)] : []
+        self.wearsShades = wearsShades
+        self.isContent = isContent
+        let body = MascotGrid(rows: rows)
+        var squashed = body
+        for y in stride(from: 4, through: 1, by: -1) {
+            for x in 0..<MascotGrid.width { squashed[x, y] = body[x, y - 1] }
         }
+        for x in 0..<MascotGrid.width { squashed[x, 0] = nil }
+        self.body = body
+        self.squashed = squashed
     }
 
-    var body: MascotGrid { Self.bodies[self] ?? .body }
-    var squashed: MascotGrid { Self.squashedBodies[self] ?? .squashed }
+    var description: String { id }
 
-    private static let bodies: [MascotAvatar: MascotGrid] = Dictionary(
-        uniqueKeysWithValues: allCases.map { ($0, MascotGrid(rows: $0.rows)) })
+    /// Two avatars are the same when they are drawn the same; the grids follow from the rows.
+    static func == (a: MascotAvatar, b: MascotAvatar) -> Bool {
+        a.id == b.id && a.name == b.name && a.kind == b.kind && a.rows == b.rows
+            && a.naturalBody == b.naturalBody && a.featureColor == b.featureColor
+            && a.neutralMouth.elementsEqual(b.neutralMouth, by: ==) && a.nubs.elementsEqual(b.nubs, by: ==)
+            && a.wearsShades == b.wearsShades && a.isContent == b.isContent
+    }
 
-    /// Breathing out: everything above the face sinks one row (row 4 drops out).
-    private static let squashedBodies: [MascotAvatar: MascotGrid] = Dictionary(
-        uniqueKeysWithValues: allCases.map { avatar in
-            let body = MascotGrid(rows: avatar.rows)
-            var grid = body
-            for y in stride(from: 4, through: 1, by: -1) {
-                for x in 0..<MascotGrid.width { grid[x, y] = body[x, y - 1] }
-            }
-            for x in 0..<MascotGrid.width { grid[x, 0] = nil }
-            return (avatar, grid)
-        })
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
+
+// MARK: - The built-in avatars
+
+extension MascotAvatar {
+    /// The original: a round body in the theme accent, two pixels of mouth.
+    static let blob = MascotAvatar(
+        id: "blob",
+        name: "Blob",
+        rows: [
+            "............",
+            "....oooo....",
+            "..oobbbboo..",
+            ".obhhbbbbbo.",
+            ".obhbbbbbbo.",
+            ".obbbbbbbbo.",
+            ".obbbbbbbbo.",
+            ".obbbbbbbbo.",
+            "oobbbbbbbboo",
+            ".obbbbbbbbo.",
+            "..obbbbbbo..",
+            "...oooooo...",
+            "...oo..oo...",
+        ],
+        naturalBody: nil,
+        featureColor: 0x000000,
+        neutralMouth: [(5, 9), (6, 9)])
+
+    /// A dark cowlick, a flat wide bill (its mouth) and orange feet.
+    static let duck = MascotAvatar(
+        id: "duck",
+        name: "Duck",
+        rows: [
+            "......oo....",
+            "....oooo....",
+            "..oobbbboo..",
+            ".obhhbbbbbo.",
+            ".obhbbbbbbo.",
+            ".obbbbbbbbo.",
+            ".obbbbbbbbo.",
+            ".obbbbbbbbo.",
+            "oobbffffbboo",
+            ".obbffffbbo.",
+            "..obbbbbbo..",
+            "...oooooo...",
+            "...ff..ff...",
+        ],
+        naturalBody: 0xFFD43B,
+        featureColor: 0xFF8A1F,
+        neutralMouth: [])
+
+    /// A floppy left ear, a perked right one, a black nose, a lopsided grin with the tongue out.
+    static let dog = MascotAvatar(
+        id: "dog",
+        name: "Dog",
+        rows: [
+            ".........oo.",
+            "...ooooooffo",
+            ".oobbbbbbffo",
+            "offbhbbbbbo.",
+            "offbbbbbbbo.",
+            "offbbbbbbbo.",
+            ".ofbbbbbbbo.",
+            ".obbbbbbbbo.",
+            "oobbbeebbboo",
+            ".obbbbbbbbo.",
+            "..obbbcbbo..",
+            "...oooooo...",
+            "...oo..oo...",
+        ],
+        naturalBody: 0xC98B4E,
+        featureColor: 0x7A4A24,
+        neutralMouth: [(4, 9), (5, 10), (7, 9)])
+
+    /// Sitting, the left ear flipped up, the right folded down, a "u" smile under the nose, a little tail.
+    static let puppy = MascotAvatar(
+        id: "puppy",
+        name: "Puppy",
+        rows: [
+            ".oo.........",
+            "offoooooo...",
+            "offfbbbbbooo",
+            ".offbhbbbffo",
+            ".obhbbbbbffo",
+            ".obbbbbbbffo",
+            ".obbbbbbbbfo",
+            ".obbbbbbbbo.",
+            "oobbbeebbboo",
+            ".obbbbbbbbof",
+            "..obbbbbbof.",
+            "...oooooo...",
+            "...ff..ff...",
+        ],
+        naturalBody: 0xF2A65A,
+        featureColor: 0xC8702A,
+        neutralMouth: [(4, 9), (5, 10), (6, 10), (7, 9)])
+
+    /// Dark folded ears, a dark forehead mark and muzzle with jowls, a flat mouth above the tongue.
+    static let pug = MascotAvatar(
+        id: "pug",
+        name: "Pug",
+        rows: [
+            "............",
+            "...oooooo...",
+            "..oobffboo..",
+            ".offbbbbffo.",
+            "offfbbbbfffo",
+            "offbbbbbbffo",
+            ".obbbbbbbbo.",
+            ".obbbbbbbbo.",
+            "oobffeeffboo",
+            ".obfbbbbfbo.",
+            "..obbcbbbo..",
+            "...oooooo...",
+            "...ff..ff...",
+        ],
+        naturalBody: 0xEDCB98,
+        featureColor: 0x6B4128,
+        neutralMouth: [(4, 9), (5, 9), (6, 9), (7, 9)])
+
+    /// Triangular ears with pink insides, a small forehead patch, a pink nose over a "u" smile, a tail curling up.
+    static let cat = MascotAvatar(
+        id: "cat",
+        name: "Cat",
+        rows: [
+            "..o......o..",
+            ".oco....oco.",
+            ".obboooobbo.",
+            ".obbbffbbbo.",
+            ".obhbbbbbbo.",
+            ".obhbbbbbbo.",
+            ".obbbbbbbbo.",
+            ".obbbbbbbbo.",
+            "oobbbbbbbboo",
+            ".obbbccbbbof",
+            "..obbbbbbofo",
+            "...oooooo.o.",
+            "...oo..oo...",
+        ],
+        naturalBody: 0xF5A65B,
+        featureColor: 0xC8702A,
+        neutralMouth: [(4, 9), (5, 10), (6, 10), (7, 9)])
+
+    /// Sunglasses over whatever eyes the mood has, light ear insides, a sideways smirk.
+    static let coolCat = MascotAvatar(
+        id: "coolCat",
+        name: "Cool Cat",
+        rows: [
+            "..o......o..",
+            ".oho....oho.",
+            ".obboooobbo.",
+            ".obhbffbbbo.",
+            ".obbbbbbbbo.",
+            ".obbbbbbbbo.",
+            ".obbbbbbbbo.",
+            ".obbbbbbbbo.",
+            "oobbbbbbbboo",
+            ".obbbbbbbbof",
+            "..obbbbbbofo",
+            "...oooooo.o.",
+            "...ff..ff...",
+        ],
+        naturalBody: 0xEE8A2E,
+        featureColor: 0xB4531A,
+        neutralMouth: [(5, 10), (6, 10), (7, 9)],
+        wearsShades: true)
+
+    /// An orange patch, orange ear insides and nose (all the mouth it needs), eyes half closed while idle.
+    static let sweetCat = MascotAvatar(
+        id: "sweetCat",
+        name: "Sweet Cat",
+        rows: [
+            "..o......o..",
+            ".ofo....ofo.",
+            ".offoooobbo.",
+            ".offbbbbbbo.",
+            ".obbhbbbbbo.",
+            ".obhbbbbbbo.",
+            ".obbbbbbbbo.",
+            ".obbbbbbbbo.",
+            "oobbbbbbbboo",
+            ".obbbffbbbof",
+            "..obbbbbbofo",
+            "...oooooo.f.",
+            "...oo..oo...",
+        ],
+        naturalBody: 0xF7C948,
+        featureColor: 0xE8892B,
+        neutralMouth: [],
+        isContent: true)
+
+    /// A citrus leaf lying on the fruit, no arms, one pixel legs and a sour squiggle of a mouth.
+    static let lime = MascotAvatar(
+        id: "lime",
+        name: "Lime",
+        rows: [
+            ".....oof....",
+            "...ooooooff.",
+            "..obbbbbbo..",
+            ".obhhbbbbbo.",
+            ".obhbbbbbbo.",
+            "obbbbbbbbbbo",
+            "obbbbbbbbbbo",
+            "obbbbbbbbbbo",
+            "obbbbbbbbbbo",
+            ".obbbbbbbbo.",
+            "..obbbbbbo..",
+            "...oooooo...",
+            "....o..o....",
+        ],
+        naturalBody: 0x9CCB3B,
+        featureColor: 0x3F7D1C,
+        neutralMouth: [(4, 10), (5, 9), (6, 10), (7, 9)],
+        hasArms: false)
 }

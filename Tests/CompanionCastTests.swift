@@ -11,7 +11,7 @@ import Testing
 struct CompanionCastTests {
     private func project(_ name: String, _ avatar: MascotAvatar?, color: String? = nil) -> Project {
         var project = Project(name: name, avatarColorHex: color)
-        project.companionAvatar = avatar?.rawValue
+        project.companionAvatar = avatar?.id
         return project
     }
 
@@ -124,6 +124,6 @@ struct CompanionCastTests {
     func firstFreeAvatar() {
         #expect(CompanionCast.firstFreeAvatar(used: [], homeAvatar: .blob) == .duck)
         #expect(CompanionCast.firstFreeAvatar(used: [.duck, .dog], homeAvatar: .blob) == .puppy)
-        #expect(CompanionCast.firstFreeAvatar(used: Set(MascotAvatar.allCases), homeAvatar: .blob) == nil)
+        #expect(CompanionCast.firstFreeAvatar(used: Set(MascotAvatarCatalog.builtIns), homeAvatar: .blob) == nil)
     }
 }

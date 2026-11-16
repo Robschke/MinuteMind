@@ -3,8 +3,10 @@
 //          one waits, the error face, a thumb up with a green check while a finished turn is
 //          still unseen, and asleep with a drifting "z" while its sessions idle. Used where the
 //          app lists projects' agents (Home tiles, the Agents list).
-// Dependencies: Sources/App/Supporting/AssistantMascotPose.swift (moods, frames),
-//               Sources/App/Views/CompanionView.swift (MascotCanvas, MascotBubbleView),
+// Dependencies: Sources/App/Supporting/AssistantMascotPose.swift (moods),
+//               Sources/App/Supporting/CreatureRenderer.swift (frames),
+//               Sources/App/Views/CreatureView.swift, Sources/App/Views/CompanionView.swift
+//               (MascotBubbleView),
 //               Sources/App/Supporting/WorkspaceTerminalStore.swift (status, finishedUnseen),
 //               Sources/App/ViewModels/AppViewModel+Companion.swift (projectAvatar)
 // Used by: Sources/App/Views/HomeView.swift, Sources/App/Views/ProjectAgentsSection.swift
@@ -89,7 +91,7 @@ private struct AgentCreature: View {
     }
 
     private func creature(time: TimeInterval, animated: Bool) -> some View {
-        let frame = AssistantMascotPose.frame(.init(
+        let frame = CreatureRenderer.frame(.init(
             mood: mood, time: time, look: nil, moodAge: Self.settledMoodAge,
             avatar: avatar, animated: animated, keepsWaving: true))
         // Only the check and the "z": typing and waving speak through the pose alone.
@@ -99,7 +101,7 @@ private struct AgentCreature: View {
         default: nil
         }
         return ZStack(alignment: .topLeading) {
-            MascotCanvas(frame: frame, avatar: avatar, pixelSize: pixelSize, bodyColor: color)
+            CreatureView(frame: frame, avatar: avatar, unit: pixelSize, bodyColor: color)
             if let bubble {
                 // The bubble's tail tip (bubble pixel 5, 6) lands at creature pixel (2, 3), above
                 // the head's left edge.

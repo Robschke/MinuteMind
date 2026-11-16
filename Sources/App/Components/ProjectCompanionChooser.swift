@@ -31,7 +31,7 @@ struct ProjectCompanionChooser: View {
                 columns: Array(repeating: GridItem(.fixed(Self.tileSize), spacing: DesignSystem.Dimensions.spacingS), count: 5),
                 alignment: .leading, spacing: DesignSystem.Dimensions.spacingS
             ) {
-                ForEach(MascotAvatar.allCases) { avatar in
+                ForEach(MascotAvatarCatalog.all) { avatar in
                     tile(avatar) {
                         ProjectCreatureMark(
                             avatar: avatar,

@@ -66,7 +66,7 @@ final class CompanionAppearance {
 
     var avatar: MascotAvatar {
         didSet {
-            defaults.set(avatar.rawValue, forKey: "mm.companionAvatar")
+            defaults.set(avatar.id, forKey: "mm.companionAvatar")
             announceChange()
         }
     }
@@ -143,7 +143,7 @@ final class CompanionAppearance {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        avatar = MascotAvatar(rawValue: defaults.string(forKey: "mm.companionAvatar") ?? "") ?? .blob
+        avatar = MascotAvatarCatalog.resolve(defaults.string(forKey: "mm.companionAvatar") ?? "")
         comesOnShake = defaults.object(forKey: "mm.companionComesOnShake") as? Bool ?? true
         let storedStrength = defaults.object(forKey: "mm.companionShakeStrength") as? Int ?? MouseShakeDetector.defaultStrength
         shakeStrength = min(max(storedStrength, MouseShakeDetector.strengths.lowerBound),

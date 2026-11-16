@@ -45,7 +45,7 @@ struct ProjectSettingsSheet: View {
     /// The project as it would be saved, for the preview.
     private var draft: Project {
         var draft = project
-        draft.companionAvatar = companion?.rawValue
+        draft.companionAvatar = companion?.id
         draft.avatarColorHex = avatarColorHex
         return draft
     }

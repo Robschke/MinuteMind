@@ -35,7 +35,7 @@ extension AppViewModel {
     /// A project's creature as every view draws it (Home, the sidebars, the switcher, lists, the
     /// calendar, the pill): its own creature, a Blob without one; the body in the avatar colour,
     /// else the creature's natural colour. General shows the home companion in its own colour
-    /// (nil: MascotCanvas then takes the colour from Settings).
+    /// (nil: CreatureView then takes the colour from Settings).
     func projectAvatar(for projectID: UUID) -> (avatar: MascotAvatar, color: Color?) {
         if projectID == ProjectRepositoryService.generalProjectID { return (CompanionAppearance.shared.avatar, nil) }
         guard let project = projects.first(where: { $0.id == projectID }) else {

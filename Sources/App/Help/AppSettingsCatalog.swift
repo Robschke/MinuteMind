@@ -311,10 +311,10 @@ enum AppSettingsCatalog {
                 id: "companion_creature", title: "Companion", location: companionPlace,
                 summary: "Which creature the companion is.",
                 helpTopic: "companion", storageKeys: ["mm.companionAvatar"], kind: .choice,
-                options: { _ in MascotAvatar.allCases.map { Option(value: $0.rawValue, label: $0.name) } },
-                read: { _ in .string(CompanionAppearance.shared.avatar.rawValue) },
+                options: { _ in MascotAvatarCatalog.all.map { Option(value: $0.id, label: $0.name) } },
+                read: { _ in .string(CompanionAppearance.shared.avatar.id) },
                 write: { _, value in
-                    if let avatar = MascotAvatar(rawValue: value.string) { CompanionAppearance.shared.avatar = avatar }
+                    if let avatar = MascotAvatarCatalog.avatar(id: value.string) { CompanionAppearance.shared.avatar = avatar }
                     return nil
                 }),
             AppSetting(

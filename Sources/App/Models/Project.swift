@@ -1,6 +1,6 @@
 // Purpose: The project model (Project), plus the task model (ProjectTask) and its status and
 //          priority enums, all persisted in projects.json / tasks.json by ProjectStore.
-// Dependencies: Sources/App/Supporting/MascotAvatar.swift (companionCreature),
+// Dependencies: Sources/App/Supporting/MascotAvatarCatalog.swift (companionCreature),
 //               Sources/App/Models/SharedProject.swift (SharedProjectInfo)
 // Dependents: Sources/App/Models/ProjectAvatarColorMigration.swift (legacyColorHex)
 // Notes: Project has hand-written Codable for the avatar colour: files from before it carry a
@@ -43,7 +43,7 @@ struct Project: Identifiable, Codable, Equatable {
     /// a tiny companion avatar. nil = not starred.
     var isStarred: Bool? = nil
     /// The desktop companion creature that speaks for this project's Claude sessions
-    /// (`MascotAvatar` raw value, set with a right click in the sidebar). nil = none: the
+    /// (a `MascotAvatar` id, set with a right click in the sidebar). nil = none: the
     /// companion itself reports them.
     var companionAvatar: String? = nil
     /// Set once the project is a Shared Project (its workspace repo has a shared remote). nil =
@@ -52,8 +52,8 @@ struct Project: Identifiable, Codable, Equatable {
 
     var isShared: Bool { shared != nil }
 
-    /// `companionAvatar` as a creature; an unknown stored value counts as none.
-    var companionCreature: MascotAvatar? { companionAvatar.flatMap(MascotAvatar.init(rawValue:)) }
+    /// `companionAvatar` as a creature; an id the catalog does not know shows the Blob.
+    var companionCreature: MascotAvatar? { companionAvatar.map(MascotAvatarCatalog.resolve) }
 
     init(
         id: UUID = UUID(),

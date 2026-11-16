@@ -3,8 +3,8 @@
 //          fingerprint, so a change to the avatars or the pose code that moves a single pixel
 //          fails here.
 // Dependencies: Sources/App/Supporting/AssistantMascotPose.swift (frames),
-//               Sources/App/Supporting/MascotAvatar.swift (the creatures),
-//               Sources/App/Views/CompanionView.swift (MascotCanvas, for the opt-in pictures)
+//               Sources/App/Supporting/MascotAvatarCatalog.swift (the creatures),
+//               Sources/App/Views/CreatureView.swift (the opt-in pictures)
 // Notes: A fingerprint is the FNV-1a hash of the avatar's text, one per avatar, so a failure names
 //        the creature. A wanted change to the art updates the fingerprints: run with
 //        MM_MASCOT_BASELINE_DIR=<folder> and take them from `fingerprints.txt` there.
@@ -44,7 +44,7 @@ struct MascotRenderBaselineTests {
         ("dictating", .dictating), ("thumbsUp", .thumbsUp),
     ]
 
-    private static func avatar(_ id: String) -> MascotAvatar? { MascotAvatar(rawValue: id) }
+    private static func avatar(_ id: String) -> MascotAvatar? { MascotAvatarCatalog.avatar(id: id) }
 
     private static func text(_ grid: MascotGrid) -> String {
         (0..<MascotGrid.height).map { y in
@@ -153,7 +153,7 @@ struct MascotRenderBaselineTests {
         for id in Self.avatarIDs {
             let avatar = try #require(Self.avatar(id))
             for (name, mood, headphones) in poses {
-                let frame = AssistantMascotPose.frame(.init(
+                let frame = CreatureRenderer.frame(.init(
                     mood: mood, time: 0.05, look: nil, moodAge: 30, headphones: headphones, avatar: avatar, animated: false))
                 // In the companion's own colour, in a project's default colour and in an own colour.
                 let colors: [(String, Color?)] = [
@@ -162,7 +162,7 @@ struct MascotRenderBaselineTests {
                     ("own", CompanionAppearance.projectBodyColor(avatar, hex: "#3366CC")),
                 ]
                 for (colorName, color) in colors {
-                    let view = MascotCanvas(frame: frame, avatar: avatar, pixelSize: 3, bodyColor: color)
+                    let view = CreatureView(frame: frame, avatar: avatar, unit: 3, bodyColor: color)
                     try Self.write(view, to: folder.appendingPathComponent("\(id)-\(name)-\(colorName).png"))
                 }
             }

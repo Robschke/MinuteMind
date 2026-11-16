@@ -2,8 +2,7 @@
 //          places when another one comes to the front: the new one runs and hops into the big
 //          spot while it grows, the old one runs back into the row while it shrinks, the rest
 //          of the row slides to its new slots.
-// Dependencies: Sources/App/Supporting/AssistantMascotPose.swift (running frames),
-//               Sources/App/Views/CompanionView.swift (MascotCanvas)
+// Dependencies: Sources/App/Views/CreatureView.swift (draws the running creatures)
 // Used by: Sources/App/Supporting/CompanionController.swift (its swap panel)
 // Notes: User request: a click on a small creature should not just turn one into the other,
 //        they should change positions. Decisions:
@@ -71,12 +70,12 @@ struct CompanionSwapView: View {
                     let y = (mover.from.y + (mover.to.y - mover.from.y) * t + mover.arc * 4 * l * (1 - l)).rounded()
                     let moving = abs(mover.to.x - mover.from.x) > 0.5 && l > 0 && l < 0.88
                     let height = 16 * pixel
-                    MascotCanvas(
-                        frame: AssistantMascotPose.frame(.init(
+                    CreatureView(
+                        pose: .init(
                             mood: .idle, time: context.date.timeIntervalSinceReferenceDate, look: nil,
                             avatar: mover.avatar, animated: true,
-                            running: moving ? (mover.to.x >= mover.from.x ? 1 : -1) : nil)),
-                        avatar: mover.avatar, pixelSize: pixel, bodyColor: mover.color)
+                            running: moving ? (mover.to.x >= mover.from.x ? 1 : -1) : nil),
+                        unit: pixel, bodyColor: mover.color)
                         // Screen y runs up, the panel's view down.
                         .offset(x: x - swap.frame.minX, y: swap.frame.maxY - y - height)
                 }

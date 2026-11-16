@@ -126,7 +126,7 @@ struct AssistantMascotPoseTests {
 
     @Test("Thumbs up: right arm raised, a fist over the head's corner, the thumb above the grid")
     func thumbsUp() {
-        for avatar in MascotAvatar.allCases {
+        for avatar in MascotAvatarCatalog.builtIns {
             let frame = AssistantMascotPose.frame(.init(mood: .thumbsUp, time: 0.05, look: nil, avatar: avatar, animated: false))
             #expect(frame.overhead.contains(MascotPixel(x: 9, y: -2, ink: .outline)), "\(avatar) has a thumb")
             #expect(frame.grid[9, 1] == .body && frame.grid[10, 1] == .body, "\(avatar) has a fist")
@@ -194,7 +194,7 @@ struct AssistantMascotPoseTests {
 
     @Test("Every avatar keeps the shared face: eyes, squash, headphones, waving")
     func avatarsShareTheFace() {
-        for avatar in MascotAvatar.allCases {
+        for avatar in MascotAvatarCatalog.builtIns {
             // Hovered, so the Sweet Cat opens its eyes too.
             let idle = AssistantMascotPose.frame(.init(mood: .idle, time: 0.05, look: (0, 0), hovering: true, avatar: avatar, animated: false)).grid
             // The Cool Cat's glint sits on the right lens where the eye would be.
@@ -299,7 +299,7 @@ struct AssistantMascotPoseTests {
 
     @Test("Every avatar keeps its eyes and outline while running; Reduce Motion does not run")
     func runningAvatars() {
-        for avatar in MascotAvatar.allCases {
+        for avatar in MascotAvatarCatalog.builtIns {
             for time in [0.05, 0.15] {
                 for direction in [-1, 1] {
                     let grid = running(avatar, direction, at: time).grid

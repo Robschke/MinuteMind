@@ -96,7 +96,7 @@ final class CompanionModel {
         var summon: () -> Void = {}
     }
 
-    var frame = MascotFrame(grid: .body)
+    var frame = CreatureFrame.resting
     var mood: MascotMood = .idle
     /// The bubble goes to the left of the creature (it sits in the right half of the screen).
     var opensLeft = true
@@ -135,7 +135,7 @@ struct CompanionSidekick: Identifiable, Equatable {
     let avatar: MascotAvatar
     let color: Color?
     let status: TerminalSessionStatus?
-    var frame: MascotFrame
+    var frame: CreatureFrame
 
     var spokenStatus: String {
         switch status {
@@ -1234,7 +1234,7 @@ final class CompanionController {
         }
         let moodAge = now.timeIntervalSince(moodSince)
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        let frame = AssistantMascotPose.frame(.init(
+        let frame = CreatureRenderer.frame(.init(
             mood: mood,
             time: now.timeIntervalSinceReferenceDate,
             look: look(at: mouse, creature: creature, now: now),
@@ -1454,7 +1454,7 @@ final class CompanionController {
                     index: index, count: members.count, outwardRight: crowdOutwardRight,
                     time: now.timeIntervalSinceReferenceDate)
                 : nil
-            let frame = AssistantMascotPose.frame(.init(
+            let frame = CreatureRenderer.frame(.init(
                 mood: mood,
                 time: now.timeIntervalSinceReferenceDate,
                 look: glance,

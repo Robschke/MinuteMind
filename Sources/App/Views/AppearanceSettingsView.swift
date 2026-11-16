@@ -397,7 +397,7 @@ private struct CompanionAppearanceSection: View {
                 .font(.headline)
             HStack(alignment: .top, spacing: 20) {
                 // Live preview at the chosen size and colour.
-                MascotCanvas(frame: AssistantMascotPose.frame(.init(mood: .idle, time: 0.05, look: nil, avatar: appearance.avatar, animated: false)))
+                CreatureView(frame: CreatureRenderer.frame(.init(mood: .idle, time: 0.05, look: nil, avatar: appearance.avatar, animated: false)))
                     .frame(width: 64, height: 76)
                     .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.05)))
                     .accessibilityHidden(true)
@@ -443,11 +443,11 @@ private struct CompanionAppearanceSection: View {
                         Text("Avatar").frame(width: 80, alignment: .leading)
                         // One row while it fits, two at large sizes or in a narrow window.
                         ViewThatFits(in: .horizontal) {
-                            avatarRow(MascotAvatar.allCases)
+                            avatarRow(MascotAvatarCatalog.all)
                             VStack(alignment: .leading, spacing: 8) {
-                                let half = (MascotAvatar.allCases.count + 1) / 2
-                                avatarRow(Array(MascotAvatar.allCases.prefix(half)))
-                                avatarRow(Array(MascotAvatar.allCases.dropFirst(half)))
+                                let half = (MascotAvatarCatalog.all.count + 1) / 2
+                                avatarRow(Array(MascotAvatarCatalog.all.prefix(half)))
+                                avatarRow(Array(MascotAvatarCatalog.all.dropFirst(half)))
                             }
                         }
                         .disabled(companion.model.isHiddenByUser)
@@ -520,9 +520,7 @@ private struct AvatarChoice: View {
     var body: some View {
         Button(action: select) {
             VStack(spacing: 4) {
-                MascotCanvas(
-                    frame: AssistantMascotPose.frame(.init(mood: .idle, time: 0.05, look: nil, avatar: avatar, animated: false)),
-                    avatar: avatar)
+                CreatureView(pose: .init(mood: .idle, time: 0.05, look: nil, avatar: avatar, animated: false))
                 Text(avatar.name).font(.caption)
             }
             .padding(.horizontal, 8)

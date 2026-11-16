@@ -3618,7 +3618,7 @@ final class AppViewModel {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         var project = Project(name: trimmed)
-        project.companionAvatar = companion?.rawValue
+        project.companionAvatar = companion?.id
         projects.insert(project, at: 0)
         projectStore.debouncedSaveProjects(projects)
         selectedProjectID = project.id
@@ -3721,7 +3721,7 @@ final class AppViewModel {
     /// Gives a project its own companion creature (nil: none).
     func setProjectCompanion(_ project: Project, _ avatar: MascotAvatar?) {
         guard let index = projects.firstIndex(where: { $0.id == project.id }) else { return }
-        projects[index].companionAvatar = avatar?.rawValue
+        projects[index].companionAvatar = avatar?.id
         projects[index].updatedAt = Date()
         projectStore.debouncedSaveProjects(projects)
     }

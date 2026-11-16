@@ -26,7 +26,7 @@ import CoreGraphics
 import Foundation
 
 enum CompanionCrowd {
-    /// The canvas grid every creature is drawn on (MascotGrid plus headroom): 12 x 16 pixels.
+    /// The canvas every creature is drawn on (CreatureCanvas): 12 x 16 pixels.
     static let canvasWidth: CGFloat = 12
     static let canvasHeight: CGFloat = 16
 

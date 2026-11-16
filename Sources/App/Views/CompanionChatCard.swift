@@ -4,7 +4,7 @@
 // Dependencies: Sources/App/Supporting/ClaudeSessionRequest.swift (requests and answers),
 //               Sources/App/Supporting/MeetingPillController.swift (MeetingPillModel, CompanionSessionRow),
 //               Sources/App/Views/MeetingPillView.swift (PillButtonStyle, PillStyle, glass),
-//               Sources/App/Views/CompanionView.swift (MascotCanvas for the speaker's face),
+//               Sources/App/Views/CreatureView.swift (the speaker's face),
 //               Sources/App/Views/CompanionChatMarkdown.swift (Theme.companionChat)
 // Used by: Sources/App/Views/MeetingPillView.swift (the notice beside the companion)
 // Notes: Step 2 of the project creatures (user request: "a little chat window in the pixel style
@@ -78,11 +78,11 @@ struct CompanionChatCard: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            MascotCanvas(
-                frame: AssistantMascotPose.frame(.init(
+            CreatureView(
+                frame: CreatureRenderer.frame(.init(
                     mood: row.kind == .done ? .idle : .waiting, time: 0.05, look: nil,
                     avatar: row.avatar ?? CompanionAppearance.shared.avatar, animated: false)),
-                avatar: row.avatar, pixelSize: 2, bodyColor: row.avatarColor)
+                avatar: row.avatar, unit: 2, bodyColor: row.avatarColor)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
                 Text(headline).font(.system(size: Metrics.headline, weight: .semibold)).lineLimit(1)

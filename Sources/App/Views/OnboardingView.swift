@@ -4,8 +4,8 @@
 // Dependencies: Sources/App/Supporting/OnboardingFlow.swift (steps and progress),
 //               Sources/App/Views/OnboardingPermissionPage.swift, OnboardingSetupPages.swift,
 //               OnboardingTourPages.swift (the pages),
-//               Sources/App/Supporting/AssistantMascotPose.swift + Views/CompanionView.swift
-//               (MascotCanvas), Sources/App/Components/DesignSystem.swift
+//               Sources/App/Supporting/AssistantMascotPose.swift (moods) + Views/CreatureView.swift,
+//               Sources/App/Components/DesignSystem.swift
 // Used by: Sources/App/Views/ContentView.swift
 // Notes: The Continue button's label comes from OnboardingFlow.continueLabel ("Not now" while a
 //        step is still open, none on the finish page, which has its own buttons). Content is
@@ -217,9 +217,9 @@ struct OnboardingCreature: View {
 
     var body: some View {
         let avatar = CompanionAppearance.shared.avatar
-        let frame = AssistantMascotPose.frame(
-            .init(mood: mood, time: time, look: nil, moodAge: moodAge, avatar: avatar, keepsWaving: true))
-        MascotCanvas(frame: frame, avatar: avatar, pixelSize: 5)
+        CreatureView(
+            pose: .init(mood: mood, time: time, look: nil, moodAge: moodAge, avatar: avatar, keepsWaving: true),
+            unit: 5)
             .frame(width: 80, height: 96)
             .accessibilityHidden(true)
     }

@@ -1,16 +1,16 @@
-// Purpose: CompanionView, the drawing of the desktop companion in two layers: the pixel creature
+// Purpose: CompanionView, the drawing of the desktop companion in two layers: the creature
 //          (its own small panel that takes the mouse) and an overlay that lets every click through
 //          with the speech bubble on the side with room and the badges (recording, unrecorded
 //          meeting).
-// Dependencies: Sources/App/Supporting/AssistantMascotPose.swift (frames, inks, bubbles),
+// Dependencies: Sources/App/Views/CreatureView.swift (draws every creature),
+//               Sources/App/Supporting/AssistantMascotPose.swift (bubbles),
 //               Sources/App/Supporting/CompanionPlacement.swift (sizes and margins),
 //               Sources/App/Supporting/CompanionController.swift (CompanionModel),
 //               Sources/App/Components/DesignSystem.swift (theme colours)
 // Used by: Sources/App/Supporting/CompanionController.swift (hosted in the companion's panels)
-// Notes: 3 pt pixels: whole points keep the pixel art crisp. The body takes the theme's accent, the
-//        outline is the accent with 55% black, eyes a fixed near-black. The bubble's colours keep
-//        their meaning (orange "!" waiting, yellow on warm accents so it does not melt into the
-//        body; green check; red error; neutral for thinking, questions and dictation).
+// Notes: The bubble's colours keep their meaning (orange "!" waiting, yellow on warm accents so
+//        it does not melt into the body; green check; red error; neutral for thinking, questions
+//        and dictation).
 //        Size and colour come from CompanionAppearance (Settings, Appearance); every offset is in
 //        pixels so the layout scales with the creature.
 //        Badges (design review): the recording badge is the pill's capture red, 3 pixels, pulsing for
@@ -28,7 +28,7 @@ struct CompanionCreatureView: View {
     let model: CompanionModel
 
     var body: some View {
-        MascotCanvas(frame: model.frame, avatar: model.frontAvatar, bodyColor: model.frontColor)
+        CreatureView(frame: model.frame, avatar: model.frontAvatar, bodyColor: model.frontColor)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(model.frontName.map { "\($0) companion" } ?? "MinuteMind companion")
             .accessibilityValue(model.spokenState)
@@ -46,7 +46,7 @@ struct CompanionOverlayView: View {
     var body: some View {
         let margin = CompanionPlacement.sideMargin
         let top = CompanionPlacement.topMargin
-        let pixel = MascotCanvas.pixel
+        let pixel = CreatureView.unit
         let frame = model.frame
         // Positions in pixels, so they follow the creature's size. Badges sit low on the side
         // away from the bubble.
@@ -71,76 +71,6 @@ struct CompanionOverlayView: View {
     }
 }
 
-/// Draws one frame: shadow and creature.
-struct MascotCanvas: View {
-    let frame: MascotFrame
-    /// Another creature's colours than the chosen one (the Settings picker).
-    var avatar: MascotAvatar?
-    /// A fixed pixel size instead of the Settings one (the tiny mark on starred projects,
-    /// the companion's sidekicks).
-    var pixelSize: CGFloat?
-    /// A body colour instead of the avatar's (a project's sidekick in the project colour).
-    var bodyColor: Color?
-    @Environment(\.colorScheme) private var colorScheme
-
-    /// Side of one pixel in points (Settings, Appearance: 2, 3 or 4).
-    static var pixel: CGFloat { CompanionAppearance.shared.pixel }
-    /// Empty rows above the creature, room for a two pixel hop.
-    private static let headroom = 2
-
-    var body: some View {
-        let avatar = avatar ?? CompanionAppearance.shared.avatar
-        let accent = bodyColor ?? CompanionAppearance.shared.bodyColor(for: avatar)
-        let feature = Color(nsColor: ThemeColor.srgb(avatar.featureColor))
-        let gear = DesignSystem.Colors.textPrimary.opacity(0.8)
-        let shadow = colorScheme == .dark ? Color.white.opacity(0.07) : Color.black.opacity(0.14)
-        let pixel = pixelSize ?? Self.pixel
-        let frame = frame
-
-        Canvas { context, size in
-            // The shadow shrinks while the creature is in the air.
-            let shadowWidth = CGFloat(8 - frame.lift * 2) * pixel
-            let groundY = CGFloat(Self.headroom + MascotGrid.height) * pixel
-            context.fill(
-                Path(ellipseIn: CGRect(x: (size.width - shadowWidth) / 2, y: groundY - pixel * 0.4,
-                                       width: shadowWidth, height: pixel * 1.2)),
-                with: .color(shadow)
-            )
-            let gridPixels = (0..<MascotGrid.height).flatMap { y in
-                (0..<MascotGrid.width).compactMap { x in frame.grid[x, y].map { MascotPixel(x: x, y: y, ink: $0) } }
-            }
-            for cell in gridPixels + frame.overhead {
-                let rect = Path(CGRect(x: CGFloat(cell.x) * pixel,
-                                       y: CGFloat(cell.y + Self.headroom - frame.lift) * pixel,
-                                       width: pixel, height: pixel))
-                switch cell.ink {
-                case .outline:
-                    context.fill(rect, with: .color(accent))
-                    context.fill(rect, with: .color(.black.opacity(0.55)))
-                case .eye:
-                    context.fill(rect, with: .color(.black.opacity(0.85)))
-                case .body:
-                    context.fill(rect, with: .color(accent))
-                case .shine:
-                    context.fill(rect, with: .color(accent))
-                    context.fill(rect, with: .color(.white.opacity(0.55)))
-                case .cheek:
-                    context.fill(rect, with: .color(Color(red: 1, green: 0.55, blue: 0.62)))
-                case .gear:
-                    context.fill(rect, with: .color(gear))
-                case .laptop:
-                    context.fill(rect, with: .color(Color(white: 0.62)))
-                case .laptopLogo:
-                    context.fill(rect, with: .color(.white))
-                case .feature:
-                    context.fill(rect, with: .color(feature))
-                }
-            }
-        }
-        .frame(width: CGFloat(MascotGrid.width) * pixel, height: CGFloat(Self.headroom + MascotGrid.height + 1) * pixel)
-    }
-}
-
 /// A 7 x 7 pixel speech bubble; its tail points down towards the creature's head (bottom right,
 /// or bottom left when mirrored). Glyphs are never mirrored, only the tail.
 struct MascotBubbleView: View {
@@ -160,7 +90,7 @@ struct MascotBubbleView: View {
     ]
 
     var body: some View {
-        let pixel = pixelSize ?? MascotCanvas.pixel
+        let pixel = pixelSize ?? CreatureView.unit
         let (fill, ink) = colors
         let glyph = glyphPixels
         let mirrored = mirrored
@@ -301,7 +231,7 @@ struct CompanionSidekickRow: View {
             ForEach(CompanionCrowd.drawOrder(count: min(slots.count, model.sidekicks.count)), id: \.self) { index in
                 let sidekick = model.sidekicks[index]
                 let slot = slots[index]
-                MascotCanvas(frame: sidekick.frame, avatar: sidekick.avatar, pixelSize: pixel, bodyColor: sidekick.color)
+                CreatureView(frame: sidekick.frame, avatar: sidekick.avatar, unit: pixel, bodyColor: sidekick.color)
                     .opacity(model.hoveredSidekick == nil || model.hoveredSidekick == sidekick.id ? 1 : 0.85)
                     // Slots are in AppKit coordinates (y up), the view's run down.
                     .offset(x: slot.minX, y: height - slot.maxY)
@@ -346,16 +276,12 @@ struct StarredProjectMark: View {
     var body: some View {
         Group {
             if let avatar {
-                MascotCanvas(
-                    frame: AssistantMascotPose.frame(.init(mood: .idle, time: 0.05, look: nil, avatar: avatar, animated: false)),
-                    avatar: avatar,
-                    pixelSize: 1,
-                    bodyColor: bodyColor)
+                CreatureView(pose: .init(mood: .idle, time: 0.05, look: nil, avatar: avatar, animated: false), unit: 1, bodyColor: bodyColor)
             } else {
                 Image(systemName: "star.fill")
                     .font(.system(size: 10))
                     .foregroundStyle(.yellow)
-                    .frame(width: CGFloat(MascotGrid.width), height: CGFloat(MascotGrid.width))
+                    .frame(width: CreatureCanvas.unitsWide, height: CreatureCanvas.unitsWide)
             }
         }
         .help("Starred")
