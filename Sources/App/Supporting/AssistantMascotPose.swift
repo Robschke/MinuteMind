@@ -6,6 +6,7 @@
 //               Sources/App/Supporting/CreatureRenderer.swift (CreaturePose, the input)
 // Used by: Sources/App/Supporting/CreatureRenderer.swift (the frames of pixel avatars; every other
 //          caller goes through it), Sources/App/Views/CreatureView.swift (draws them),
+//          Sources/App/Supporting/MascotAvatarValidator.swift (reads where the moods paint),
 //          Sources/App/Supporting/CompanionController.swift (picks the mood),
 //          Tests/AssistantMascotPoseTests.swift, Tests/MascotRenderBaselineTests.swift
 // Notes: User request 2026-10-13: a small animated pixel creature, Tamagotchi style. It started as
@@ -136,7 +137,7 @@ enum MascotBubble: Equatable, Sendable {
     case heart
 }
 
-enum MascotMood: Equatable, Sendable {
+enum MascotMood: Equatable, Sendable, CaseIterable {
     case idle
     /// Nothing happened for a long time.
     case sleeping
@@ -354,7 +355,7 @@ enum AssistantMascotPose {
             if talking, mouthOpen {
                 openMouth(&frame.grid)
             } else {
-                frame.grid.paint([(4, 10), (5, 9), (6, 9), (7, 10)], .outline)
+                frown(&frame.grid)
             }
             frame.grid.paint([(2, 8), (9, 8)], .body)
             frame.bubble = .error
@@ -507,6 +508,24 @@ enum AssistantMascotPose {
     private static func wideSmile(_ grid: inout MascotGrid) {
         grid.paint([(3, 9), (4, 10), (5, 10), (6, 10), (7, 10), (8, 9)], .outline)
     }
+
+    /// The error face's mouth, corners down.
+    private static func frown(_ grid: inout MascotGrid) {
+        grid.paint([(4, 10), (5, 9), (6, 9), (7, 10)], .outline)
+    }
+
+    /// Every pixel one of the mouths above can take, row by row. An avatar's body has to be
+    /// filled there and its neutral mouth has to stay inside (MascotAvatarValidator).
+    static let mouthArea: [(x: Int, y: Int)] = {
+        var grid = MascotGrid(rows: [])
+        openMouth(&grid)
+        smile(&grid)
+        wideSmile(&grid)
+        frown(&grid)
+        return (0..<MascotGrid.height).flatMap { y in
+            (0..<MascotGrid.width).compactMap { x in grid[x, y] == nil ? nil : (x: x, y: y) }
+        }
+    }()
 
     private static func waveRightArm(_ grid: inout MascotGrid, high: Bool, avatar: MascotAvatar) {
         if avatar.nubs.contains(where: { $0 == (11, 8) }) { grid[11, 8] = nil }

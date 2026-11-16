@@ -416,7 +416,7 @@ final class AppViewModel {
 
     /// True inside a test process. Tests create AppViewModel against the real App Support folder,
     /// so anything that deletes or rewrites user data at launch must not run there.
-    static let isTestProcess: Bool = {
+    nonisolated static let isTestProcess: Bool = {
         let process = ProcessInfo.processInfo
         return process.environment["XCTestConfigurationFilePath"] != nil
             || process.processName.contains("xctest")
