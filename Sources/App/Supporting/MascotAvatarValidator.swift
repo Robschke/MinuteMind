@@ -15,7 +15,8 @@
 //          the creature or vanish in its outline.
 //        - Arms, the thumb, headphones and the laptop are left free. They are drawn beside and
 //          over the body by design (a waving arm stands in empty space on every built-in), so a
-//          rule about them would reject the avatars the app ships with.
+//          rule about them would reject the avatars the app ships with. The one thing checked
+//          is the arm at rest, which those moods take away: the outline has to close behind it.
 //        - An edited built-in is drawn with its own traits, so its shades and its half closed
 //          eyes are checked too.
 //        - Every issue names the pixel as x and y (both counted from 0, top left), what is
@@ -154,6 +155,13 @@ enum MascotAvatarValidator {
             let moods = spot.moods.joined(separator: ", ")
             issues.append("Pixel (x \(spot.x), y \(spot.y)) is \(found), but the \(spot.part.rawValue) are drawn there (\(moods)). Make it a filled body pixel (b, h, c, e or f); the outline has to run outside the face.")
         }
+        // The arms at rest are taken away when the creature waves, types or cheers.
+        for arm in face.armsAtRest where body[arm.x, arm.y] != nil {
+            let inner = arm.x + (arm.x < MascotGrid.width / 2 ? 1 : -1)
+            if body[inner, arm.y] != .outline {
+                issues.append("Pixel (x \(arm.x), y \(arm.y)) is the arm at rest: waving, typing and cheering take it away. The pixel beside it (x \(inner), y \(arm.y)) must then be outline (\"o\"), or the body gets a hole there. Draw the arm as one \"o\" outside the body's outline, or leave (x \(arm.x), y \(arm.y)) empty.")
+            }
+        }
         return issues
     }
 
@@ -190,6 +198,8 @@ struct FaceZones {
     let headTopRow: Int
     /// The row the feet stand in.
     let feetRow = MascotGrid.height - 1
+    /// The side nubs, which waving, typing and cheering remove (none for the armless Lime).
+    let armsAtRest: [(x: Int, y: Int)]
 
     /// The zones of an avatar with the traits this file will be drawn with.
     init(traitsOf file: MascotAvatarFile) {
@@ -235,6 +245,7 @@ struct FaceZones {
             Spot(x: key % MascotGrid.width, y: key / MascotGrid.width, part: parts[key] ?? .eyes, moods: moods[key] ?? [])
         }
         self.mouthArea = mouthArea
+        armsAtRest = probe.nubs.map { (x: $0.0, y: $0.1) }
         headTopRow = bandTop + 1
     }
 

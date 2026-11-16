@@ -115,6 +115,18 @@ struct MascotAvatarValidatorTests {
         #expect(MascotAvatarValidator.issues(in: file).contains { $0.contains("Row y 1 is empty") })
     }
 
+    @Test("The outline has to close behind an arm at rest")
+    func armsAtRest() {
+        var file = Self.fox()
+        file.rows[8] = "obbbbbbbbboo"
+        let issues = MascotAvatarValidator.issues(in: file)
+        #expect(issues.count == 1)
+        #expect(issues.first?.contains("Pixel (x 0, y 8) is the arm at rest") == true && issues.first?.contains("(x 1, y 8)") == true)
+        file.rows[8] = ".obbbbbbbboo"
+        #expect(MascotAvatarValidator.issues(in: file) == [], "no arm drawn on that side is fine")
+        #expect(FaceZones(hasArms: false).armsAtRest.isEmpty)
+    }
+
     @Test("The neutral mouth stays inside the mouth area")
     func neutralMouth() {
         var file = Self.fox()
