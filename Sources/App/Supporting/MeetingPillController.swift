@@ -44,7 +44,9 @@
 //          a screen share is detected the pill hides and the menu bar item takes over.
 //        - State changes are announced to VoiceOver, since the panel never becomes key.
 //        The panel is non-activating, so clicking it never steals focus from the call. It sits at
-//        screen-saver level and joins all Spaces including full-screen ones.
+//        screen-saver level and joins all Spaces including full-screen ones. Once shown it is
+//        never ordered out, only made transparent and click-through (`PillPanel.hide`): an
+//        ordered-out panel did not come back onto MinuteMind's own full-screen Space.
 //        One pill for dictation and meetings (user decision 2026-10-04, Wispr Flow style): when
 //        idle a quiet 40x8 pt bar stays visible (overriding "hidden when idle"); hovering opens
 //        it to the dictation hint and Record. Quick dictation (QuickDictationController) shows a
@@ -503,7 +505,7 @@ final class MeetingPillController {
     /// it; without it the pill sits at the bottom centre as it always did.
     var companionAnchor: () -> NSRect? = { nil }
 
-    private var panel: NSPanel?
+    private var panel: PillPanel?
     private var hostingView: NSHostingView<AnyView>?
     private var statusItem: NSStatusItem?
     private var pinnedScreen: NSScreen?
@@ -701,17 +703,17 @@ final class MeetingPillController {
 
     /// Only an ASK card takes the keyboard (the panel never activates the app).
     private func updateKeyFocus() {
-        guard let panel = panel as? PillPanel else { return }
+        guard let panel else { return }
         var asking = false
         if case .ask = model.assistant { asking = true }
         // A chat card with a reply field may take the keyboard when clicked, never by itself:
         // a notice must not pull typing away from the app the user is in.
         panel.allowsKey = asking || model.notice?.request?.takesReply == true
-        if asking, panel.isVisible { panel.makeKey() } else if panel.isKeyWindow { panel.resignKey() }
+        if asking, panel.isShown { panel.makeKey() } else if panel.isKeyWindow { panel.resignKey() }
     }
 
     /// Whether a popup (or the pill) is on screen; the companion hides its bubble meanwhile.
-    var isPanelVisible: Bool { panel?.isVisible == true }
+    var isPanelVisible: Bool { panel?.isShown == true }
 
     /// The companion appeared, disappeared or moved: switch modes and re-place what shows.
     func companionChanged() {
@@ -727,7 +729,7 @@ final class MeetingPillController {
 
     /// The creature moved (dragged): follow it without the resize settle.
     func companionMoved() {
-        guard let panel, panel.isVisible else { return }
+        guard let panel, panel.isShown else { return }
         place(panel, size: panel.frame.size)
     }
 
@@ -1074,7 +1076,7 @@ final class MeetingPillController {
 
     /// The panel's frame while it shows, for telling whether the pointer is over a card.
     var panelFrame: NSRect? {
-        guard let panel, panel.isVisible else { return nil }
+        guard let panel, panel.isShown else { return nil }
         return panel.frame
     }
 
@@ -1326,7 +1328,7 @@ final class MeetingPillController {
         // the creature stays visible), so no menu bar item is needed here.
         if model.companionMode {
             removeStatusItem()
-            if companionWantsPanel { showPanel() } else { panel?.orderOut(nil) }
+            if companionWantsPanel { showPanel() } else { panel?.hide() }
             return
         }
         if model.state == .hidden {
@@ -1334,13 +1336,13 @@ final class MeetingPillController {
             if model.idleBarEnabled && !isScreenSharing {
                 showPanel()
             } else {
-                panel?.orderOut(nil)
+                panel?.hide()
                 pinnedScreen = nil
             }
             return
         }
         if isScreenSharing {
-            panel?.orderOut(nil)
+            panel?.hide()
             showStatusItem()
             return
         }
@@ -1351,7 +1353,7 @@ final class MeetingPillController {
     /// Runs the screen-follow poll only while the idle bar is what the pill shows.
     private func updateScreenFollow() {
         let idleBarShowing = !model.companionMode && model.state == .hidden && model.dictation == nil
-            && panel?.isVisible == true
+            && panel?.isShown == true
         guard idleBarShowing else {
             screenFollowTimer?.invalidate()
             screenFollowTimer = nil
@@ -1369,7 +1371,7 @@ final class MeetingPillController {
 
     /// Moves the idle bar to the mouse screen after the pointer stayed there for two ticks.
     private func followMouseScreen() {
-        guard let panel, panel.isVisible, model.state == .hidden, model.dictation == nil,
+        guard let panel, panel.isShown, model.state == .hidden, model.dictation == nil,
               !model.isHovering else { return }
         let mouse = NSEvent.mouseLocation
         guard let screen = NSScreen.screens.first(where: { NSMouseInRect(mouse, $0.frame, false) }) else { return }
@@ -1394,10 +1396,10 @@ final class MeetingPillController {
         let panel = self.panel ?? makePanel()
         self.panel = panel
         resizeAndPosition(panel)
-        panel.orderFrontRegardless()
+        panel.show()
     }
 
-    private func makePanel() -> NSPanel {
+    private func makePanel() -> PillPanel {
         let panel = PillPanel(
             contentRect: NSRect(x: 0, y: 0, width: 300, height: 60),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -1427,27 +1429,27 @@ final class MeetingPillController {
     }
 
     private func resizeIfVisible() {
-        guard let panel, panel.isVisible else { return }
+        guard let panel, panel.isShown else { return }
         resizeAndPosition(panel)
     }
 
     /// Grows at once, shrinks only after the SwiftUI transition finished, so outgoing content and
     /// its shadow are never clipped, then settles on the exact size.
-    private func resizeAndPosition(_ panel: NSPanel) {
+    private func resizeAndPosition(_ panel: PillPanel) {
         guard let hostingView else { return }
         let fitting = hostingView.fittingSize
-        let current = panel.isVisible ? panel.frame.size : .zero
+        let current = panel.isShown ? panel.frame.size : .zero
         let grown = NSSize(width: max(fitting.width, current.width), height: max(fitting.height, current.height))
-        place(panel, size: panel.isVisible ? grown : fitting)
+        place(panel, size: panel.isShown ? grown : fitting)
         settleTask?.cancel()
         settleTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(450))
-            guard let self, !Task.isCancelled, let panel = self.panel, panel.isVisible, let hostingView = self.hostingView else { return }
+            guard let self, !Task.isCancelled, let panel = self.panel, panel.isShown, let hostingView = self.hostingView else { return }
             self.place(panel, size: hostingView.fittingSize)
         }
     }
 
-    private func place(_ panel: NSPanel, size: NSSize) {
+    private func place(_ panel: PillPanel, size: NSSize) {
         if model.companionMode, let creature = companionAnchor() {
             placeBesideCompanion(panel, size: size, creature: creature)
             return
@@ -1468,7 +1470,7 @@ final class MeetingPillController {
         // The idle bar and the dictation capsule grow from the center, so they always re-center.
         let kind = model.displayKind
         let centered = model.dictation != nil || model.state == .hidden
-        let keepLeft = !centered && kind == lastLayoutKind && panel.isVisible && model.isHovering
+        let keepLeft = !centered && kind == lastLayoutKind && panel.isShown && model.isHovering
         lastLayoutKind = kind
         let x = keepLeft ? panel.frame.minX : frame.midX - size.width / 2
         let idleAnchor = model.dictation == nil ? model.state == .hidden : dictationUsesIdleAnchor
@@ -1478,7 +1480,7 @@ final class MeetingPillController {
     }
 
     /// Beside the creature, on the side with more room, centred on it vertically.
-    private func placeBesideCompanion(_ panel: NSPanel, size: NSSize, creature: NSRect) {
+    private func placeBesideCompanion(_ panel: PillPanel, size: NSSize, creature: NSRect) {
         let center = NSPoint(x: creature.midX, y: creature.midY)
         let screen = NSScreen.screens.first { NSMouseInRect(center, $0.frame, false) } ?? NSScreen.main
         guard let visible = screen?.visibleFrame else { return }
@@ -1693,6 +1695,27 @@ private final class PillPanel: NSPanel {
     var scrollHandler: ((NSEvent) -> Bool)?
     override var canBecomeKey: Bool { allowsKey }
     override var canBecomeMain: Bool { false }
+
+    /// Whether the pill shows. Once on screen the panel is never ordered out again: macOS does
+    /// not bring a panel that was ordered out back onto the full-screen Space of MinuteMind's own
+    /// window, so popups stayed invisible there while the companion's panels (ordered in once)
+    /// showed. Hidden means transparent and click-through instead.
+    private(set) var isShown = false
+
+    func show() {
+        if !isVisible { orderFrontRegardless() }
+        alphaValue = 1
+        ignoresMouseEvents = false
+        isShown = true
+    }
+
+    func hide() {
+        guard isShown else { return }
+        isShown = false
+        alphaValue = 0
+        ignoresMouseEvents = true
+        if isKeyWindow { resignKey() }
+    }
 
     override func sendEvent(_ event: NSEvent) {
         if event.type == .scrollWheel, scrollHandler?(event) == true { return }
