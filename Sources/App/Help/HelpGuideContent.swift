@@ -492,6 +492,7 @@ enum HelpGuideContent {
         body: """
         - **From meetings:** processing extracts todos. They go straight into the project's tasks or wait on the recording card for review ("Auto-accept extracted tasks", Settings > Automation > Pipeline; per project in the project menu).
         - **A project's tasks** are on its Overview tab; **All Tasks** in the sidebar lists every open task.
+        - **Rename in place:** double-click a task to edit its title right in the list. Return or a click elsewhere saves, Tab saves and moves on to the next task (Shift-Tab to the previous one), Esc discards. The pencil that appears on hover opens all of the task's details.
         - **Task Commander:** Shift+Cmd+T from anywhere for quick task entry and the open task list.
         - **Apple Reminders:** "Sync tasks to Apple Reminders by default" (Settings > Automation > Reminders Sync) decides whether new tasks also go to Reminders; each task can override it.
         - **Task review reminders:** times of day when MinuteMind sends a short Claude-written brief of your open tasks (Settings > Automation > Task Review Reminders).

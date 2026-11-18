@@ -46,6 +46,7 @@ struct ProjectDetailView: View {
 
     @State private var newTaskTitle = ""
     @State private var taskToEdit: ProjectTask?
+    @State private var editingTitleTaskID: UUID?
     @State private var sortOption: TaskSortOption = .createdAt
     @State private var sortAscending = false
     @State private var filterOption: TaskFilterOption = .all
@@ -108,6 +109,13 @@ struct ProjectDetailView: View {
     private var sortedCompletedTasks: [ProjectTask] {
         let completed = filteredTasks.filter { $0.isCompleted }
         return sortTasks(completed)
+    }
+
+    /// Ends an inline title edit; Tab moves on within the same group (open or completed tasks).
+    private func finishTitleEdit(_ task: ProjectTask, draft: String, end: InlineTitleEditEnd, order: [UUID]) {
+        InlineTaskTitleEditing.finish(
+            task, draft: draft, end: end, order: order,
+            editingTaskID: $editingTitleTaskID, viewModel: viewModel)
     }
 
     private func sortTasks(_ tasks: [ProjectTask]) -> [ProjectTask] {
@@ -445,6 +453,11 @@ struct ProjectDetailView: View {
                             },
                             onAcceptReview: {
                                 viewModel.acceptTaskReview(task)
+                            },
+                            isEditingTitle: editingTitleTaskID == task.id,
+                            onBeginTitleEdit: { editingTitleTaskID = task.id },
+                            onEndTitleEdit: { draft, end in
+                                finishTitleEdit(task, draft: draft, end: end, order: sortedIncompleteTasks.map(\.id))
                             })
                     }
                 }
@@ -467,6 +480,12 @@ struct ProjectDetailView: View {
                                     },
                                     onAcceptReview: {
                                         viewModel.acceptTaskReview(task)
+                                    },
+                                    isEditingTitle: editingTitleTaskID == task.id,
+                                    onBeginTitleEdit: { editingTitleTaskID = task.id },
+                                    onEndTitleEdit: { draft, end in
+                                        finishTitleEdit(
+                                            task, draft: draft, end: end, order: sortedCompletedTasks.map(\.id))
                                     })
                             }
                         }
@@ -1322,6 +1341,9 @@ private struct TaskRowView: View {
     let onEdit: () -> Void
     let onDelete: () -> Void
     var onAcceptReview: (() -> Void)? = nil
+    var isEditingTitle = false
+    var onBeginTitleEdit: () -> Void = {}
+    var onEndTitleEdit: (String, InlineTitleEditEnd) -> Void = { _, _ in }
 
     @State private var isHovering = false
     @State private var isRequestingAccess = false
@@ -1398,9 +1420,15 @@ private struct TaskRowView: View {
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(task.title)
-                    .strikethrough(task.isCompleted)
-                    .foregroundStyle(task.isCompleted ? .secondary : .primary)
+                if isEditingTitle {
+                    InlineTaskTitleField(
+                        title: task.title, font: .systemFont(ofSize: NSFont.systemFontSize),
+                        onEnd: onEndTitleEdit)
+                } else {
+                    Text(task.title)
+                        .strikethrough(task.isCompleted)
+                        .foregroundStyle(task.isCompleted ? .secondary : .primary)
+                }
 
                 // Metadata row
                 HStack(spacing: 8) {
@@ -1527,9 +1555,7 @@ private struct TaskRowView: View {
                 : nil
         )
         .contentShape(Rectangle())
-        .onTapGesture(count: 2) {
-            onEdit()
-        }
+        .onTapGesture(count: 2, perform: onBeginTitleEdit)
         .onHover { hovering in
             isHovering = hovering
         }

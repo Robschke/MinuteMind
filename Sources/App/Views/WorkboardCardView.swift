@@ -1,6 +1,10 @@
 /// Compact task card for the kanban workboard with priority color, epic tag, and context menu.
-/// Depends on: Project.swift (TaskPriority, TaskStatus, ProjectTask), Epic.swift, DesignSystem
+/// A click opens the task's edit sheet, a double-click edits the title in place.
+/// Depends on: Project.swift (TaskPriority, TaskStatus, ProjectTask), Epic.swift, DesignSystem,
+///             InlineTaskTitleField.swift
 /// Used by: WorkboardView
+/// Notes: Tap gestures instead of a Button, since a Button fires on the first click of a
+///        double-click. The single click therefore waits for the double-click interval.
 
 import SwiftUI
 
@@ -12,59 +16,70 @@ struct WorkboardCardView: View {
     let onEpicChange: (UUID?) -> Void
     let onDelete: () -> Void
     let availableEpics: [Epic]
+    var isEditingTitle = false
+    var onBeginTitleEdit: () -> Void = {}
+    var onEndTitleEdit: (String, InlineTitleEditEnd) -> Void = { _, _ in }
 
     @State private var isHovered = false
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 0) {
-                // Left priority color strip
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(priorityColor)
-                    .frame(width: 4)
+        HStack(spacing: 0) {
+            // Left priority color strip
+            RoundedRectangle(cornerRadius: 2)
+                .fill(priorityColor)
+                .frame(width: 4)
 
-                VStack(alignment: .leading, spacing: 6) {
-                    // Title
+            VStack(alignment: .leading, spacing: 6) {
+                // Title
+                if isEditingTitle {
+                    InlineTaskTitleField(
+                        title: task.title, font: .systemFont(ofSize: 14), onEnd: onEndTitleEdit)
+                } else {
                     Text(task.title)
                         .font(DesignSystem.Typography.callout)
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
+                }
 
-                    // Bottom row: assignee, epic tag, due date
-                    HStack(spacing: 6) {
-                        if let assignee = task.assignee, !assignee.isEmpty {
-                            assigneeAvatar(assignee)
-                        }
+                // Bottom row: assignee, epic tag, due date
+                HStack(spacing: 6) {
+                    if let assignee = task.assignee, !assignee.isEmpty {
+                        assigneeAvatar(assignee)
+                    }
 
-                        if let epic = epic {
-                            epicTag(epic)
-                        }
+                    if let epic = epic {
+                        epicTag(epic)
+                    }
 
-                        Spacer()
+                    Spacer()
 
-                        if let dueDate = task.dueDate {
-                            dueDatePill(dueDate)
-                        }
+                    if let dueDate = task.dueDate {
+                        dueDatePill(dueDate)
                     }
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
             }
-            .background(DesignSystem.Colors.card)
-            .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
-                    .stroke(DesignSystem.Colors.border, lineWidth: 0.5)
-            )
-            .shadow(
-                color: isHovered ? DesignSystem.Shadows.soft.color : DesignSystem.Shadows.subtle.color,
-                radius: isHovered ? DesignSystem.Shadows.soft.radius : DesignSystem.Shadows.subtle.radius,
-                x: 0,
-                y: isHovered ? 2 : 1
-            )
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
         }
-        .buttonStyle(.plain)
+        .background(DesignSystem.Colors.card)
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
+                .stroke(DesignSystem.Colors.border, lineWidth: 0.5)
+        )
+        .shadow(
+            color: isHovered ? DesignSystem.Shadows.soft.color : DesignSystem.Shadows.subtle.color,
+            radius: isHovered ? DesignSystem.Shadows.soft.radius : DesignSystem.Shadows.subtle.radius,
+            x: 0,
+            y: isHovered ? 2 : 1
+        )
+        .contentShape(Rectangle())
+        .onTapGesture(count: 2, perform: onBeginTitleEdit)
+        .onTapGesture(perform: onTap)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(.default, onTap)
         .onHover { hovering in
             withAnimation(DesignSystem.Animation.gentle) {
                 isHovered = hovering
