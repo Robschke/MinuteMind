@@ -3995,6 +3995,10 @@ final class AppViewModel {
         guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
         tasks[index].title = trimmed
         projectStore.debouncedSaveTasks(tasks)
+        if tasks[index].reminderEnabled {
+            let updated = tasks[index]
+            Task { await syncTaskToReminders(updated) }
+        }
     }
 
     func updateTaskAssignee(_ task: ProjectTask, assignee: String?) {

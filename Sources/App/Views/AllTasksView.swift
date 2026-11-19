@@ -1,3 +1,11 @@
+// Purpose: All Tasks page, every open task across projects with search, sort, project filter
+//          and grouping by project; titles are edited in place on double-click.
+// Dependencies: AppViewModel (tasks, projects, task updates),
+//               Sources/App/Components/InlineTaskTitleField.swift,
+//               Sources/App/Views/ProjectDetailView.swift (TaskEditSheet)
+// RBAC: None.
+// Dependents: Sources/App/Views/ContentView.swift (sidebar destination All Tasks)
+
 import SwiftUI
 
 /// Sort options for the all-tasks view
@@ -21,6 +29,7 @@ struct AllTasksView: View {
     @State private var sortAscending = false
     @State private var showCompletedTasks = false
     @State private var taskToEdit: ProjectTask?
+    @State private var editingTitleTaskID: UUID?
     @State private var searchQuery = ""
     @State private var selectedProjectIDs: Set<UUID> = []
     
@@ -153,7 +162,10 @@ struct AllTasksView: View {
                                             if let project = viewModel.projects.first(where: { $0.id == task.projectID }) {
                                                 viewModel.selectedProjectID = project.id
                                             }
-                                        }
+                                        },
+                                        isEditingTitle: editingTitleTaskID == task.id,
+                                        onBeginTitleEdit: { editingTitleTaskID = task.id },
+                                        onEndTitleEdit: { draft, end in finishTitleEdit(task, draft: draft, end: end) }
                                     )
                                 }
                             }
@@ -176,6 +188,17 @@ struct AllTasksView: View {
         }
     }
     
+    /// Tab order of the inline title edit: the tasks in the order they are shown.
+    private var displayedTaskIDs: [UUID] {
+        sortOption == .project ? tasksByProject.flatMap(\.tasks).map(\.id) : sortedTasks.map(\.id)
+    }
+
+    private func finishTitleEdit(_ task: ProjectTask, draft: String, end: InlineTitleEditEnd) {
+        InlineTaskTitleEditing.finish(
+            task, draft: draft, end: end, order: displayedTaskIDs,
+            editingTaskID: $editingTitleTaskID, viewModel: viewModel)
+    }
+
     private var headerView: some View {
         VStack(spacing: 12) {
             HStack {
@@ -370,7 +393,10 @@ struct AllTasksView: View {
                         },
                         onAcceptReview: {
                             viewModel.acceptTaskReview(task)
-                        }
+                        },
+                        isEditingTitle: editingTitleTaskID == task.id,
+                        onBeginTitleEdit: { editingTitleTaskID = task.id },
+                        onEndTitleEdit: { draft, end in finishTitleEdit(task, draft: draft, end: end) }
                     )
                 }
             }
@@ -391,6 +417,9 @@ private struct AllTasksRowView: View {
     let onDelete: () -> Void
     let onProjectTap: () -> Void
     var onAcceptReview: (() -> Void)? = nil
+    var isEditingTitle = false
+    var onBeginTitleEdit: () -> Void = {}
+    var onEndTitleEdit: (String, InlineTitleEditEnd) -> Void = { _, _ in }
 
     @State private var isHovering = false
     
@@ -478,10 +507,15 @@ private struct AllTasksRowView: View {
 
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
-                    Text(task.title)
-                        .font(DesignSystem.Typography.body)
-                        .strikethrough(task.isCompleted)
-                        .foregroundStyle(task.isCompleted ? DesignSystem.Colors.textTertiary : DesignSystem.Colors.textPrimary)
+                    if isEditingTitle {
+                        InlineTaskTitleField(
+                            title: task.title, font: .systemFont(ofSize: 15), onEnd: onEndTitleEdit)
+                    } else {
+                        Text(task.title)
+                            .font(DesignSystem.Typography.body)
+                            .strikethrough(task.isCompleted)
+                            .foregroundStyle(task.isCompleted ? DesignSystem.Colors.textTertiary : DesignSystem.Colors.textPrimary)
+                    }
 
                     Spacer()
 
@@ -572,6 +606,7 @@ private struct AllTasksRowView: View {
                 : nil
         )
         .contentShape(Rectangle())
+        .onTapGesture(count: 2, perform: onBeginTitleEdit)
         .onHover { hovering in
             isHovering = hovering
         }

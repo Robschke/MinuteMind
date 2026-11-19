@@ -1,5 +1,6 @@
 /// Kanban-style workboard for visual task flow with epic filtering and timeline.
-/// Depends on: AppViewModel, WorkboardCardView, ProjectTimelineHeader, EpicManagementSheet
+/// Depends on: AppViewModel, WorkboardCardView, ProjectTimelineHeader, EpicManagementSheet,
+///             InlineTaskTitleField (double-click renames a card in place, Tab moves down its column)
 /// Used by: ProjectDetailView (Board tab)
 
 import SwiftUI
@@ -11,6 +12,7 @@ struct WorkboardView: View {
     @State private var selectedEpicID: UUID?
     @State private var showingEpicSheet = false
     @State private var taskToEdit: ProjectTask?
+    @State private var editingTitleTaskID: UUID?
     @State private var draggingTask: ProjectTask?
     @State private var showingAISummary = false
     @State private var aiSummaryText: String?
@@ -186,7 +188,14 @@ struct WorkboardView: View {
                                         viewModel.deleteTask(task)
                                     }
                                 },
-                                availableEpics: projectEpics
+                                availableEpics: projectEpics,
+                                isEditingTitle: editingTitleTaskID == task.id,
+                                onBeginTitleEdit: { editingTitleTaskID = task.id },
+                                onEndTitleEdit: { draft, end in
+                                    InlineTaskTitleEditing.finish(
+                                        task, draft: draft, end: end, order: visibleTasks.map(\.id),
+                                        editingTaskID: $editingTitleTaskID, viewModel: viewModel)
+                                }
                             )
                             .transition(.asymmetric(
                                 insertion: .scale.combined(with: .opacity),
