@@ -68,6 +68,8 @@ struct MascotAvatar: Identifiable, Hashable, Sendable, CustomStringConvertible {
     let isContent: Bool
     /// The drawings of an avatar of kind svg; nil for pixel avatars.
     let art: SVGAvatarArt?
+    /// The hash of `art`, taken once: SVGAvatarImageCache keys its bitmaps with it on every draw.
+    let artHash: Int
 
     let body: MascotGrid
     /// Breathing out: everything above the face sinks one row (row 4 drops out).
@@ -89,6 +91,7 @@ struct MascotAvatar: Identifiable, Hashable, Sendable, CustomStringConvertible {
         self.wearsShades = wearsShades
         self.isContent = isContent
         self.art = nil
+        self.artHash = 0
         let body = MascotGrid(rows: rows)
         var squashed = body
         for y in stride(from: 4, through: 1, by: -1) {
@@ -113,6 +116,7 @@ struct MascotAvatar: Identifiable, Hashable, Sendable, CustomStringConvertible {
         self.wearsShades = false
         self.isContent = false
         self.art = art
+        self.artHash = art.hashValue
         self.body = MascotAvatar.blob.body
         self.squashed = MascotAvatar.blob.squashed
     }

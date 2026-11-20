@@ -105,7 +105,8 @@ struct SVGAvatarArtTests {
 
     @Test func drawingsRenderAndTakeTheBodyColour() throws {
         let art = try #require(try MascotAvatarValidator.validated(Self.fox).svg)
-        let image = try #require(SVGAvatarImageCache.shared.image(art: art, drawing: .body, color: 0xE8762C, pixelWidth: 120))
+        let image = try #require(SVGAvatarImageCache.shared.image(
+            art: art, artHash: art.hashValue, drawing: .body, color: 0xE8762C, pixelWidth: 120))
         #expect(image.width == 120 && image.height == 130)
         #expect(SVGAvatarImageCache.tinted(#"<svg color="red" viewBox="0 0 1 1"/>"#, color: 0x00FF00)
             == ##"<svg color="#00FF00" viewBox="0 0 1 1"/>"##)

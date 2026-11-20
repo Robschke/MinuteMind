@@ -37,7 +37,7 @@ struct SVGCreatureCanvas: View {
         let shadow = colorScheme == .dark ? Color.white.opacity(0.07) : Color.black.opacity(0.14)
         let image = avatar.art.flatMap {
             SVGAvatarImageCache.shared.image(
-                art: $0, drawing: frame.drawing, color: hex,
+                art: $0, artHash: avatar.artHash, drawing: frame.drawing, color: hex,
                 pixelWidth: Int((CreatureCanvas.unitsWide * unit * displayScale).rounded()))
         }
         let anchors = avatar.art?.anchors

@@ -2,10 +2,14 @@
 //          body colour and pixel size and kept, so a creature animating at 8 frames a second only
 //          blits images it already has.
 // Dependencies: Sources/App/Supporting/SVGAvatarArt.swift, AppKit (NSImage draws SVG)
-// Used by: Sources/App/Views/SVGCreatureCanvas.swift
+// Used by: Sources/App/Views/SVGCreatureCanvas.swift, Tests/SVGAvatarArtTests.swift
 // Notes: - The body colour reaches the drawing as `currentColor`: the root element gets a
 //          `color` attribute (an existing one is replaced) before macOS parses it.
 //        - Keys hold the avatar's content hash, so an avatar Claude edits is drawn fresh at once.
+//          The caller passes the hash (MascotAvatar.artHash, computed once per avatar); hashing
+//          the documents here would run on every animation frame.
+//        - A drawing macOS cannot render is remembered as nil, so it is not parsed again on
+//          every frame.
 //        - The cache is cleared whole when it grows past `limit`; a few dozen creatures in a few
 //          sizes stay far below it, so this only matters after many edits.
 
@@ -16,18 +20,28 @@ import Foundation
 final class SVGAvatarImageCache {
     static let shared = SVGAvatarImageCache()
 
-    private var images: [String: CGImage] = [:]
+    private struct Key: Hashable {
+        let artHash: Int
+        let drawing: SVGCreatureFrame.Drawing
+        let color: UInt32
+        let pixelWidth: Int
+    }
+
+    /// Rendered drawings; nil for one that could not be drawn.
+    private var images: [Key: CGImage?] = [:]
     private let limit = 600
 
     /// The drawing rendered `pixelWidth` pixels wide (its height follows the 120 x 130 viewBox),
-    /// nil when it cannot be drawn.
-    func image(art: SVGAvatarArt, drawing: SVGCreatureFrame.Drawing, color: UInt32, pixelWidth: Int) -> CGImage? {
-        let key = "\(art.hashValue)|\(drawing)|\(color)|\(pixelWidth)"
-        if let image = images[key] { return image }
-        guard let svg = Self.document(art: art, drawing: drawing), pixelWidth > 0 else { return nil }
-        let image = Self.render(Self.tinted(svg, color: color), pixelWidth: pixelWidth)
+    /// nil when it cannot be drawn. `artHash` is the hash of `art`, computed once by the caller.
+    func image(art: SVGAvatarArt, artHash: Int, drawing: SVGCreatureFrame.Drawing, color: UInt32, pixelWidth: Int) -> CGImage? {
+        guard pixelWidth > 0 else { return nil }
+        let key = Key(artHash: artHash, drawing: drawing, color: color, pixelWidth: pixelWidth)
+        if let cached = images[key] { return cached }
+        let image = Self.document(art: art, drawing: drawing).flatMap {
+            Self.render(Self.tinted($0, color: color), pixelWidth: pixelWidth)
+        }
         if images.count >= limit { images.removeAll() }
-        images[key] = image
+        images.updateValue(image, forKey: key)
         return image
     }
 
