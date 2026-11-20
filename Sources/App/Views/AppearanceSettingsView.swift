@@ -1,10 +1,11 @@
-// Purpose: AppearanceSettingsView, the "Appearance" tab in Settings: light/dark mode, the colour
-//          theme, the editor for the Custom theme and saved profiles, and the desktop companion's
-//          look.
+// Purpose: AppearanceSettingsView, the "Appearance" tab in Settings: light/dark mode, the order of
+//          the sidebar's projects, the colour theme, the editor for the Custom theme and saved
+//          profiles, and the desktop companion's look.
 // Dependencies: Sources/App/Supporting/ThemeStore.swift (active theme, mode, custom settings,
 //               saved profiles), Sources/App/Config/AppTheme.swift (themes, ThemeColor,
 //               CustomThemeSettings, SavedThemeProfile), Sources/App/Supporting/CompanionAppearance.swift
-//               (size, colour), Sources/App/Supporting/CompanionController.swift (show / hide)
+//               (size, colour), Sources/App/Supporting/CompanionController.swift (show / hide),
+//               Sources/App/Models/ProjectSidebarOrder.swift (the sidebar's project order)
 // Used by: Sources/App/Views/MeetingMinutesSettingsView.swift (Appearance tab)
 // Notes: User decisions 2026-10-05: four built-in themes plus Custom; Custom starts from one of
 //        them and overrides accent, background, card and border with a colour picker for light
@@ -64,6 +65,27 @@ struct AppearanceSettingsView: View {
                     .pickerStyle(.segmented)
                     .labelsHidden()
                     .frame(width: 240)
+                }
+
+                @Bindable var viewModel = viewModel
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text("Sidebar")
+                        .frame(width: 80, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Picker("Sidebar", selection: $viewModel.projectSidebarSort) {
+                            ForEach(ProjectSidebarSort.allCases) { sort in
+                                Text(sort.label).tag(sort)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .frame(width: 240)
+                        Text(viewModel.projectSidebarSort == .manual
+                             ? "Long press a project in the sidebar to drag it into place."
+                             : "Starred first, then projects with an open Claude session, newest first.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 VStack(alignment: .leading, spacing: 10) {

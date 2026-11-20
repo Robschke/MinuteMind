@@ -150,6 +150,13 @@ final class AppViewModel {
     var projectTabs: [UUID: ProjectTab] = AppViewModel.loadProjectTabs()
     /// Projects (and General) most recently visited first, for the Ctrl+Tab switcher (`mm.recentProjects`).
     var recentProjectIDs: [UUID] = AppViewModel.loadRecentProjects()
+    /// How the Home sidebar orders the projects (Settings > Appearance, `mm.projectSidebarSort`).
+    var projectSidebarSort: ProjectSidebarSort = .load() {
+        didSet { UserDefaults.standard.set(projectSidebarSort.rawValue, forKey: ProjectSidebarSort.storageKey) }
+    }
+    /// When each project's Claude sessions last opened and closed, for the Recently used order
+    /// (`mm.projectAgentActivity`, AppViewModel+ProjectAgentActivity.swift).
+    var projectAgentActivity: [UUID: ProjectAgentActivity] = ProjectAgentActivity.loadAll()
     /// Back and forward between places (mouse buttons 4 and 5, AppViewModel+Navigation.swift).
     var navigationHistory = NavigationHistory()
     /// The place a back or forward step is going to, so arriving there is not recorded as a visit.
@@ -703,6 +710,7 @@ final class AppViewModel {
         setupMeetingRadar()
         setupFileWatching()
         setupRecordingErrorHandlers()
+        setupProjectAgentActivity()
 
         // TranscriptionQueue and AutomationCoordinator take `self` — must be set after all stored properties.
         transcriptionQueue.setAppViewModel(self)
@@ -3682,6 +3690,9 @@ final class AppViewModel {
         // Remove the project
         projects.removeAll { $0.id == project.id }
         projectStore.debouncedSaveProjects(projects)
+        if projectAgentActivity.removeValue(forKey: project.id) != nil {
+            ProjectAgentActivity.saveAll(projectAgentActivity)
+        }
 
         // Clear selection if this was selected
         if selectedProjectID == project.id {
