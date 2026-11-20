@@ -39,4 +39,17 @@ struct AgentCockpitSpacesTests {
         #expect(AgentCockpitSpaces.shown(chosen: nil, listed: [b]) == b)
         #expect(AgentCockpitSpaces.shown(chosen: a, listed: []) == nil)
     }
+
+    @Test func pickerListsEverySpaceForAnEmptyQuery() {
+        let order = [general, a, b]
+        #expect(AgentCockpitSpaces.matching("  ", order: order, names: [:]) == order)
+    }
+
+    @Test func pickerRanksNameStartsFirstAndKeepsSidebarOrderOtherwise() {
+        let order = [general, a, b, c]
+        let names = [general: "General", a: "Website relaunch", b: "Relay", c: "Grelax"]
+        #expect(AgentCockpitSpaces.matching("rel", order: order, names: names) == [b, a, c])
+        #expect(AgentCockpitSpaces.matching("REL", order: order, names: names) == [b, a, c])
+        #expect(AgentCockpitSpaces.matching("zzz", order: order, names: names) == [])
+    }
 }

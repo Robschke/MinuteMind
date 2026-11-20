@@ -386,7 +386,7 @@ enum HelpGuideContent {
         - **Agents** in the project's sidebar: every open Claude session of the project, its creature showing the state: typing while it works, waving while it waits for you, the error face when it stopped with an error, a thumb up with a green check when it finished and you have not opened it since, asleep while it is idle. Click one to open it in the Workspace.
         - **Files** in the project's sidebar: browse, drag to move (Option copies), rename, New File / New Folder, Duplicate, Copy Path, Move to Trash (Cmd+Delete). meetings/, recordings/, knowledge/ and CLAUDE.md stay in place. The folder button beside Files shows the folder in Finder.
         - **Editor:** click a file to open it (from any section, it switches to Workspace), with syntax colours, a Markdown preview, images and PDFs. Changes save by themselves; double click opens a file in its usual app.
-        - **Claude Code:** up to six sessions per project in tabs (the sparkle button; right click for Sonnet instead of Opus), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.
+        - **Claude Code:** up to six sessions per project in tabs (the sparkle button or Cmd+N, File > New Claude Session; right click the sparkle for Sonnet instead of Opus; in a Claude window Cmd+N adds a tab there), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.
         - **Layout:** Claude sits below the file (default), beside it, or in its own window (buttons in Claude's tab strip). Drag a tab onto a pane to split it, or use Split Right / Split Down in the tab's menu; drag a tab out to give it its own window.
         - **Branch row** at the bottom of the project's sidebar: the checked-out git branch; switch or create branches there. Uncommitted changes come along or are kept for you on the branch you leave. If it says "git is not installed", click Install: it opens Apple's installer for the Command Line Tools (or run `xcode-select --install` in Terminal). Until then the workspace keeps no history and Shared Projects cannot sync.
 
@@ -396,6 +396,8 @@ enum HelpGuideContent {
 
         - **+ on a project** (shown when the pointer is over it): starts another Claude session there; right click for Sonnet.
         - **+ at the top:** starts a session in a project that has none yet, or creates a new project with New Project... and starts one in it. You stay in the cockpit.
+        - **Cmd+T** opens a search over all your projects, each with its creature and how many agents it runs. Type to filter, use the arrow keys and press Return to start an Opus session in that project (also in one that already runs agents), or pick New Project... at the end. Esc closes it.
+        - **Cmd+N** starts another Opus session in the project shown on the right.
         - A project leaves the list when its last Claude session closes. Sessions in their own window stay there; clicking one brings the window forward.
         - The sessions are the same as in each project's Workspace, so you can switch between the two at any time. Click Cockpit at the top of its sidebar to go back Home.
 

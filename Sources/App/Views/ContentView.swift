@@ -3,7 +3,8 @@
 //          Cmd+K search over both, and the window-wide sheets and alerts.
 // Dependencies: Sources/App/Views/ProjectsSidebarView.swift (Home sidebar),
 //               Sources/App/Views/ProjectContextSidebar.swift (project sidebar),
-//               Sources/App/Views/AgentCockpitSidebar.swift, AgentCockpitView.swift (cockpit),
+//               Sources/App/Views/AgentCockpitSidebar.swift, AgentCockpitView.swift,
+//               AgentCockpitPicker.swift (cockpit and its Cmd+T picker),
 //               Sources/App/Views/HomeView.swift, Sources/App/Views/ProjectSwitcherView.swift,
 //               Sources/App/Views/GlobalSearchView.swift (Cmd+K search),
 //               Sources/App/Components/MainWindowEventMonitor.swift (mouse back and forward, Ctrl+Tab,
@@ -197,6 +198,18 @@ struct ContentView: View {
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: switcher.isShown)
+        .overlay {
+            // The cockpit's project picker (Cmd+T); it closes with the cockpit.
+            if viewModel.isShowingCockpitPicker && viewModel.isShowingCockpit {
+                AgentCockpitPicker()
+                    .environment(viewModel)
+                    .transition(.opacity)
+            }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: viewModel.isShowingCockpitPicker)
+        .onChange(of: viewModel.isShowingCockpit) { _, shown in
+            if !shown { viewModel.isShowingCockpitPicker = false }
+        }
         .globalSearch(search)
         .onChange(of: viewModel.currentPlace) { old, new in
             viewModel.recordNavigation(from: old, to: new)

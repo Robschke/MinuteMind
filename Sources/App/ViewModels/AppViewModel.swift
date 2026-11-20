@@ -130,6 +130,8 @@ final class AppViewModel {
     var cockpitProjectID: UUID?
     /// Spaces folded in the cockpit's sidebar.
     var cockpitCollapsedIDs: Set<UUID> = []
+    /// The cockpit's project picker (Cmd+T, AgentCockpitPicker) is open.
+    var isShowingCockpitPicker = false
     /// Home: the project tiles (HomeView). The window opens on it. Exclusive like the others:
     /// turning it on clears every other destination, any other destination turns it off.
     var isShowingHome = true {
