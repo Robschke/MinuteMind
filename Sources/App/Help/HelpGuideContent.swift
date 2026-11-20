@@ -405,6 +405,8 @@ enum HelpGuideContent {
 
         Cockpit in the Home sidebar is for working with agents across projects. Its sidebar lists every project with a running Claude session and that project's sessions below it, each with the project's creature showing its state; the page shows the chosen project's Claude tabs and splits, without files or jobs. Click a session to work in it, click a project to see its tabs, and click the arrow beside a project to fold it.
 
+        A creature jumps while its session needs you: until you answer a session that waits for you, and until you open a session that has finished. A folded project's creature jumps when one of its sessions does. With Reduce Motion on, nothing jumps.
+
         - **+ on a project** (shown when the pointer is over it): starts another Claude session there; right click for Sonnet.
         - **+ at the top:** starts a session in a project that has none yet, or creates a new project with New Project... and starts one in it. You stay in the cockpit.
         - **Cmd+T** opens a search over all your projects, in the same order as the Home sidebar, each with its creature and how many agents it runs. Type to filter, use the arrow keys and press Return to start an Opus session in that project (also in one that already runs agents), or pick New Project... at the end. Esc closes it.
