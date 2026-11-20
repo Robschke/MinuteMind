@@ -16,12 +16,12 @@ struct MeetingMinutesSheet: View {
                 } else if let error = error {
                     VStack {
                         Image(systemName: "exclamationmark.triangle")
-                            .font(.largeTitle)
-                            .foregroundStyle(.red)
+                            .font(.themed(.largeTitle))
+                            .foregroundStyle(DesignSystem.Colors.error)
                         Text("Failed to load minutes")
-                            .font(.headline)
+                            .font(.themed(.headline))
                         Text(error)
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                     }
                 } else {

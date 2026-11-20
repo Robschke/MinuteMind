@@ -550,7 +550,7 @@ private final class FileCellView: NSTableCellView {
         name.lineBreakMode = .byTruncatingTail
         name.cell?.usesSingleLineMode = true
         name.cell?.wraps = false
-        name.font = .systemFont(ofSize: NSFont.systemFontSize)
+        name.font = ThemeFonts.uiFont(size: NSFont.systemFontSize, style: ThemeStore.shared.theme.style)
         addSubview(icon)
         addSubview(name)
         imageView = icon

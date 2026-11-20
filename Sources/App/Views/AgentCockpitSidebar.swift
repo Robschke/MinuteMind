@@ -51,7 +51,7 @@ struct AgentCockpitSidebar: View {
                 Spacer(minLength: 0)
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: .space(2)) {
                         ForEach(spaces, id: \.self) { spaceID in
                             space(spaceID, first: spaceID == spaces.first)
                         }
@@ -62,7 +62,7 @@ struct AgentCockpitSidebar: View {
                 .frame(maxHeight: .infinity)
             }
 
-            HStack(spacing: 2) {
+            HStack(spacing: .space(2)) {
                 SidebarSettingsRow()
                 if sidebarControl.isFullScreen {
                     SidebarHideButton(action: sidebarControl.hideSidebar)
@@ -95,17 +95,17 @@ struct AgentCockpitSidebar: View {
             } label: {
                 HStack(spacing: DesignSystem.Dimensions.spacingS) {
                     Image(systemName: "gauge.with.dots.needle.33percent")
-                        .font(.system(size: 18))
+                        .font(.themed(size: 18))
                         .foregroundStyle(DesignSystem.Colors.textSecondary)
                         .frame(width: 24, height: 32)
-                    VStack(alignment: .leading, spacing: 1) {
+                    VStack(alignment: .leading, spacing: .space(1)) {
                         Text("Cockpit")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.themed(size: 14, weight: .semibold))
                             .foregroundStyle(DesignSystem.Colors.textPrimary)
                             .lineLimit(1)
-                        HStack(spacing: 2) {
+                        HStack(spacing: .space(2)) {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: 9, weight: .semibold))
+                                .font(.themed(size: 9, weight: .semibold))
                             Text("Home")
                         }
                         .font(DesignSystem.Typography.caption1)
@@ -125,7 +125,7 @@ struct AgentCockpitSidebar: View {
                 AgentCockpitAddMenu()
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.themed(size: 13, weight: .medium))
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
@@ -192,7 +192,7 @@ private struct CockpitSpaceRow: View {
                 viewModel.setCockpitSpaceCollapsed(project.id, !isCollapsed)
             } label: {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 9, weight: .semibold))
+                    .font(.themed(size: 9, weight: .semibold))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
                     .rotationEffect(.degrees(isCollapsed ? 0 : 90))
                     .frame(width: 12, height: 26)
@@ -219,7 +219,7 @@ private struct CockpitSpaceRow: View {
                     }
                     Spacer(minLength: 0)
                 }
-                .frame(height: 26)
+                .frame(height: .row(26))
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -230,7 +230,7 @@ private struct CockpitSpaceRow: View {
                 viewModel.startCockpitSession(in: project.id)
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.themed(size: 11, weight: .medium))
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
                     .frame(width: 20, height: 20)
                     .contentShape(Rectangle())
@@ -291,15 +291,15 @@ private struct CockpitAgentRow: View {
                 Spacer(minLength: DesignSystem.Dimensions.spacingXS)
                 if inWindow {
                     Image(systemName: "macwindow")
-                        .font(.system(size: 10))
+                        .font(.themed(size: 10))
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                         .help("In its own window")
                 }
             }
             // Indented under the space's creature (chevron column plus its gap).
-            .padding(.leading, 28)
+            .padding(.leading, .space(28))
             .padding(.trailing, DesignSystem.Dimensions.spacingS)
-            .frame(height: 26)
+            .frame(height: .row(26))
             .background(
                 RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
                     .fill(isSelected ? Color.accentColor.opacity(0.12) : Color.clear)

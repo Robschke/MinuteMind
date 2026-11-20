@@ -224,14 +224,14 @@ struct AllTranscriptsView: View {
             }
         } else if viewModel.isLiveTranscribing {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
-                statusDot(.orange)
+                statusDot(DesignSystem.Colors.warning)
                 Text("Live transcribing")
                     .fontWeight(.medium)
             }
         } else if let project = viewModel.recordingStartBlockingProject() {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(DesignSystem.Colors.warning)
                 Text("“\(project.name)” has no export folder.")
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -244,7 +244,7 @@ struct AllTranscriptsView: View {
             .help(viewModel.recordingStartBlockReason() ?? "")
         } else if viewModel.isTranscribing {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
-                statusDot(.blue)
+                statusDot(DesignSystem.Colors.accent)
                 Text(transcribingText)
                     .lineLimit(1)
                 Group {
@@ -284,7 +284,7 @@ struct AllTranscriptsView: View {
             }
         } else {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
-                statusDot(.green)
+                statusDot(DesignSystem.Colors.success)
                 Text("Ready")
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
             }
@@ -348,11 +348,11 @@ struct AllTranscriptsView: View {
             .frame(height: 100)
             .background(
                 RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
-                    .fill(Color.orange.opacity(0.06))
+                    .fill(DesignSystem.Colors.warning.opacity(0.06))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
-                    .stroke(Color.orange.opacity(0.2), lineWidth: 0.5)
+                    .stroke(DesignSystem.Colors.warning.opacity(0.2), lineWidth: 0.5)
             )
             .onAppear {
                 proxy.scrollTo(Self.livePreviewBottom, anchor: .bottom)
@@ -374,8 +374,8 @@ struct AllTranscriptsView: View {
                     Text("\(viewModel.sessions.count)")
                         .font(DesignSystem.Typography.callout.weight(.medium))
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, .space(8))
+                        .padding(.vertical, .space(2))
                         .background(
                             Capsule()
                                 .fill(DesignSystem.Colors.textTertiary.opacity(0.12))
@@ -387,7 +387,7 @@ struct AllTranscriptsView: View {
                 HStack(spacing: DesignSystem.Dimensions.spacingS) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(DesignSystem.Colors.textSecondary)
-                        .font(.system(size: 13))
+                        .font(.themed(size: 13))
 
                     TextField("Search transcripts...", text: $viewModel.searchQuery)
                         .textFieldStyle(.plain)
@@ -400,7 +400,7 @@ struct AllTranscriptsView: View {
                         } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .foregroundStyle(DesignSystem.Colors.textSecondary)
-                                .font(.system(size: 14))
+                                .font(.themed(size: 14))
                         }
                         .buttonStyle(.plain)
                     }
@@ -520,7 +520,7 @@ struct AllTranscriptsView: View {
         VStack(spacing: DesignSystem.Dimensions.spacingXL) {
             VStack(spacing: DesignSystem.Dimensions.spacingM) {
                 Image(systemName: "waveform.circle")
-                    .font(.system(size: 48))
+                    .font(.themed(size: 48))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
 
                 VStack(spacing: DesignSystem.Dimensions.spacingS) {
@@ -555,7 +555,7 @@ struct AllTranscriptsView: View {
         VStack(spacing: DesignSystem.Dimensions.spacingXL) {
             VStack(spacing: DesignSystem.Dimensions.spacingM) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 42))
+                    .font(.themed(size: 42))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
 
                 VStack(spacing: DesignSystem.Dimensions.spacingS) {
@@ -691,7 +691,7 @@ struct TranscriptCardWithProject: View {
     // talk bar and speaker preview, then the playback strip and the actions. Shared parts live in
     // RecordingCardParts.swift and SessionPlaybackStrip.swift.
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .space(12)) {
             RecordingCardHeader(
                 session: session,
                 transcriptionProgress: session.status == .transcribing ? transcriptionProgress : nil,
@@ -719,14 +719,14 @@ struct TranscriptCardWithProject: View {
             transcriptActions
             extractedItemsSection
         }
-        .padding(16)
+        .padding(.space(16))
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: .corner(12))
                 .fill(DesignSystem.Colors.card)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: .corner(12))
                 .strokeBorder(DesignSystem.Colors.border, lineWidth: 0.5)
         )
         // Configured on the card, not on the strip: the strip only exists once the player has
@@ -751,18 +751,18 @@ struct TranscriptCardWithProject: View {
             }
         } label: {
             if let project = currentProject {
-                HStack(spacing: 4) {
+                HStack(spacing: .space(4)) {
                     ProjectAvatarView(projectID: project.id, pixelSize: 1)
                     Text(project.name)
-                        .font(.caption)
+                        .font(.themed(.caption))
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .padding(.horizontal, .space(8))
+                .padding(.vertical, .space(4))
                 .background(Color.primary.opacity(0.06))
-                .cornerRadius(4)
+                .cornerRadius(.corner(4))
             } else {
                 Label("Assign to Project", systemImage: "folder.badge.plus")
-                    .font(.callout)
+                    .font(.themed(.callout))
                     .foregroundStyle(.secondary)
             }
         }
@@ -788,12 +788,12 @@ struct TranscriptCardWithProject: View {
     private var statusLine: some View {
         if let error = session.lastErrorMessage {
             Text("Transcription failed: \(error)")
-                .font(.callout)
-                .foregroundStyle(.red)
+                .font(.themed(.callout))
+                .foregroundStyle(DesignSystem.Colors.error)
         } else {
-            HStack(spacing: 8) {
+            HStack(spacing: .space(8)) {
                 Text(statusPlaceholder)
-                    .font(.callout)
+                    .font(.themed(.callout))
                     .foregroundStyle(.secondary)
 
                 // A transcription can get stuck; the way out has to stay next to the status.
@@ -871,10 +871,10 @@ struct TranscriptCardWithProject: View {
 
         return Group {
             if !sessionTasks.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: .space(8)) {
                     HStack {
                         Text("Extracted Items")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                         Spacer()
                         if !pendingTasks.isEmpty {
@@ -908,11 +908,11 @@ struct TranscriptCardWithProject: View {
                                 )
                             }
                         }
-                        .font(.caption)
+                        .font(.themed(.caption))
                     }
 
                 }
-                .padding(.top, 4)
+                .padding(.top, .space(4))
             }
         }
     }
@@ -927,18 +927,18 @@ private struct AllTranscriptsExtractedTaskRow: View {
     let onReject: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Image(systemName: isPending ? "circle" : "checkmark.circle.fill")
                 .foregroundStyle(isPending ? .orange : .green)
-                .font(.caption)
+                .font(.themed(.caption))
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: .space(1)) {
                 Text(task.title)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .lineLimit(2)
                 if let assignee = task.assignee, !assignee.isEmpty {
                     Text(assignee)
-                        .font(.caption2)
+                        .font(.themed(.caption2))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -947,11 +947,11 @@ private struct AllTranscriptsExtractedTaskRow: View {
 
             if let priority = task.priority {
                 Text(priority.displayName)
-                    .font(.caption2)
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
+                    .font(.themed(.caption2))
+                    .padding(.horizontal, .space(4))
+                    .padding(.vertical, .space(1))
                     .background(Color(hex: priority.color).opacity(0.2))
-                    .cornerRadius(3)
+                    .cornerRadius(.corner(3))
             }
 
             if isPending {
@@ -974,11 +974,11 @@ private struct AllTranscriptsExtractedTaskRow: View {
                 .help("Reject task")
             }
         }
-        .padding(.vertical, 3)
-        .padding(.horizontal, 6)
+        .padding(.vertical, .space(3))
+        .padding(.horizontal, .space(6))
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(isPending ? Color.orange.opacity(0.08) : Color.clear)
+            RoundedRectangle(cornerRadius: .corner(6))
+                .fill(isPending ? DesignSystem.Colors.warning.opacity(0.08) : Color.clear)
         )
     }
 }

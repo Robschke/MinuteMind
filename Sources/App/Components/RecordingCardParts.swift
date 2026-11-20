@@ -30,11 +30,11 @@ struct RecordingCardHeader<Accessory: View>: View {
     @FocusState private var fieldFocused: Bool
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        HStack(alignment: .firstTextBaseline, spacing: .space(8)) {
             if isRenaming {
                 TextField("Title", text: $draft)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.themed(size: 17, weight: .semibold))
                     .focused($fieldFocused)
                     .onSubmit(commit)
                     .onExitCommand { isRenaming = false }
@@ -47,7 +47,7 @@ struct RecordingCardHeader<Accessory: View>: View {
                     }
             } else {
                 Text(session.title)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.themed(size: 17, weight: .semibold))
                     .lineLimit(2)
                     .onTapGesture(count: 2) { isRenaming = true }
                     .help("Double-click to rename")
@@ -119,13 +119,13 @@ struct RecordingCardSummary: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: .space(10)) {
             RecordingMetaLine(session: session, playback: playback, model: model, ownName: ownName)
             if model.talk.count > 1 {
                 SpeakerTalkBar(model: model)
             }
             if !model.turns.isEmpty {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: .space(12)) {
                     ForEach(Array(model.turns.enumerated()), id: \.offset) { _, turn in
                         SpeakerTurnRow(turn: turn, model: model, ownName: ownName, playback: playback)
                     }
@@ -147,7 +147,7 @@ private struct RecordingMetaLine: View {
     let ownName: String?
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: .space(6)) {
             if session.isQuickRecording {
                 Label("Quick recording", systemImage: "waveform")
                     .fontWeight(.medium)
@@ -172,7 +172,7 @@ private struct RecordingMetaLine: View {
             Spacer(minLength: 8)
             AudioRetentionChip(session: session)
         }
-        .font(.caption)
+        .font(.themed(.caption))
         .foregroundStyle(.secondary)
         .lineLimit(1)
     }
@@ -195,7 +195,7 @@ private struct RecordingMetaLine: View {
             }
             if model.order.count > shown.count {
                 Text("+\(model.order.count - shown.count)")
-                    .padding(.leading, 8)
+                    .padding(.leading, .space(8))
             }
         }
     }
@@ -232,9 +232,9 @@ private struct SpeakerTalkBar: View {
 
     var body: some View {
         if total > 0 {
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: .space(5)) {
                 GeometryReader { geometry in
-                    HStack(spacing: 2) {
+                    HStack(spacing: .space(2)) {
                         ForEach(sorted, id: \.speaker) { entry in
                             Rectangle()
                                 .fill(segmentColor(entry.speaker))
@@ -247,9 +247,9 @@ private struct SpeakerTalkBar: View {
                 .frame(height: 6)
                 .clipShape(Capsule())
 
-                HStack(spacing: 10) {
+                HStack(spacing: .space(10)) {
                     ForEach(sorted.prefix(4), id: \.speaker) { entry in
-                        HStack(spacing: 4) {
+                        HStack(spacing: .space(4)) {
                             Circle().fill(segmentColor(entry.speaker)).frame(width: 6, height: 6)
                             Text("\(firstName(entry.speaker)) \(percent(entry.seconds))%")
                         }
@@ -258,7 +258,7 @@ private struct SpeakerTalkBar: View {
                         Text("+\(model.talk.count - 4)")
                     }
                 }
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             }
@@ -296,11 +296,11 @@ private struct SpeakerTurnRow: View {
     var body: some View {
         let kind = model.kind(of: turn.speaker)
         let color = model.color(of: turn.speaker)
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: .space(3)) {
+            HStack(spacing: .space(8)) {
                 SpeakerAvatar(initials: SpeakerPalette.initials(for: turn.speaker, ownName: ownName), kind: kind, size: 22)
                 Text(displayName)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.themed(size: 13, weight: .semibold))
                     .foregroundStyle(kind == .unnamed ? AnyShapeStyle(.secondary) : AnyShapeStyle(color))
                     .lineLimit(1)
                 Spacer(minLength: 8)
@@ -313,14 +313,14 @@ private struct SpeakerTurnRow: View {
                     .fill(color.opacity(0.35))
                     .frame(width: 2)
                 Text(turn.text)
-                    .font(.system(size: 13))
+                    .font(.themed(size: 13))
                     .lineLimit(2)
-                    .padding(.leading, 18)
+                    .padding(.leading, .space(18))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             // The rail is as tall as the text, not as tall as the row offers.
             .fixedSize(horizontal: false, vertical: true)
-            .padding(.leading, 10)
+            .padding(.leading, .space(10))
         }
     }
 
@@ -336,13 +336,13 @@ private struct SpeakerTurnRow: View {
             if let start = turn.startSeconds { playback.play(from: start) }
         } label: {
             Text(isHoveringTime && canPlay ? "\u{25B6} \(timestamp)" : timestamp)
-                .font(.system(size: 11).monospacedDigit())
+                .font(.themed(size: 11).monospacedDigit())
                 .foregroundStyle(
                     isHoveringTime && canPlay ? AnyShapeStyle(Color.accentColor)
                         : canPlay ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tertiary))
-                .padding(.horizontal, 6)
-                .padding(.vertical, 1)
-                .background(RoundedRectangle(cornerRadius: 5).fill(Color.secondary.opacity(0.1)))
+                .padding(.horizontal, .space(6))
+                .padding(.vertical, .space(1))
+                .background(RoundedRectangle(cornerRadius: .corner(5)).fill(Color.secondary.opacity(0.1)))
         }
         .buttonStyle(.plain)
         .disabled(!canPlay)
@@ -368,11 +368,11 @@ struct SpeakerAvatar: View {
                 Circle().fill(color)
             }
             Text(initials)
-                .font(.system(size: size * 0.42, weight: .semibold, design: .rounded))
+                .font(.themed(size: size * 0.42, weight: .semibold, design: .rounded))
                 .foregroundStyle(kind == .unnamed ? color : SpeakerPalette.avatarText)
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
-                .padding(2)
+                .padding(.space(2))
         }
         .frame(width: size, height: size)
     }

@@ -61,10 +61,10 @@ struct ScheduledJobsView: View {
     private var jobList: some View {
         VStack(spacing: 0) {
             if jobs.isEmpty {
-                VStack(spacing: 8) {
+                VStack(spacing: .space(8)) {
                     Spacer()
                     Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 28))
+                        .font(.themed(size: 28))
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                     Text("No jobs yet")
                         .font(DesignSystem.Typography.subheadline)
@@ -73,7 +73,7 @@ struct ScheduledJobsView: View {
                         .font(DesignSystem.Typography.footnote)
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
+                        .padding(.horizontal, .space(24))
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
@@ -102,8 +102,8 @@ struct ScheduledJobsView: View {
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                 }
             }
-            .padding(.horizontal, 12)
-            .frame(height: 36)
+            .padding(.horizontal, .space(12))
+            .frame(height: .row(36))
         }
     }
 
@@ -132,7 +132,7 @@ struct ScheduledJobsView: View {
                 .id(jobID)
             }
         } else {
-            VStack(spacing: 10) {
+            VStack(spacing: .space(10)) {
                 Text(jobs.isEmpty ? "Create a job to have Claude work on a schedule" : "Select a job")
                     .font(DesignSystem.Typography.callout)
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
@@ -154,11 +154,11 @@ private struct ScheduledJobRow: View {
     private var store: ScheduledJobStore { viewModel.scheduledJobs }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Circle()
                 .fill(job.enabled ? DesignSystem.Colors.success : DesignSystem.Colors.textTertiary.opacity(0.5))
                 .frame(width: 7, height: 7)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Text(job.title)
                     .font(DesignSystem.Typography.subheadline)
                     .lineLimit(1)
@@ -174,7 +174,7 @@ private struct ScheduledJobRow: View {
                 ScheduledJobStatusIcon(status: last.status)
             }
         }
-        .padding(.vertical, 3)
+        .padding(.vertical, .space(3))
     }
 
     private var subtitle: String {

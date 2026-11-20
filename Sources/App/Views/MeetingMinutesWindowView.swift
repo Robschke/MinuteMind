@@ -35,12 +35,12 @@ struct MeetingMinutesWindowView: View {
             } else if let error = error {
                 VStack {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(.largeTitle)
-                        .foregroundStyle(.red)
+                        .font(.themed(.largeTitle))
+                        .foregroundStyle(DesignSystem.Colors.error)
                     Text("Failed to load minutes")
-                        .font(.headline)
+                        .font(.themed(.headline))
                     Text(error)
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                 }
             } else if let session = session {
@@ -48,7 +48,7 @@ struct MeetingMinutesWindowView: View {
                     // Toolbar area
                     HStack {
                         Text(session.title)
-                            .font(.headline)
+                            .font(.themed(.headline))
 
                         Spacer()
 
@@ -66,7 +66,7 @@ struct MeetingMinutesWindowView: View {
                             .keyboardShortcut(.defaultAction)
                         } else {
                             if isUpdating {
-                                HStack(spacing: 6) {
+                                HStack(spacing: .space(6)) {
                                     ProgressView().controlSize(.small)
                                     Text("Updating\u{2026}")
                                         .foregroundStyle(.secondary)
@@ -104,7 +104,7 @@ struct MeetingMinutesWindowView: View {
 
                     if isEditing {
                         TextEditor(text: $editedContent)
-                            .font(.system(.body, design: .monospaced))
+                            .font(.themed(.body, design: .monospaced))
                             .padding()
                     } else {
                         ScrollView {

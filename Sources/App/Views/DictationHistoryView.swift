@@ -68,7 +68,7 @@ struct DictationHistoryView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: .space(12)) {
             Text("Clipboard")
                 .font(DesignSystem.Typography.title3)
             Picker("", selection: $filter) {
@@ -84,7 +84,7 @@ struct DictationHistoryView: View {
             Button("Clear All") { confirmClear = true }
                 .disabled(viewModel.dictationHistory.entries.isEmpty)
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, .space(20))
         .frame(height: 52)
     }
 
@@ -108,12 +108,12 @@ struct DictationHistoryView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: .space(8)) {
             Image(systemName: "doc.on.clipboard")
-                .font(.system(size: 32))
+                .font(.themed(size: 32))
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
             Text(search.isEmpty ? "Nothing dictated yet" : "No matches")
-                .font(.system(size: 15, weight: .medium))
+                .font(.themed(size: 15, weight: .medium))
             Text(search.isEmpty
                  ? "Everything you dictate with the fn key, and every Claude mini task, is kept here."
                  : "Try another word, or switch the filter to All.")
@@ -149,14 +149,14 @@ private struct HistoryRow: View {
     @State private var hovering = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: .space(10)) {
             Image(systemName: entry.kind == .claudeTask ? "sparkle" : "mic")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.themed(size: 12, weight: .semibold))
                 .foregroundStyle(entry.kind == .claudeTask ? PillStyle.claude : DesignSystem.Colors.textSecondary)
                 .frame(width: 16)
-                .padding(.top, 2)
+                .padding(.top, .space(2))
                 .accessibilityLabel(entry.kind == .claudeTask ? "Claude task" : "Dictation")
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: .space(4)) {
                 if let request = entry.request {
                     Text("You asked: \(request)")
                         .font(DesignSystem.Typography.footnote)
@@ -164,13 +164,13 @@ private struct HistoryRow: View {
                         .lineLimit(2)
                 }
                 Text(entry.text)
-                    .font(.system(size: 13))
+                    .font(.themed(size: 13))
                     .lineLimit(4)
                     .textSelection(.enabled)
                 metaLine
             }
             Spacer(minLength: 12)
-            HStack(spacing: 6) {
+            HStack(spacing: .space(6)) {
                 if hovering {
                     Button(action: onDelete) {
                         Image(systemName: "trash")
@@ -184,7 +184,7 @@ private struct HistoryRow: View {
                     .frame(minWidth: 64)
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, .space(6))
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
         .contextMenu {
@@ -194,7 +194,7 @@ private struct HistoryRow: View {
     }
 
     private var metaLine: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: .space(6)) {
             Text(entry.date.formatted(date: .omitted, time: .shortened))
             if let app = entry.appName {
                 Text("\u{00B7}")
@@ -202,7 +202,7 @@ private struct HistoryRow: View {
             }
             if !entry.inserted {
                 Text("\u{00B7}")
-                Text("Not inserted").foregroundStyle(.orange)
+                Text("Not inserted").foregroundStyle(DesignSystem.Colors.warning)
             }
         }
         .font(DesignSystem.Typography.caption1)

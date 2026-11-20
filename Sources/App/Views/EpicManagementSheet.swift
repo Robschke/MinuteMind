@@ -31,12 +31,12 @@ struct EpicManagementSheet: View {
                 Button("Done") { dismiss() }
                     .buttonStyle(.borderedProminent)
             }
-            .padding(20)
+            .padding(.space(20))
 
             Divider()
 
             // New epic input
-            HStack(spacing: 8) {
+            HStack(spacing: .space(8)) {
                 colorPicker(selection: $selectedColor)
 
                 TextField("New epic name...", text: $newEpicTitle)
@@ -47,20 +47,20 @@ struct EpicManagementSheet: View {
                     addEpic()
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .font(.title3)
+                        .font(.themed(.title3))
                 }
                 .buttonStyle(.plain)
                 .disabled(newEpicTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
-            .padding(16)
+            .padding(.space(16))
 
             Divider()
 
             // Epic list
             if epics.isEmpty {
-                VStack(spacing: 8) {
+                VStack(spacing: .space(8)) {
                     Image(systemName: "rectangle.3.group")
-                        .font(.largeTitle)
+                        .font(.themed(.largeTitle))
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                     Text("No epics yet")
                         .font(DesignSystem.Typography.callout)
@@ -103,14 +103,14 @@ struct EpicManagementSheet: View {
     // MARK: - Epic Row
 
     private func epicRow(_ epic: Epic) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: .space(10)) {
             Circle()
                 .fill(Color(hex: epic.colorHex))
                 .frame(width: 12, height: 12)
 
             if editingEpic?.id == epic.id {
-                VStack(spacing: 4) {
-                    HStack(spacing: 8) {
+                VStack(spacing: .space(4)) {
+                    HStack(spacing: .space(8)) {
                         colorPicker(selection: $editColor)
                         TextField("Title", text: $editTitle)
                             .textFieldStyle(.roundedBorder)
@@ -130,7 +130,7 @@ struct EpicManagementSheet: View {
                     }
                 }
             } else {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: .space(2)) {
                     Text(epic.title)
                         .font(DesignSystem.Typography.callout)
                     if !epic.summary.isEmpty {
@@ -154,7 +154,7 @@ struct EpicManagementSheet: View {
                     editColor = epic.colorHex
                 } label: {
                     Image(systemName: "pencil")
-                        .font(.caption)
+                        .font(.themed(.caption))
                 }
                 .buttonStyle(.plain)
 
@@ -162,13 +162,13 @@ struct EpicManagementSheet: View {
                     epicToDelete = epic
                 } label: {
                     Image(systemName: "trash")
-                        .font(.caption)
-                        .foregroundStyle(.red)
+                        .font(.themed(.caption))
+                        .foregroundStyle(DesignSystem.Colors.error)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, .space(4))
     }
 
     // MARK: - Color Picker

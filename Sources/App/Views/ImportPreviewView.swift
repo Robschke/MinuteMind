@@ -31,11 +31,11 @@ struct ImportPreviewView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: .space(4)) {
                     Text("Import File")
-                        .font(.headline)
+                        .font(.themed(.headline))
                     Text(fileName)
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                         .foregroundColor(.secondary)
                 }
                 
@@ -51,7 +51,7 @@ struct ImportPreviewView: View {
                     onCommit()
                 } label: {
                     if isCommitting {
-                        HStack(spacing: 6) {
+                        HStack(spacing: .space(6)) {
                             ProgressView()
                                 .controlSize(.small)
                             Text("Committing...")
@@ -70,13 +70,13 @@ struct ImportPreviewView: View {
             // Content area
             if let error = error {
                 // Show extraction error
-                VStack(spacing: 16) {
+                VStack(spacing: .space(16)) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 48))
-                        .foregroundColor(.orange)
+                        .font(.themed(size: 48))
+                        .foregroundColor(DesignSystem.Colors.warning)
                     
                     Text("Failed to Extract Text")
-                        .font(.headline)
+                        .font(.themed(.headline))
                     
                     Text(error)
                         .foregroundColor(.secondary)
@@ -89,30 +89,30 @@ struct ImportPreviewView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                VStack(spacing: 8) {
+                VStack(spacing: .space(8)) {
                     HStack {
                         Text("Extracted Text")
-                            .font(.subheadline)
+                            .font(.themed(.subheadline))
                             .foregroundColor(.secondary)
                         
                         Spacer()
                         
                         Text("\(editedText.count) characters")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundColor(.secondary)
                     }
                     .padding(.horizontal)
-                    .padding(.top, 8)
+                    .padding(.top, .space(8))
                     
                     // Text editor with border
                     TextEditor(text: $editedText)
-                        .font(.system(.body, design: .default))
+                        .font(.themed(.body, design: .default))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(8)
+                        .padding(.space(8))
                         .background(Color(nsColor: .textBackgroundColor))
-                        .cornerRadius(6)
+                        .cornerRadius(.corner(6))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 6)
+                            RoundedRectangle(cornerRadius: .corner(6))
                                 .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                         )
                         .padding(.horizontal)
@@ -122,11 +122,11 @@ struct ImportPreviewView: View {
                         Image(systemName: "info.circle")
                             .foregroundColor(.secondary)
                         Text("Review and edit the extracted text before committing to the knowledge base. Embeddings will be generated for semantic search.")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundColor(.secondary)
                     }
                     .padding(.horizontal)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, .space(8))
                 }
             }
         }

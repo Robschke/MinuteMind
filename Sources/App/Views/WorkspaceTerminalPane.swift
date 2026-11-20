@@ -141,10 +141,10 @@ struct WorkspaceTerminalPane: View {
         .background(DropZoneReporter { terminals.registerDropZone($0, for: groupKey) })
         .overlay {
             if case .strip(let target) = terminals.dropTarget, target == groupKey {
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: .corner(8))
                     .strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 2, dash: [6, 4]))
                     .background(Color.accentColor.opacity(0.06))
-                    .padding(2)
+                    .padding(.space(2))
                     .allowsHitTesting(false)
             }
         }
@@ -236,7 +236,7 @@ struct WorkspaceTerminalPane: View {
                     terminals.closePane(pane, in: groupKey)
                 } label: {
                     Image(systemName: "minus")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(.themed(size: 9, weight: .bold))
                         .frame(width: 18, height: 18)
                         .background(Circle().fill(.regularMaterial))
                         .overlay(Circle().strokeBorder(Color.primary.opacity(0.15)))
@@ -246,7 +246,7 @@ struct WorkspaceTerminalPane: View {
                 .foregroundStyle(.secondary)
                 .help("Close Pane (\(session.displayName) keeps running as a tab)")
                 // Clear of the dividers' grab areas, in line with the terminal's padding.
-                .padding(10)
+                .padding(.space(10))
             }
         }
         .onHover { inside in
@@ -287,9 +287,9 @@ struct WorkspaceTerminalPane: View {
            let frame = frames[paneID]
         {
             let rect = WorkspaceTerminalSplit.highlight(for: zone, in: frame).insetBy(dx: 4, dy: 4)
-            RoundedRectangle(cornerRadius: 6)
+            RoundedRectangle(cornerRadius: .corner(6))
                 .fill(Color.accentColor.opacity(0.18))
-                .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color.accentColor.opacity(0.7), lineWidth: 1.5))
+                .overlay(RoundedRectangle(cornerRadius: .corner(6)).strokeBorder(Color.accentColor.opacity(0.7), lineWidth: 1.5))
                 .frame(width: max(0, rect.width), height: max(0, rect.height))
                 .position(x: rect.midX, y: rect.midY)
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: rect)
@@ -303,7 +303,7 @@ struct WorkspaceTerminalPane: View {
         if let color = session.status.frameColor {
             let working = session.status == .working
             let width: CGFloat = contrast == .increased ? 3 : (working ? 1.5 : 2)
-            RoundedRectangle(cornerRadius: 6)
+            RoundedRectangle(cornerRadius: .corner(6))
                 .inset(by: 3)
                 .strokeBorder(color.opacity(working && contrast != .increased ? 0.5 : 1), lineWidth: width)
                 .allowsHitTesting(false)
@@ -312,9 +312,9 @@ struct WorkspaceTerminalPane: View {
 
     private var emptyState: some View {
         let windows = terminals.windows(rootedAt: rootID)
-        return VStack(spacing: 10) {
+        return VStack(spacing: .space(10)) {
             Image(systemName: windows.isEmpty ? "sparkle" : "macwindow.on.rectangle")
-                .font(.system(size: 22))
+                .font(.themed(size: 22))
                 .foregroundStyle(.secondary)
             Text(windows.isEmpty ? "No Claude session" : "Claude is in \(windows.count == 1 ? "its own window" : "\(windows.count) windows")")
                 .foregroundStyle(.secondary)
@@ -340,12 +340,12 @@ struct WorkspaceTerminalPane: View {
         return HStack(spacing: 0) {
             GeometryReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 2) {
+                    HStack(spacing: .space(2)) {
                         ForEach(sessions) { session in
                             tab(session, isShown: shown.contains(session.id))
                         }
                     }
-                    .padding(.horizontal, 6)
+                    .padding(.horizontal, .space(6))
                     // Under the title bar a drag on a tab moves the tab, not the window; the
                     // free space after the tabs still moves the window there.
                     .excludedFromWindowDrag()
@@ -362,12 +362,12 @@ struct WorkspaceTerminalPane: View {
             }
             if !isWindow, !sessions.isEmpty, !terminals.windows(rootedAt: rootID).isEmpty {
                 otherWindowsMenu
-                    .padding(.horizontal, 6)
+                    .padding(.horizontal, .space(6))
             }
             if let placement, !sessions.isEmpty {
                 Divider().frame(height: 18)
                 placementButtons(placement)
-                    .padding(.horizontal, 6)
+                    .padding(.horizontal, .space(6))
             }
             if isWindow {
                 Divider().frame(height: 18)
@@ -375,18 +375,18 @@ struct WorkspaceTerminalPane: View {
                     terminals.moveToRoot(groupKey)
                 } label: {
                     Image(systemName: "arrow.uturn.backward")
-                        .font(.system(size: 12))
+                        .font(.themed(size: 12))
                         .frame(width: 24, height: 22)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)
                 .help(rootID == WorkspaceTerminalStore.assistantKey ? "Move All to the Claude Window" : "Move All to the Workspace")
-                .padding(.horizontal, 6)
+                .padding(.horizontal, .space(6))
             }
             Divider().frame(height: 18)
             newSessionButtons
-                .padding(.horizontal, 6)
+                .padding(.horizontal, .space(6))
         }
         .frame(height: Self.tabStripHeight)
         .background(.background.secondary)
@@ -394,7 +394,7 @@ struct WorkspaceTerminalPane: View {
 
     private func tab(_ session: WorkspaceTerminalSession, isShown: Bool) -> some View {
         let isFocused = session.id == focusedID
-        return HStack(spacing: 6) {
+        return HStack(spacing: .space(6)) {
             statusIcon(session)
                 .frame(width: 14, height: 14)
             if renamingID == session.id {
@@ -416,31 +416,31 @@ struct WorkspaceTerminalPane: View {
             }
             if let running = session.runningLabel {
                 Text(running)
-                    .font(.system(size: 10))
+                    .font(.themed(size: 10))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .frame(maxWidth: 80, alignment: .leading)
             } else if let model = session.model, model != "opus" {
                 Text(session.modelName)
-                    .font(.system(size: 10))
+                    .font(.themed(size: 10))
                     .foregroundStyle(.secondary)
             }
             if canClose {
                 Button {
                     requestClose(session)
                 } label: {
-                    Image(systemName: "xmark").font(.system(size: 9, weight: .semibold))
+                    Image(systemName: "xmark").font(.themed(size: 9, weight: .semibold))
                 }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)
                 .help(session.isTerminal ? "Close Terminal" : "Close Session")
             }
         }
-        .font(.system(size: 12))
-        .padding(.horizontal, 8)
-        .frame(height: 24)
+        .font(.themed(size: 12))
+        .padding(.horizontal, .space(8))
+        .frame(height: .row(24))
         .background(
-            RoundedRectangle(cornerRadius: 5)
+            RoundedRectangle(cornerRadius: .corner(5))
                 .fill(isShown ? Color.primary.opacity(isFocused ? 0.14 : 0.05) : Color.clear))
         .contentShape(Rectangle())
         .onTapGesture {
@@ -471,11 +471,11 @@ struct WorkspaceTerminalPane: View {
             case .working:
                 ProgressView().controlSize(.mini)
             case .waiting:
-                Circle().fill(Color.orange).frame(width: 7, height: 7)
+                Circle().fill(DesignSystem.Colors.warning).frame(width: 7, height: 7)
             case .done:
-                Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.green)
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(DesignSystem.Colors.success)
             case .error:
-                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Color.red)
+                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(DesignSystem.Colors.error)
             }
         }
     }
@@ -533,13 +533,13 @@ struct WorkspaceTerminalPane: View {
             Divider()
             Button("Bring All Back") { terminals.bringBack(rootID: rootID) }
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: .space(4)) {
                 if elsewhere.contains(where: { $0.status == .waiting }) {
-                    Circle().fill(Color.orange).frame(width: 6, height: 6)
+                    Circle().fill(DesignSystem.Colors.warning).frame(width: 6, height: 6)
                 }
                 Text("\(elsewhere.count) in other window\(windows.count == 1 ? "" : "s")")
             }
-            .font(.system(size: 11))
+            .font(.themed(size: 11))
         }
         .menuStyle(.borderlessButton)
         .fixedSize()
@@ -548,7 +548,7 @@ struct WorkspaceTerminalPane: View {
     }
 
     private func placementButtons(_ placement: Placement) -> some View {
-        HStack(spacing: 2) {
+        HStack(spacing: .space(2)) {
             placementButton(placement, .beside, icon: "rectangle.split.2x1", help: "Claude beside the file")
             placementButton(placement, .below, icon: "rectangle.split.1x2", help: "Claude below the file")
             placementButton(placement, .window, icon: "macwindow.on.rectangle", help: "Claude in its own window")
@@ -563,10 +563,10 @@ struct WorkspaceTerminalPane: View {
             placement.choose(mode)
         } label: {
             Image(systemName: icon)
-                .font(.system(size: 12))
+                .font(.themed(size: 12))
                 .frame(width: 24, height: 22)
                 .background(
-                    RoundedRectangle(cornerRadius: 5)
+                    RoundedRectangle(cornerRadius: .corner(5))
                         .fill(isCurrent ? Color.primary.opacity(0.10) : Color.clear))
                 .contentShape(Rectangle())
         }
@@ -581,7 +581,7 @@ struct WorkspaceTerminalPane: View {
     private var newSessionButtons: some View {
         let canAddClaude = terminals.canAddSession(in: groupKey)
         let canAddTerminal = terminals.canAddSession(in: groupKey, kind: .terminal)
-        return HStack(spacing: 2) {
+        return HStack(spacing: .space(2)) {
             Button { addSession(.claude(model: "opus")) } label: {
                 Image(systemName: "sparkle").frame(width: 22, height: 22).contentShape(Rectangle())
             }
@@ -747,7 +747,7 @@ struct WorkspaceTerminalPane: View {
     // MARK: - Banner and status
 
     private var trustBanner: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Image(systemName: "info.circle")
             Text("Claude asks once whether to trust this folder. Choose \u{201C}Yes, I trust this folder\u{201D} to continue.")
                 .lineLimit(2)
@@ -758,15 +758,15 @@ struct WorkspaceTerminalPane: View {
             }
             .controlSize(.small)
         }
-        .font(.system(size: 12))
-        .padding(.horizontal, 12)
-        .frame(minHeight: 28)
-        .padding(.vertical, 4)
+        .font(.themed(size: 12))
+        .padding(.horizontal, .space(12))
+        .frame(minHeight: .row(28))
+        .padding(.vertical, .space(4))
         .background(Color.accentColor.opacity(0.08))
     }
 
     private var statusStrip: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: .space(12)) {
             if let session = focusedSession {
                 switch (session.isTerminal, session.foreground) {
                 case (true, .claude):
@@ -810,9 +810,9 @@ struct WorkspaceTerminalPane: View {
                 }
             }
         }
-        .font(.system(size: 11))
-        .padding(.horizontal, 10)
-        .frame(height: 26)
+        .font(.themed(size: 11))
+        .padding(.horizontal, .space(10))
+        .frame(height: .row(26))
         .background(.bar)
     }
 
@@ -820,16 +820,16 @@ struct WorkspaceTerminalPane: View {
     private var mcpStatus: some View {
         switch viewModel.mcpServer.status {
         case .running:
-            HStack(spacing: 4) {
-                Circle().fill(Color.green).frame(width: 6, height: 6)
+            HStack(spacing: .space(4)) {
+                Circle().fill(DesignSystem.Colors.success).frame(width: 6, height: 6)
                 Text("MinuteMind tools available")
             }
             .help("Claude can read meetings, knowledge, tasks and notes through the local MCP server.")
         case .failed(let message):
             Label("MCP server failed: \(message)", systemImage: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
+                .foregroundStyle(DesignSystem.Colors.warning)
         default:
-            HStack(spacing: 4) {
+            HStack(spacing: .space(4)) {
                 Circle().strokeBorder(Color.secondary, lineWidth: 1).frame(width: 6, height: 6)
                 Text("MinuteMind tools off (Settings \u{203A} Integrations)")
             }

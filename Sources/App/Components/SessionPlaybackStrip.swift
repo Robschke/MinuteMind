@@ -28,12 +28,12 @@ struct SessionPlaybackStrip: View {
     @State private var hasAttemptedLoad = false
 
     var body: some View {
-        HStack(alignment: isCropping ? .top : .center, spacing: 10) {
+        HStack(alignment: isCropping ? .top : .center, spacing: .space(10)) {
             Button {
                 playback.toggle()
             } label: {
                 Image(systemName: playback.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(.themed(size: 9, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: 22, height: 22)
                     .background(Circle().fill(Color.accentColor))
@@ -46,7 +46,7 @@ struct SessionPlaybackStrip: View {
                 .frame(maxWidth: .infinity)
 
             Text("\(timecode(playback.currentTime)) / \(timecode(playback.duration))")
-                .font(.caption.monospacedDigit())
+                .font(.themed(.caption).monospacedDigit())
                 .foregroundStyle(.secondary)
                 .fixedSize()
         }
@@ -102,7 +102,7 @@ struct SessionPlaybackStrip: View {
             .overlay {
                 if isLoading { ProgressView().controlSize(.mini) }
             }
-            .frame(height: 28)
+            .frame(height: .row(28))
         }
     }
 

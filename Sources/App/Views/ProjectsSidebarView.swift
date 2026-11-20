@@ -73,7 +73,7 @@ struct ProjectsSidebarView: View {
                 } label: {
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: "house")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                             .frame(width: 18)
                         Text("Home")
@@ -99,7 +99,7 @@ struct ProjectsSidebarView: View {
                 } label: {
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: "gauge.with.dots.needle.33percent")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                             .frame(width: 18)
                         Text("Cockpit")
@@ -122,7 +122,7 @@ struct ProjectsSidebarView: View {
                     let count = viewModel.inboxSessions.count
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: count > 0 ? "tray.full" : "tray")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                             .frame(width: 18)
                         Text("Inbox")
@@ -153,7 +153,7 @@ struct ProjectsSidebarView: View {
                 } label: {
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: "doc.text")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                             .frame(width: 18)
 
@@ -188,7 +188,7 @@ struct ProjectsSidebarView: View {
                 } label: {
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: "checklist")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                             .frame(width: 18)
                     
@@ -223,7 +223,7 @@ struct ProjectsSidebarView: View {
                 } label: {
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: "calendar")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                             .frame(width: 18)
                         Text("Calendar")
@@ -249,7 +249,7 @@ struct ProjectsSidebarView: View {
                 } label: {
                     HStack(spacing: DesignSystem.Dimensions.spacingS) {
                         Image(systemName: "doc.on.clipboard")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                             .frame(width: 18)
                         Text("Clipboard")
@@ -322,14 +322,14 @@ struct ProjectsSidebarView: View {
                         showingNewProjectSheet = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 20))
+                            .font(.themed(size: 20))
                             .foregroundStyle(DesignSystem.Colors.accent)
                     }
                     .buttonStyle(.plain)
                     .help("Create new project")
                 }
             }
-            .frame(minHeight: 24)
+            .frame(minHeight: .row(24))
             .contentShape(Rectangle())
             .contextMenu {
                 if !isArranging, canArrange, viewModel.projects.count > 1 {
@@ -348,7 +348,7 @@ struct ProjectsSidebarView: View {
                     .padding(.top, DesignSystem.Dimensions.spacingM)
                 VStack(spacing: DesignSystem.Dimensions.spacingM) {
                     Image(systemName: "folder.badge.plus")
-                        .font(.system(size: 32))
+                        .font(.themed(size: 32))
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                     
                     VStack(spacing: DesignSystem.Dimensions.spacingXS) {
@@ -389,7 +389,7 @@ struct ProjectsSidebarView: View {
 
             // Settings from every page, pinned below the projects (no divider above it). In full
             // screen the toolbar hides, so the sidebar button sits beside it.
-            HStack(spacing: 2) {
+            HStack(spacing: .space(2)) {
                 SidebarSettingsRow()
                 if sidebarControl.isFullScreen {
                     SidebarHideButton(action: sidebarControl.hideSidebar)
@@ -703,7 +703,7 @@ private struct ProjectRowView: View {
 
             if project.isStarred == true {
                 Image(systemName: "star.fill")
-                    .font(.system(size: 10))
+                    .font(.themed(size: 10))
                     .foregroundStyle(.yellow)
                     .help("Starred")
                     .accessibilityLabel("Starred")
@@ -713,7 +713,7 @@ private struct ProjectRowView: View {
 
             if isArranging {
                 Image(systemName: "line.3.horizontal")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.themed(size: 11, weight: .medium))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
                     .accessibilityHidden(true)
             } else {

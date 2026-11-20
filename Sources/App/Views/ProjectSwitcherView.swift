@@ -58,23 +58,23 @@ struct ProjectSwitcherView: View {
         GeometryReader { proxy in
             ScrollViewReader { scroller in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: .space(4)) {
                         ForEach(model.items, id: \.self) { id in
                             cell(id)
                                 .id(id)
                         }
                     }
-                    .padding(.horizontal, 2)
+                    .padding(.horizontal, .space(2))
                 }
                 .frame(width: min(rowWidth, proxy.size.width - 96), height: Self.cell.height)
                 .onChange(of: model.index, initial: true) { _, _ in
                     if let id = model.highlighted { scroller.scrollTo(id, anchor: .center) }
                 }
             }
-            .padding(14)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .padding(.space(14))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: .corner(22), style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                RoundedRectangle(cornerRadius: .corner(22), style: .continuous)
                     .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.18 : 0.08), lineWidth: 1))
             .shadow(color: .black.opacity(0.25), radius: 30, y: 10)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -89,20 +89,20 @@ struct ProjectSwitcherView: View {
 
     private func cell(_ id: UUID) -> some View {
         let selected = id == model.highlighted
-        return VStack(spacing: 2) {
+        return VStack(spacing: .space(2)) {
             ProjectAvatarView(projectID: id, pixelSize: Self.pixel)
                 .frame(maxHeight: .infinity)
             Text(name(of: id))
-                .font(.system(size: 12, weight: selected ? .semibold : .regular))
+                .font(.themed(size: 12, weight: selected ? .semibold : .regular))
                 .foregroundStyle(selected ? DesignSystem.Colors.textPrimary : DesignSystem.Colors.textSecondary)
                 .lineLimit(1)
                 .truncationMode(.tail)
-                .padding(.horizontal, 6)
+                .padding(.horizontal, .space(6))
         }
-            .padding(.bottom, 8)
+            .padding(.bottom, .space(8))
             .frame(width: Self.cell.width, height: Self.cell.height)
             .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: .corner(14), style: .continuous)
                     .fill(selected ? Color.primary.opacity(colorScheme == .dark ? 0.2 : 0.12) : Color.clear))
             .contentShape(Rectangle())
             .onTapGesture {

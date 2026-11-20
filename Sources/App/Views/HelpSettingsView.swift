@@ -19,13 +19,13 @@ struct HelpSettingsView: View {
             searchField
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: .space(12)) {
                     if isSearching && shownTopics.isEmpty {
                         Text("Nothing in the guide matches \u{201C}\(searchText)\u{201D}.")
-                            .font(.callout)
+                            .font(.themed(.callout))
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity)
-                            .padding(.top, 24)
+                            .padding(.top, .space(24))
                     }
                     ForEach(shownTopics) { topic in
                         HelpTopicSection(
@@ -36,21 +36,21 @@ struct HelpSettingsView: View {
                     }
 
                     Text("You can also ask Claude about MinuteMind: it reads this guide and can change settings for you.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
-                        .padding(.top, 12)
-                        .padding(.bottom, 24)
+                        .padding(.top, .space(12))
+                        .padding(.bottom, .space(24))
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
+                .padding(.horizontal, .space(20))
+                .padding(.top, .space(8))
             }
         }
     }
 
     private var searchField: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
             TextField("Search help topics...", text: $searchText)
@@ -65,12 +65,12 @@ struct HelpSettingsView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(10)
+        .padding(.space(10))
         .background(.quaternary.opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 8)
+        .clipShape(RoundedRectangle(cornerRadius: .corner(8)))
+        .padding(.horizontal, .space(20))
+        .padding(.top, .space(16))
+        .padding(.bottom, .space(8))
     }
 
     private var isSearching: Bool { !HelpGuide.searchWords(searchText).isEmpty }
@@ -101,43 +101,43 @@ private struct HelpTopicSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: toggle) {
-                HStack(spacing: 10) {
+                HStack(spacing: .space(10)) {
                     Image(systemName: topic.icon)
-                        .font(.title3)
+                        .font(.themed(.title3))
                         .foregroundStyle(.tint)
                         .frame(width: 24, alignment: .center)
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: .space(2)) {
                         Text(topic.title)
-                            .font(.headline)
+                            .font(.themed(.headline))
                         Text(topic.summary)
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                             .lineLimit(isExpanded ? nil : 1)
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.caption.bold())
+                        .font(.themed(.caption).bold())
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .padding(.vertical, 10)
-            .padding(.horizontal, 12)
+            .padding(.vertical, .space(10))
+            .padding(.horizontal, .space(12))
 
             if isExpanded {
                 MarkdownDisplayView(content: topic.body)
-                    .padding(12)
+                    .padding(.space(12))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(.background))
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 12)
+                    .background(RoundedRectangle(cornerRadius: .corner(8)).fill(.background))
+                    .padding(.horizontal, .space(12))
+                    .padding(.bottom, .space(12))
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: .corner(10))
                 .fill(.quaternary.opacity(0.3))
         )
     }

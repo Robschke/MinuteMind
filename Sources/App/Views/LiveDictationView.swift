@@ -36,9 +36,9 @@ struct LiveDictationView: View {
             .frame(maxWidth: 700, maxHeight: 500)
             .background(
                 ZStack {
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: .corner(20))
                         .fill(.ultraThinMaterial)
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: .corner(20))
                         .fill(
                             LinearGradient(
                                 colors: [
@@ -53,7 +53,7 @@ struct LiveDictationView: View {
                 }
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: .corner(20))
                     .stroke(
                         LinearGradient(
                             colors: [
@@ -68,7 +68,7 @@ struct LiveDictationView: View {
                     )
             )
             .shadow(color: .black.opacity(0.3), radius: 40, y: 10)
-            .padding(60)
+            .padding(.space(60))
         }
         .onKeyPress(.return) {
             handleEnter()
@@ -88,7 +88,7 @@ struct LiveDictationView: View {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
                 PulsingDot()
                 Text(state.statusMessage)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.themed(size: 14, weight: .medium, design: .rounded))
                     .foregroundStyle(.white.opacity(0.7))
                 Spacer()
                 languagePicker
@@ -114,7 +114,7 @@ struct LiveDictationView: View {
 
             // Hint
             Text("Press **Return** to stop")
-                .font(.system(size: 12, weight: .regular, design: .rounded))
+                .font(.themed(size: 12, weight: .regular, design: .rounded))
                 .foregroundStyle(.white.opacity(0.3))
                 .padding(.bottom, DesignSystem.Dimensions.spacingL)
         }
@@ -127,21 +127,21 @@ struct LiveDictationView: View {
             // Header
             HStack {
                 Text("Edit Transcript")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.themed(size: 16, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.8))
                 Spacer()
                 Button {
                     copyAndDismiss()
                 } label: {
-                    HStack(spacing: 4) {
+                    HStack(spacing: .space(4)) {
                         Image(systemName: "doc.on.doc")
-                            .font(.system(size: 11))
+                            .font(.themed(size: 11))
                         Text("Copy & Close")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(.themed(size: 12, weight: .medium))
                     }
                     .foregroundStyle(.white.opacity(0.7))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
+                    .padding(.horizontal, .space(10))
+                    .padding(.vertical, .space(5))
                     .background(
                         Capsule().fill(.white.opacity(0.1))
                     )
@@ -153,11 +153,11 @@ struct LiveDictationView: View {
 
             // Error / empty state
             if editableText.isEmpty && !state.statusMessage.isEmpty {
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Image(systemName: "exclamationmark.triangle")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(DesignSystem.Colors.warning)
                     Text(state.statusMessage)
-                        .font(.system(size: 14, design: .rounded))
+                        .font(.themed(size: 14, design: .rounded))
                         .foregroundStyle(.white.opacity(0.7))
                 }
                 .padding(.horizontal, DesignSystem.Dimensions.spacingXXL)
@@ -165,13 +165,13 @@ struct LiveDictationView: View {
 
             // Editable text area
             TextEditor(text: $editableText)
-                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .font(.themed(size: 16, weight: .regular, design: .rounded))
                 .foregroundStyle(.white)
                 .scrollContentBackground(.hidden)
                 .focused($isEditorFocused)
                 .padding(DesignSystem.Dimensions.spacingM)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: .corner(12))
                         .fill(.white.opacity(0.05))
                 )
                 .padding(.horizontal, DesignSystem.Dimensions.spacingXXL)
@@ -224,17 +224,17 @@ struct LiveDictationView: View {
                 }
             }
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: .space(4)) {
                 Image(systemName: "globe")
-                    .font(.system(size: 10))
+                    .font(.themed(size: 10))
                 Text(languageLabel)
-                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .font(.themed(size: 10, weight: .medium, design: .rounded))
                 Image(systemName: "chevron.down")
-                    .font(.system(size: 7, weight: .bold))
+                    .font(.themed(size: 7, weight: .bold))
             }
             .foregroundStyle(.white.opacity(0.5))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
+            .padding(.horizontal, .space(8))
+            .padding(.vertical, .space(3))
             .background(Capsule().fill(.white.opacity(0.08)))
         }
         .menuStyle(.borderlessButton)
@@ -262,25 +262,25 @@ struct LiveDictationView: View {
 
     private var engineBadge: some View {
         Text("Apple Speech")
-            .font(.system(size: 10, weight: .medium, design: .rounded))
+            .font(.themed(size: 10, weight: .medium, design: .rounded))
             .foregroundStyle(.white.opacity(0.5))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
+            .padding(.horizontal, .space(8))
+            .padding(.vertical, .space(3))
             .background(Capsule().fill(.white.opacity(0.08)))
     }
 
     // MARK: - Hint Label
 
     private func hintLabel(_ key: String, description: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: .space(4)) {
             Text(key)
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .font(.themed(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundStyle(.white.opacity(0.5))
-                .padding(.horizontal, 5)
-                .padding(.vertical, 2)
-                .background(RoundedRectangle(cornerRadius: 4).fill(.white.opacity(0.08)))
+                .padding(.horizontal, .space(5))
+                .padding(.vertical, .space(2))
+                .background(RoundedRectangle(cornerRadius: .corner(4)).fill(.white.opacity(0.08)))
             Text(description)
-                .font(.system(size: 11, design: .rounded))
+                .font(.themed(size: 11, design: .rounded))
                 .foregroundStyle(.white.opacity(0.3))
         }
     }
@@ -344,7 +344,7 @@ private struct AnimatedWordsView: View {
     let words: [LiveDictationState.AnimatedWord]
 
     var body: some View {
-        FlowLayout(spacing: 6) {
+        FlowLayout(spacing: .space(6)) {
             ForEach(words) { word in
                 AnimatedWordView(word: word)
             }
@@ -365,7 +365,7 @@ private struct AnimatedWordView: View {
 
     var body: some View {
         Text(word.text)
-            .font(.system(size: 22, weight: .medium, design: .rounded))
+            .font(.themed(size: 22, weight: .medium, design: .rounded))
             .foregroundStyle(.white)
             .scaleEffect(scale)
             .opacity(opacity)

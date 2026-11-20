@@ -39,13 +39,13 @@ struct TodoBriefSheetView: View {
                 doneView
             } else {
                 ScrollView {
-                    VStack(spacing: 12) {
+                    VStack(spacing: .space(12)) {
                         summaryCard
                         ForEach(brief.items, id: \.task.id) { item in
                             taskCard(item)
                         }
                     }
-                    .padding(16)
+                    .padding(.space(16))
                 }
                 Divider()
                 footer
@@ -59,9 +59,9 @@ struct TodoBriefSheetView: View {
     private var header: some View {
         HStack {
             Image(systemName: "checklist")
-                .foregroundStyle(.blue)
+                .foregroundStyle(DesignSystem.Colors.accent)
             Text("Daily Task Brief")
-                .font(.headline)
+                .font(.themed(.headline))
             Spacer()
             Button { isPresented = false } label: {
                 Image(systemName: "xmark.circle.fill")
@@ -69,43 +69,43 @@ struct TodoBriefSheetView: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, .space(16))
+        .padding(.vertical, .space(12))
     }
 
     // MARK: - Summary
 
     private var summaryCard: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: .space(10)) {
             Image(systemName: "sparkles")
-                .foregroundStyle(.blue)
-                .font(.subheadline)
-                .padding(.top, 2)
+                .foregroundStyle(DesignSystem.Colors.accent)
+                .font(.themed(.subheadline))
+                .padding(.top, .space(2))
             Text(brief.summary)
-                .font(.subheadline)
+                .font(.themed(.subheadline))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(12)
-        .background(.blue.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
+        .padding(.space(12))
+        .background(DesignSystem.Colors.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: .corner(8)))
     }
 
     // MARK: - Task card
 
     private func taskCard(_ item: BriefItem) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: .space(8)) {
             // Task header
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: .space(2)) {
                     Text(item.task.title)
-                        .font(.subheadline).bold()
-                    HStack(spacing: 6) {
+                        .font(.themed(.subheadline)).bold()
+                    HStack(spacing: .space(6)) {
                         if let priority = item.task.priority {
                             priorityBadge(priority)
                         }
                         if let due = item.task.dueDate {
                             Text("Due \(dateFormatter.string(from: due))")
-                                .font(.caption)
+                                .font(.themed(.caption))
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -115,17 +115,17 @@ struct TodoBriefSheetView: View {
 
             // AI reason
             Text(item.reason)
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
                 .italic()
 
             if item.suggestedSlots.isEmpty {
                 Text("No free slots found in the next 7 days.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.tertiary)
             } else {
                 // Slot options
-                VStack(spacing: 4) {
+                VStack(spacing: .space(4)) {
                     ForEach(item.suggestedSlots) { slot in
                         slotRow(slot: slot, taskID: item.task.id)
                     }
@@ -135,23 +135,23 @@ struct TodoBriefSheetView: View {
                 Button {
                     selections.removeValue(forKey: item.task.id)
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: .space(6)) {
                         Image(systemName: selections[item.task.id] == nil
                               ? "circle.fill" : "circle")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(selections[item.task.id] == nil ? Color.secondary : Color.secondary.opacity(0.4))
                         Text("Skip – don't block calendar")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                     }
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(12)
-        .background(.background, in: RoundedRectangle(cornerRadius: 8))
+        .padding(.space(12))
+        .background(.background, in: RoundedRectangle(cornerRadius: .corner(8)))
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: .corner(8))
                 .strokeBorder(.separator, lineWidth: 1)
         )
     }
@@ -161,28 +161,28 @@ struct TodoBriefSheetView: View {
         return Button {
             selections[taskID] = slot.id
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: .space(8)) {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .foregroundStyle(isSelected ? .blue : .secondary)
-                    .font(.subheadline)
-                VStack(alignment: .leading, spacing: 1) {
+                    .font(.themed(.subheadline))
+                VStack(alignment: .leading, spacing: .space(1)) {
                     Text(slotLabel(slot))
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                         .foregroundStyle(isSelected ? .primary : .secondary)
                     Text(durationLabel(slot))
-                        .font(.caption2)
+                        .font(.themed(.caption2))
                         .foregroundStyle(.tertiary)
                 }
                 Spacer()
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
+            .padding(.horizontal, .space(10))
+            .padding(.vertical, .space(6))
             .background(
                 isSelected ? .blue.opacity(0.08) : .clear,
-                in: RoundedRectangle(cornerRadius: 6)
+                in: RoundedRectangle(cornerRadius: .corner(6))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: .corner(6))
                     .strokeBorder(isSelected ? .blue.opacity(0.3) : .clear, lineWidth: 1)
             )
         }
@@ -195,8 +195,8 @@ struct TodoBriefSheetView: View {
         HStack {
             if let err = errorMessage {
                 Text(err)
-                    .font(.caption)
-                    .foregroundStyle(.red)
+                    .font(.themed(.caption))
+                    .foregroundStyle(DesignSystem.Colors.error)
                     .lineLimit(2)
             }
             Spacer()
@@ -207,7 +207,7 @@ struct TodoBriefSheetView: View {
                 Task { await blockSelected() }
             } label: {
                 if isBlocking {
-                    HStack(spacing: 6) {
+                    HStack(spacing: .space(6)) {
                         ProgressView().controlSize(.small)
                         Text("Blocking…")
                     }
@@ -220,19 +220,19 @@ struct TodoBriefSheetView: View {
             .keyboardShortcut(.defaultAction)
             .disabled(selectedCount == 0 || isBlocking)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, .space(16))
+        .padding(.vertical, .space(10))
     }
 
     private var doneView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: .space(16)) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 40))
-                .foregroundStyle(.green)
+                .font(.themed(size: 40))
+                .foregroundStyle(DesignSystem.Colors.success)
             Text("Blocked \(blockedCount) calendar slot\(blockedCount == 1 ? "" : "s")")
-                .font(.headline)
+                .font(.themed(.headline))
             Text("Your focus time has been added to the calendar.")
-                .font(.subheadline)
+                .font(.themed(.subheadline))
                 .foregroundStyle(.secondary)
             Button("Done") { isPresented = false }
                 .keyboardShortcut(.defaultAction)
@@ -294,9 +294,9 @@ struct TodoBriefSheetView: View {
 
     private func priorityBadge(_ priority: TaskPriority) -> some View {
         Text(priority.displayName)
-            .font(.caption2)
-            .padding(.horizontal, 5)
-            .padding(.vertical, 2)
+            .font(.themed(.caption2))
+            .padding(.horizontal, .space(5))
+            .padding(.vertical, .space(2))
             .background(Color(hex: priority.color).opacity(0.15))
             .foregroundStyle(Color(hex: priority.color))
             .clipShape(Capsule())

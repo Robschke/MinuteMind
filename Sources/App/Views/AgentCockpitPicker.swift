@@ -53,7 +53,7 @@ struct AgentCockpitPicker: View {
                 .accessibilityHidden(true)
             panel
                 .frame(width: Self.width)
-                .padding(.top, 72)
+                .padding(.top, .space(72))
         }
         .onAppear {
             previousResponder = viewModel.mainWindow?.firstResponder
@@ -70,9 +70,9 @@ struct AgentCockpitPicker: View {
             Divider()
             list(rows)
         }
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: .corner(16), style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: .corner(16), style: .continuous)
                 .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.18 : 0.08), lineWidth: 1))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 10)
         .accessibilityElement(children: .contain)
@@ -82,11 +82,11 @@ struct AgentCockpitPicker: View {
     private func field(_ rows: [Row]) -> some View {
         HStack(spacing: DesignSystem.Dimensions.spacingS) {
             Image(systemName: "sparkle")
-                .font(.system(size: 17))
+                .font(.themed(size: 17))
                 .foregroundStyle(Color.accentColor)
             TextField("Start an agent in…", text: $query)
                 .textFieldStyle(.plain)
-                .font(.system(size: 20))
+                .font(.themed(size: 20))
                 .focused($fieldFocused)
                 .onKeyPress(.upArrow) {
                     highlighted = max(highlighted - 1, 0)
@@ -115,7 +115,7 @@ struct AgentCockpitPicker: View {
     private func list(_ rows: [Row]) -> some View {
         ScrollViewReader { scroller in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 2) {
+                LazyVStack(alignment: .leading, spacing: .space(2)) {
                     ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
                         rowView(row, selected: index == highlighted)
                             .id(row.id)
@@ -140,7 +140,7 @@ struct AgentCockpitPicker: View {
                 let sessions = viewModel.cockpitSessions(in: spaceID)
                 AgentStatusCreatureView(projectID: spaceID, sessions: sessions, pixelSize: 2)
                     .frame(width: 32, height: 34)
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: .space(1)) {
                     Text(project.name)
                         .font(DesignSystem.Typography.body.weight(.medium))
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
@@ -152,7 +152,7 @@ struct AgentCockpitPicker: View {
                 }
             } else {
                 Image(systemName: "plus")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.themed(size: 14, weight: .semibold))
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
                     .frame(width: 28, height: 28)
                     .background(Circle().strokeBorder(DesignSystem.Colors.textTertiary, style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
@@ -164,12 +164,12 @@ struct AgentCockpitPicker: View {
             Spacer(minLength: 0)
             if selected {
                 Image(systemName: "return")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.themed(size: 11, weight: .semibold))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
             }
         }
         .padding(.horizontal, DesignSystem.Dimensions.spacingS)
-        .padding(.vertical, 4)
+        .padding(.vertical, .space(4))
         .background(
             RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
                 .fill(selected ? Color.accentColor.opacity(0.14) : Color.clear))

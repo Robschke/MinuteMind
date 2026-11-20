@@ -112,7 +112,7 @@ struct PixelButtonBody: View {
     var body: some View {
         let pressed = configuration.isPressed
         configuration.label
-            .font(.system(size: 12, weight: .medium))
+            .font(.themed(size: 12, weight: .medium))
             .lineLimit(1)
             .fixedSize()
             .padding(.horizontal, 11)

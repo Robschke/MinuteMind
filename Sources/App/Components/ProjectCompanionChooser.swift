@@ -58,12 +58,12 @@ struct ProjectCompanionChooser: View {
             content()
                 .frame(width: Self.tileSize, height: Self.tileSize)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: .corner(8))
                         .fill(isSelected ? DesignSystem.Colors.accent.opacity(0.15) : Color.primary.opacity(0.04)))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: .corner(8))
                         .strokeBorder(isSelected ? DesignSystem.Colors.accent : Color.primary.opacity(0.1), lineWidth: isSelected ? 2 : 1))
-                .contentShape(RoundedRectangle(cornerRadius: 8))
+                .contentShape(RoundedRectangle(cornerRadius: .corner(8)))
         }
         .buttonStyle(.plain)
         .help(label)

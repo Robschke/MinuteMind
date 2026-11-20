@@ -136,7 +136,7 @@ struct AllTasksView: View {
                 emptyState
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: .space(16)) {
                         if sortOption == .project {
                             // Group by project
                             ForEach(tasksByProject, id: \.project?.id) { projectGroup in
@@ -144,7 +144,7 @@ struct AllTasksView: View {
                             }
                         } else {
                             // Flat list
-                            VStack(spacing: 4) {
+                            VStack(spacing: .space(4)) {
                                 ForEach(sortedTasks) { task in
                                     AllTasksRowView(
                                         task: task,
@@ -171,7 +171,7 @@ struct AllTasksView: View {
                             }
                         }
                     }
-                    .padding(24)
+                    .padding(.space(24))
                 }
             }
         }
@@ -200,15 +200,15 @@ struct AllTasksView: View {
     }
 
     private var headerView: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: .space(12)) {
             HStack {
                 Text("All Tasks")
-                    .font(.title.bold())
+                    .font(.themed(.title).bold())
                 
                 Spacer()
                 
                 Text("\(allTasks.count) task\(allTasks.count == 1 ? "" : "s")")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
             
@@ -226,9 +226,9 @@ struct AllTasksView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(8)
+            .padding(.space(8))
             .background(Color(nsColor: .controlBackgroundColor))
-            .cornerRadius(8)
+            .cornerRadius(.corner(8))
             
             HStack {
                 // Sort controls
@@ -273,7 +273,7 @@ struct AllTasksView: View {
                         }
                     } label: {
                         Label("Then by: \(secondarySortOption.rawValue)", systemImage: "arrow.down.right")
-                            .font(.caption)
+                            .font(.themed(.caption))
                     }
                     .menuStyle(.borderlessButton)
                 }
@@ -315,33 +315,33 @@ struct AllTasksView: View {
                 // Show completed toggle
                 Toggle(isOn: $showCompletedTasks) {
                     Text("Show completed")
-                        .font(.caption)
+                        .font(.themed(.caption))
                 }
                 .toggleStyle(.switch)
             }
         }
-        .padding([.horizontal, .top], 24)
-        .padding(.bottom, 12)
+        .padding([.horizontal, .top], .space(24))
+        .padding(.bottom, .space(12))
     }
     
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: .space(16)) {
             Image(systemName: searchQuery.isEmpty ? "checklist" : "magnifyingglass")
-                .font(.system(size: 48))
+                .font(.themed(size: 48))
                 .foregroundStyle(.tertiary)
             
             Text(searchQuery.isEmpty ? (showCompletedTasks ? "No tasks" : "No open tasks") : "No matching tasks")
-                .font(.title3)
+                .font(.themed(.title3))
                 .foregroundStyle(.secondary)
             
             if searchQuery.isEmpty {
                 Text("Tasks will appear here once you create them in your projects")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.tertiary)
                     .multilineTextAlignment(.center)
             } else {
                 Text("Try adjusting your search or filters")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.tertiary)
                     .multilineTextAlignment(.center)
             }
@@ -351,28 +351,28 @@ struct AllTasksView: View {
     }
     
     private func projectSection(project: Project?, tasks: [ProjectTask]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: .space(8)) {
+            HStack(spacing: .space(8)) {
                 if let project = project {
                     ProjectAvatarView(projectID: project.id, pixelSize: 1)
                     
                     Text(project.name)
-                        .font(.headline)
+                        .font(.themed(.headline))
                 } else {
                     Image(systemName: "tray")
                         .foregroundStyle(.secondary)
-                        .font(.system(size: 10))
+                        .font(.themed(size: 10))
                     Text("Unassigned")
-                        .font(.headline)
+                        .font(.themed(.headline))
                         .foregroundStyle(.secondary)
                 }
                 
                 Text("(\(tasks.count))")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
             
-            VStack(spacing: 4) {
+            VStack(spacing: .space(4)) {
                 ForEach(tasks) { task in
                     AllTasksRowView(
                         task: task,
@@ -400,7 +400,7 @@ struct AllTasksView: View {
                     )
                 }
             }
-            .padding(.leading, 8)
+            .padding(.leading, .space(8))
         }
     }
 }
@@ -456,9 +456,9 @@ private struct AllTasksRowView: View {
         VStack(spacing: 0) {
             // Review banner for auto-extracted tasks
             if showsReviewBanner {
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 10))
+                        .font(.themed(size: 10))
                     Text("Auto-extracted — review this task")
                         .font(DesignSystem.Typography.caption1)
 
@@ -466,46 +466,46 @@ private struct AllTasksRowView: View {
 
                     Button { onAcceptReview?() } label: {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                     }
                     .buttonStyle(.plain)
                     .help("Accept task")
 
                     Button { onEdit() } label: {
                         Image(systemName: "pencil.circle.fill")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                     }
                     .buttonStyle(.plain)
                     .help("Edit task")
 
                     Button { onDelete() } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                     }
                     .buttonStyle(.plain)
                     .help("Dismiss task")
                 }
                 .foregroundStyle(DesignSystem.Colors.info)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .padding(.horizontal, .space(12))
+                .padding(.vertical, .space(6))
                 .background(DesignSystem.Colors.info.opacity(0.08))
             }
 
-        HStack(spacing: 12) {
+        HStack(spacing: .space(12)) {
             // Left accent bar — priority color
-            RoundedRectangle(cornerRadius: 2)
+            RoundedRectangle(cornerRadius: .corner(2))
                 .fill(priorityColor)
                 .frame(width: 3)
-                .padding(.vertical, 2)
+                .padding(.vertical, .space(2))
 
             Button(action: onToggle) {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 18))
+                    .font(.themed(size: 18))
                     .foregroundStyle(task.isCompleted ? DesignSystem.Colors.success : DesignSystem.Colors.textTertiary)
             }
             .buttonStyle(.plain)
 
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: .space(5)) {
                 HStack {
                     if isEditingTitle {
                         InlineTaskTitleField(
@@ -522,13 +522,13 @@ private struct AllTasksRowView: View {
                     // Project tag
                     if let project = project {
                         Button(action: onProjectTap) {
-                            HStack(spacing: 4) {
+                            HStack(spacing: .space(4)) {
                                 ProjectAvatarView(projectID: project.id, pixelSize: 1)
                                 Text(project.name)
                                     .font(DesignSystem.Typography.caption1)
                             }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
+                            .padding(.horizontal, .space(8))
+                            .padding(.vertical, .space(3))
                             .background(Color.primary.opacity(0.06))
                             .clipShape(Capsule())
                         }
@@ -538,7 +538,7 @@ private struct AllTasksRowView: View {
                 }
 
                 // Metadata row
-                HStack(spacing: 10) {
+                HStack(spacing: .space(10)) {
                     // Priority picker badge
                     priorityBadge
 
@@ -561,7 +561,7 @@ private struct AllTasksRowView: View {
                     }
 
                     if !task.calendarBlockerIDs.isEmpty {
-                        HStack(spacing: 2) {
+                        HStack(spacing: .space(2)) {
                             Image(systemName: "calendar.badge.clock")
                                 .font(DesignSystem.Typography.caption1)
                             Text("\(task.calendarBlockerIDs.count)")
@@ -575,7 +575,7 @@ private struct AllTasksRowView: View {
             Spacer()
 
             if isHovering {
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Button(action: onEdit) {
                         Image(systemName: "pencil")
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
@@ -592,8 +592,8 @@ private struct AllTasksRowView: View {
                 }
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, .space(12))
+        .padding(.vertical, .space(10))
         } // end outer VStack
         .background(
             RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
@@ -632,17 +632,17 @@ private struct AllTasksRowView: View {
                 }
             }
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: .space(4)) {
                 Circle()
                     .fill(priorityColor)
                     .frame(width: 7, height: 7)
                     .shadow(color: priorityColor.opacity(0.4), radius: 2)
                 Text((task.priority ?? .medium).displayName.uppercased())
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .font(.themed(size: 10, weight: .bold, design: .rounded))
                     .tracking(0.5)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, .space(10))
+            .padding(.vertical, .space(5))
             .background(
                 ZStack {
                     Capsule()

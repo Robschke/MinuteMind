@@ -21,7 +21,7 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingXS) {
                 Text(greeting)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.themed(size: 24, weight: .bold))
                 Text(subtitle)
                     .font(DesignSystem.Typography.callout)
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
@@ -36,8 +36,8 @@ struct HomeView: View {
                     newProjectTile
                 }
             }
-            .padding(.horizontal, 28)
-            .padding(.vertical, 24)
+            .padding(.horizontal, .space(28))
+            .padding(.vertical, .space(24))
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -82,7 +82,7 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingS) {
                 AgentStatusCreatureView(projectID: projectID, sessions: claudeSessions(of: projectID), pixelSize: 4)
                 Text(name)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.themed(size: 15, weight: .semibold))
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
                     .lineLimit(1)
                 Spacer(minLength: 0)
@@ -105,7 +105,7 @@ struct HomeView: View {
         } label: {
             VStack(spacing: DesignSystem.Dimensions.spacingS) {
                 Image(systemName: "plus")
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.themed(size: 20, weight: .medium))
                 Text("New Project")
                     .font(DesignSystem.Typography.callout)
             }
@@ -133,7 +133,7 @@ private struct HomeTileStyle: ButtonStyle {
         @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
         var body: some View {
-            let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+            let shape = RoundedRectangle(cornerRadius: .corner(14), style: .continuous)
             label
                 .background {
                     if dashed {

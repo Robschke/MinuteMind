@@ -43,6 +43,25 @@ enum ThemeFonts {
         return .system(size: scaled, weight: weight, design: design)
     }
 
+    /// The point size macOS gives a text style (body 13, caption 10, ...), what `.body` etc.
+    /// show with the system font.
+    static func systemSize(of textStyle: Font.TextStyle) -> CGFloat {
+        let appKitStyle: NSFont.TextStyle = switch textStyle {
+        case .largeTitle: .largeTitle
+        case .title: .title1
+        case .title2: .title2
+        case .title3: .title3
+        case .headline: .headline
+        case .subheadline: .subheadline
+        case .callout: .callout
+        case .footnote: .footnote
+        case .caption: .caption1
+        case .caption2: .caption2
+        default: .body
+        }
+        return NSFont.preferredFont(forTextStyle: appKitStyle).pointSize
+    }
+
     /// The terminal and code editor font.
     @MainActor
     static func terminalFont(style: ThemeStyle, weight: NSFont.Weight = .regular) -> NSFont {

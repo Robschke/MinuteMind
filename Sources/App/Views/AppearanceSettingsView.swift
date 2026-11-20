@@ -54,16 +54,16 @@ struct AppearanceSettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: .space(20)) {
+                VStack(alignment: .leading, spacing: .space(4)) {
                     Text("Appearance")
-                        .font(.title3.weight(.semibold))
+                        .font(.themed(.title3).weight(.semibold))
                     Text("Colours of the whole app. Menus, window frames and pickers stay native macOS.")
-                        .font(.callout)
+                        .font(.themed(.callout))
                         .foregroundStyle(.secondary)
                 }
 
-                HStack(spacing: 12) {
+                HStack(spacing: .space(12)) {
                     Text("Mode")
                         .frame(width: 80, alignment: .leading)
                     Picker("Mode", selection: $store.appearanceMode) {
@@ -77,10 +77,10 @@ struct AppearanceSettingsView: View {
                 }
 
                 @Bindable var viewModel = viewModel
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                HStack(alignment: .firstTextBaseline, spacing: .space(12)) {
                     Text("Sidebar")
                         .frame(width: 80, alignment: .leading)
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: .space(4)) {
                         Picker("Sidebar", selection: $viewModel.projectSidebarSort) {
                             ForEach(ProjectSidebarSort.allCases) { sort in
                                 Text(sort.label).tag(sort)
@@ -92,16 +92,16 @@ struct AppearanceSettingsView: View {
                         Text(viewModel.projectSidebarSort == .manual
                              ? "Long press a project in the sidebar to drag it into place."
                              : "Starred first, then projects with an open Claude session, newest first.")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: .space(10)) {
                     Text("Theme")
-                        .font(.headline)
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 170, maximum: 220), spacing: 14, alignment: .top)],
-                              alignment: .leading, spacing: 14) {
+                        .font(.themed(.headline))
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 170, maximum: 220), spacing: .space(14), alignment: .top)],
+                              alignment: .leading, spacing: .space(14)) {
                         ForEach(options) { theme in
                             let profile = store.profiles.first { $0.themeID == theme.id }
                             let file = store.fileThemes.first { $0.themeID == theme.id }
@@ -143,7 +143,7 @@ struct AppearanceSettingsView: View {
 
                 CompanionAppearanceSection(companion: viewModel.companion)
             }
-            .padding(24)
+            .padding(.space(24))
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(item: $naming) { request in
@@ -185,12 +185,12 @@ struct AppearanceSettingsView: View {
     /// stays in use until they are fixed).
     @ViewBuilder
     private var fileThemeNotes: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: .space(4)) {
             Text("Ask Claude for a new look, for example \u{201C}make MinuteMind look like a terminal\u{201D}. It saves the theme as a file in the Themes folder.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
             ForEach(store.fileThemeProblems.keys.sorted(), id: \.self) { name in
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: .space(4)) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(DesignSystem.Colors.warning)
                     Text("\(name): \(store.fileThemeProblems[name]?.first ?? "")")
@@ -200,7 +200,7 @@ struct AppearanceSettingsView: View {
                     }
                     .buttonStyle(.link)
                 }
-                .font(.caption)
+                .font(.themed(.caption))
             }
         }
     }
@@ -215,8 +215,8 @@ private struct ProfileNameSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(title).font(.headline)
+        VStack(alignment: .leading, spacing: .space(14)) {
+            Text(title).font(.themed(.headline))
             TextField("Name", text: $name)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 260)
@@ -230,7 +230,7 @@ private struct ProfileNameSheet: View {
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
-        .padding(20)
+        .padding(.space(20))
     }
 
     private func save() {
@@ -249,34 +249,34 @@ private struct ThemeCard: View {
 
     var body: some View {
         Button(action: select) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(8)) {
                 HStack(spacing: 0) {
                     ThemePreview(theme: theme, dark: false)
                     ThemePreview(theme: theme, dark: true)
                 }
                 .frame(height: 96)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .clipShape(RoundedRectangle(cornerRadius: .corner(10)))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: .corner(10))
                         .strokeBorder(isSelected ? Color.accentColor : Color.primary.opacity(0.12),
                                       lineWidth: isSelected ? 2.5 : 0.5))
 
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 5) {
+                VStack(alignment: .leading, spacing: .space(2)) {
+                    HStack(spacing: .space(5)) {
                         if theme.id.hasPrefix(SavedThemeProfile.idPrefix) {
                             // Marks a saved profile among the built-in themes.
                             Image(systemName: "bookmark.fill")
-                                .font(.caption)
+                                .font(.themed(.caption))
                                 .foregroundStyle(.secondary)
                                 .accessibilityLabel("Saved profile")
                         }
-                        Text(theme.name).font(.callout.weight(.semibold))
+                        Text(theme.name).font(.themed(.callout).weight(.semibold))
                         if isSelected {
                             Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.accentColor)
                         }
                     }
                     Text(theme.mood)
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -300,21 +300,21 @@ private struct ThemePreview: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             c(theme.background)
-            VStack(alignment: .leading, spacing: 5) {
-                RoundedRectangle(cornerRadius: 2).fill(c(theme.textPrimary)).frame(width: 34, height: 4)
-                RoundedRectangle(cornerRadius: 2).fill(c(theme.textSecondary)).frame(width: 50, height: 3)
-                HStack(spacing: 3) {
+            VStack(alignment: .leading, spacing: 5*theme.style.density.scale) {
+                RoundedRectangle(cornerRadius: 2*theme.style.corners.scale).fill(c(theme.textPrimary)).frame(width: 34, height: 4)
+                RoundedRectangle(cornerRadius: 2*theme.style.corners.scale).fill(c(theme.textSecondary)).frame(width: 50, height: 3)
+                HStack(spacing: 3*theme.style.density.scale) {
                     ForEach(0..<4, id: \.self) { index in
                         Circle().fill(c(theme.speakers[index % theme.speakers.count])).frame(width: 7, height: 7)
                     }
                 }
                 Capsule().fill(c(theme.accent)).frame(width: 30, height: 9)
             }
-            .padding(8)
+            .padding(8*theme.style.density.scale)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(RoundedRectangle(cornerRadius: 6).fill(c(theme.card)))
-            .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(c(theme.border), lineWidth: 1))
-            .padding(10)
+            .background(RoundedRectangle(cornerRadius: 6*theme.style.corners.scale).fill(c(theme.card)))
+            .overlay(RoundedRectangle(cornerRadius: 6*theme.style.corners.scale).strokeBorder(c(theme.border), lineWidth: 1))
+            .padding(10*theme.style.density.scale)
         }
     }
 }
@@ -343,14 +343,14 @@ private struct CustomThemeEditor: View {
     private var base: AppTheme { AppTheme.builtIn(id: store.editableSettings.baseID) ?? .studio }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: .space(12)) {
+            HStack(spacing: .space(10)) {
                 if let profile = store.selectedProfile {
                     // A saved profile: its name is edited in place, saved on Return or when the
                     // field loses focus (each keystroke would repaint the whole app).
                     TextField("Profile name", text: $profileName)
                         .textFieldStyle(.roundedBorder)
-                        .font(.headline)
+                        .font(.themed(.headline))
                         .frame(width: 220)
                         .focused($nameFocused)
                         .onSubmit { commitName(profile) }
@@ -359,7 +359,7 @@ private struct CustomThemeEditor: View {
                         .onChange(of: nameFocused) { _, focused in if !focused { commitName(profile) } }
                 } else {
                     Text("Custom Colours")
-                        .font(.headline)
+                        .font(.themed(.headline))
                 }
                 Spacer()
                 Button(store.selectedProfile == nil ? "Save as Profile\u{2026}" : "Duplicate Profile\u{2026}", action: saveAsProfile)
@@ -368,7 +368,7 @@ private struct CustomThemeEditor: View {
                         : "Save a copy of this profile under a new name")
             }
 
-            HStack(spacing: 12) {
+            HStack(spacing: .space(12)) {
                 Text("Start from")
                     .frame(width: 80, alignment: .leading)
                 Picker("Start from", selection: $store.editableSettings.baseID) {
@@ -385,11 +385,11 @@ private struct CustomThemeEditor: View {
                 .help("Use the colours of the theme you started from again")
             }
 
-            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
+            Grid(alignment: .leading, horizontalSpacing: .space(16), verticalSpacing: .space(10)) {
                 GridRow {
                     Color.clear.frame(width: 80, height: 1)
-                    Text("Light").font(.caption).foregroundStyle(.secondary)
-                    Text("Dark").font(.caption).foregroundStyle(.secondary)
+                    Text("Light").font(.themed(.caption)).foregroundStyle(.secondary)
+                    Text("Dark").font(.themed(.caption)).foregroundStyle(.secondary)
                 }
                 ForEach(Token.allCases, id: \.self) { token in
                     GridRow {
@@ -403,18 +403,18 @@ private struct CustomThemeEditor: View {
             }
 
             Text("Text colours follow the background, so they stay readable. Speaker colours come from the theme you started from.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             if store.selectedProfile != nil {
                 // Apart from the save action, so it is not hit by accident.
                 Button("Delete Profile\u{2026}", role: .destructive, action: deleteProfile)
-                    .padding(.top, 4)
+                    .padding(.top, .space(4))
             }
         }
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.primary.opacity(0.04)))
+        .padding(.space(16))
+        .background(RoundedRectangle(cornerRadius: .corner(12)).fill(Color.primary.opacity(0.04)))
     }
 
     /// Saves the edited name; an empty field gets the stored name back.
@@ -465,17 +465,17 @@ private struct CompanionAppearanceSection: View {
     @State private var appearance = CompanionAppearance.shared
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .space(12)) {
             Text("Companion")
-                .font(.headline)
-            HStack(alignment: .top, spacing: 20) {
+                .font(.themed(.headline))
+            HStack(alignment: .top, spacing: .space(20)) {
                 // Live preview at the chosen size and colour.
                 CreatureView(frame: CreatureRenderer.frame(.init(mood: .idle, time: 0.05, look: nil, avatar: appearance.avatar, animated: false)))
                     .frame(width: 64, height: 76)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.05)))
+                    .background(RoundedRectangle(cornerRadius: .corner(10)).fill(Color.primary.opacity(0.05)))
                     .accessibilityHidden(true)
 
-                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
+                Grid(alignment: .leading, horizontalSpacing: .space(12), verticalSpacing: .space(10)) {
                     GridRow {
                         Text("Desktop").frame(width: 80, alignment: .leading)
                         Toggle("Show the companion", isOn: Binding(
@@ -489,8 +489,8 @@ private struct CompanionAppearanceSection: View {
                     }
                     GridRow {
                         Text("Sensitivity").frame(width: 80, alignment: .leading)
-                        HStack(spacing: 8) {
-                            Text("Gentle").font(.caption).foregroundStyle(.secondary)
+                        HStack(spacing: .space(8)) {
+                            Text("Gentle").font(.themed(.caption)).foregroundStyle(.secondary)
                             Slider(
                                 value: Binding(
                                     get: { Double(appearance.shakeStrength) },
@@ -500,7 +500,7 @@ private struct CompanionAppearanceSection: View {
                                 .labelsHidden()
                                 .accessibilityLabel("Shake sensitivity")
                                 .accessibilityValue(CompanionAppearance.shakeStrengthLabel(appearance.shakeStrength))
-                            Text("Hard").font(.caption).foregroundStyle(.secondary)
+                            Text("Hard").font(.themed(.caption)).foregroundStyle(.secondary)
                         }
                         .frame(width: 240)
                         .help("How hard you shake the mouse before the companion comes. Gentle: two short flips. Hard: five wide ones.")
@@ -514,10 +514,10 @@ private struct CompanionAppearanceSection: View {
                     }
                     GridRow {
                         Text("Avatar").frame(width: 80, alignment: .leading)
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: .space(8)) {
                             // One row while it fits, else even rows: more at large sizes, in a
                             // narrow window and with avatars of the user's own.
-                            BalancedRows(spacing: 8) {
+                            BalancedRows(spacing: .space(8)) {
                                 ForEach(MascotAvatarCatalog.all) { avatar in
                                     AvatarChoice(avatar: avatar, isSelected: appearance.avatar == avatar) {
                                         appearance.avatar = avatar
@@ -545,7 +545,7 @@ private struct CompanionAppearanceSection: View {
                     }
                     GridRow {
                         Text("Colour").frame(width: 80, alignment: .leading)
-                        HStack(spacing: 10) {
+                        HStack(spacing: .space(10)) {
                             Picker("Colour", selection: Binding(
                                 get: { appearance.customColor != nil },
                                 set: { own in appearance.customColor = own ? appearance.suggestedOwnColor : nil })) {
@@ -569,11 +569,11 @@ private struct CompanionAppearanceSection: View {
                 }
             }
             Text("Default is the theme's accent for the blob and the natural colour for the others; an own colour paints the body only. Its cards take the same colour for their border.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
         }
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.primary.opacity(0.04)))
+        .padding(.space(16))
+        .background(RoundedRectangle(cornerRadius: .corner(12)).fill(Color.primary.opacity(0.04)))
     }
 }
 
@@ -585,15 +585,15 @@ private struct AvatarChoice: View {
 
     var body: some View {
         Button(action: select) {
-            VStack(spacing: 4) {
+            VStack(spacing: .space(4)) {
                 CreatureView(pose: .init(mood: .idle, time: 0.05, look: nil, avatar: avatar, animated: false))
-                Text(avatar.name).font(.caption)
+                Text(avatar.name).font(.themed(.caption))
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(isSelected ? 0.08 : 0.03)))
+            .padding(.horizontal, .space(8))
+            .padding(.vertical, .space(6))
+            .background(RoundedRectangle(cornerRadius: .corner(8)).fill(Color.primary.opacity(isSelected ? 0.08 : 0.03)))
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: .corner(8))
                     .strokeBorder(isSelected ? Color.accentColor : Color.primary.opacity(0.1), lineWidth: isSelected ? 2 : 0.5))
             .contentShape(Rectangle())
         }

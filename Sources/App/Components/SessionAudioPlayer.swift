@@ -210,12 +210,12 @@ struct SessionAudioPlayerView: View {
     @Bindable var playback: SessionAudioPlayback
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: .space(12)) {
             Button {
                 playback.toggle()
             } label: {
                 Image(systemName: playback.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 30))
+                    .font(.themed(size: 30))
                     .foregroundStyle(Color.accentColor)
                     .contentTransition(.symbolEffect(.replace))
             }
@@ -224,7 +224,7 @@ struct SessionAudioPlayerView: View {
             .help(playback.isPlaying ? "Pause" : "Play")
 
             Text("\(timecode(playback.currentTime)) / \(timecode(playback.duration))")
-                .font(.caption.monospacedDigit())
+                .font(.themed(.caption).monospacedDigit())
                 .foregroundStyle(.secondary)
 
             Spacer()

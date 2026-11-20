@@ -38,7 +38,7 @@ struct ScheduledJobEditorView: View {
     var body: some View {
         if let job {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: .space(22)) {
                     header(job)
                     promptSection
                     scheduleSection(job)
@@ -46,7 +46,7 @@ struct ScheduledJobEditorView: View {
                     settingsSection
                     runsSection
                 }
-                .padding(24)
+                .padding(.space(24))
                 .frame(maxWidth: 760, alignment: .leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -70,8 +70,8 @@ struct ScheduledJobEditorView: View {
     // MARK: - Header
 
     private func header(_ job: ScheduledJob) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: .space(6)) {
+            HStack(alignment: .center, spacing: .space(12)) {
                 TextField("Job title", text: binding(\.title, default: ""))
                     .textFieldStyle(.plain)
                     .font(DesignSystem.Typography.title3)
@@ -144,14 +144,14 @@ struct ScheduledJobEditorView: View {
                 TextEditor(text: binding(\.prompt, default: ""))
                     .font(DesignSystem.Typography.callout)
                     .scrollContentBackground(.hidden)
-                    .padding(6)
+                    .padding(.space(6))
                     .frame(minHeight: 140)
                 if job?.prompt.isEmpty ?? true {
                     Text("For example: Summarize yesterday's meetings of this project and list open decisions.")
                         .font(DesignSystem.Typography.callout)
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
-                        .padding(.horizontal, 11)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, .space(11))
+                        .padding(.vertical, .space(6))
                         .allowsHitTesting(false)
                 }
             }
@@ -165,7 +165,7 @@ struct ScheduledJobEditorView: View {
     private func scheduleSection(_ job: ScheduledJob) -> some View {
         let schedule = binding(\.schedule, default: JobSchedule())
         return section("Schedule") {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: .space(12)) {
                 Picker("", selection: schedule.cadence) {
                     ForEach(JobSchedule.Cadence.allCases, id: \.self) { Text($0.label).tag($0) }
                 }
@@ -173,7 +173,7 @@ struct ScheduledJobEditorView: View {
                 .labelsHidden()
                 .frame(maxWidth: 320)
 
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     switch job.schedule.cadence {
                     case .daily:
                         Text("At")
@@ -197,7 +197,7 @@ struct ScheduledJobEditorView: View {
                 .font(DesignSystem.Typography.callout)
 
                 if job.schedule.cadence != .weekly {
-                    HStack(spacing: 6) {
+                    HStack(spacing: .space(6)) {
                         ForEach(JobWeekday.weekOrder, id: \.self) { day in
                             dayChip(day, days: schedule.days)
                         }
@@ -244,7 +244,7 @@ struct ScheduledJobEditorView: View {
                 .frame(width: 40, height: 24)
                 .foregroundStyle(isOn ? Color.white : DesignSystem.Colors.textSecondary)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: .corner(6))
                         .fill(isOn ? DesignSystem.Colors.accent : DesignSystem.Colors.surfaceSecondary))
         }
         .buttonStyle(.plain)
@@ -254,7 +254,7 @@ struct ScheduledJobEditorView: View {
 
     private func accessSection(_ job: ScheduledJob) -> some View {
         section("Access", note: "What Claude may do during a run. Nobody can confirm anything while it runs.") {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(8)) {
                 Picker("", selection: binding(\.access, default: .standard)) {
                     ForEach(ScheduledJob.Access.allCases, id: \.self) { Text($0.label).tag($0) }
                 }
@@ -271,7 +271,7 @@ struct ScheduledJobEditorView: View {
     // MARK: - Model and notifications
 
     private var settingsSection: some View {
-        HStack(alignment: .top, spacing: 40) {
+        HStack(alignment: .top, spacing: .space(40)) {
             section("Model") {
                 Picker("", selection: binding(\.model, default: nil)) {
                     Text("App setting (\(viewModel.automationSettings.claudeModel.capitalized))").tag(String?.none)
@@ -315,17 +315,17 @@ struct ScheduledJobEditorView: View {
     }
 
     private func runRow(_ run: ScheduledJobRun) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: .space(10)) {
             ScheduledJobStatusIcon(status: run.status)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: .space(2)) {
+                HStack(spacing: .space(6)) {
                     Text(ScheduledJobFormat.when(run.started))
                         .font(DesignSystem.Typography.subheadline)
                     if let trigger = ScheduledJobFormat.trigger(run.trigger) {
                         Text(trigger)
                             .font(DesignSystem.Typography.caption2)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
+                            .padding(.horizontal, .space(5))
+                            .padding(.vertical, .space(1))
                             .background(DesignSystem.Colors.surfaceSecondary, in: Capsule())
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                     }
@@ -342,19 +342,19 @@ struct ScheduledJobEditorView: View {
             }
             Spacer()
             Image(systemName: "chevron.right")
-                .font(.system(size: 11, weight: .semibold))
+                .font(.themed(size: 11, weight: .semibold))
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, .space(12))
+        .padding(.vertical, .space(8))
         .contentShape(Rectangle())
     }
 
     // MARK: - Layout
 
     private func section<Content: View>(_ title: String, note: String? = nil, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: .space(8)) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Text(title)
                     .font(DesignSystem.Typography.subheadline.weight(.semibold))
                 if let note {

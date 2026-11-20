@@ -54,7 +54,7 @@ struct AvatarDesignHint: View {
     var body: some View {
         if !MascotAvatarStore.shared.snapshot.hasCustomAvatars {
             Text("Ask Claude to design a new avatar.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
         }
     }

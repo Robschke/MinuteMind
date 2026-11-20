@@ -53,12 +53,12 @@ struct ProjectSettingsSheet: View {
     private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: .space(20)) {
+            HStack(spacing: .space(10)) {
                 let look = AppViewModel.projectAvatar(of: draft)
                 ProjectCreatureMark(avatar: look.avatar, color: look.color, pixelSize: 2)
                 Text("Project Settings")
-                    .font(.title3.bold())
+                    .font(.themed(.title3).bold())
                 Spacer()
             }
 
@@ -66,19 +66,19 @@ struct ProjectSettingsSheet: View {
 
             Divider()
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(8)) {
                 Text("Transcript & Summary Export")
-                    .font(.headline)
+                    .font(.themed(.headline))
                 Text(
                     "New transcripts and summaries are filed into this folder as "
                         + "“\(dayFolderExample)/<meeting name>/”. Re-runs create new versions "
                         + "instead of overwriting."
                 )
-                .font(.callout)
+                .font(.themed(.callout))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     TextField("No folder selected", text: $folderPath)
                         .textFieldStyle(.roundedBorder)
                         .disabled(exportOptOut)
@@ -98,15 +98,15 @@ struct ProjectSettingsSheet: View {
                 }
 
                 Toggle("Don't export files for this project", isOn: $exportOptOut)
-                    .padding(.top, 4)
+                    .padding(.top, .space(4))
 
                 if !exportOptOut && folderPath.isEmpty {
                     Label(
                         "Recordings can't be started for this project until a folder is set (or export is disabled).",
                         systemImage: "exclamationmark.triangle"
                     )
-                    .font(.callout)
-                    .foregroundStyle(.orange)
+                    .font(.themed(.callout))
+                    .foregroundStyle(DesignSystem.Colors.warning)
                     .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -126,31 +126,31 @@ struct ProjectSettingsSheet: View {
                 .disabled(trimmedName.isEmpty)
             }
         }
-        .padding(24)
+        .padding(.space(24))
         .frame(width: 480)
     }
 
     // MARK: - Name, companion, avatar colour
 
     private var identitySection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: .space(14)) {
+            VStack(alignment: .leading, spacing: .space(6)) {
                 Text("Name")
-                    .font(.headline)
+                    .font(.themed(.headline))
                 TextField("Project name", text: $name)
                     .textFieldStyle(.roundedBorder)
             }
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: .space(6)) {
                 Text("Companion")
-                    .font(.headline)
+                    .font(.themed(.headline))
                 ProjectCompanionChooser(selection: $companion, avatarColorHex: avatarColorHex, projectID: project.id)
             }
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: .space(6)) {
                 Text("Avatar Colour")
-                    .font(.headline)
-                HStack(spacing: 10) {
+                    .font(.themed(.headline))
+                HStack(spacing: .space(10)) {
                     Picker("Avatar colour", selection: Binding(
                         get: { avatarColorHex != nil },
                         set: { own in avatarColorHex = own ? suggestedOwnColor : nil })) {
@@ -169,7 +169,7 @@ struct ProjectSettingsSheet: View {
                     }
                 }
                 Text("Default is the creature's natural colour (the theme's accent for the Blob); an own colour paints the body only.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

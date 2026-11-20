@@ -41,7 +41,7 @@ struct AgentCockpitView: View {
     private var empty: some View {
         VStack(spacing: DesignSystem.Dimensions.spacingM) {
             Image(systemName: "gauge.with.dots.needle.33percent")
-                .font(.system(size: 36))
+                .font(.themed(size: 36))
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
             Text("No agents running")
                 .font(DesignSystem.Typography.title3)
@@ -68,7 +68,7 @@ struct AgentCockpitView: View {
         let windows = terminals.windows(rootedAt: project.id)
         return VStack(spacing: DesignSystem.Dimensions.spacingM) {
             Image(systemName: "macwindow.on.rectangle")
-                .font(.system(size: 32))
+                .font(.themed(size: 32))
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
             Text(windows.count == 1 ? "\(project.name)'s agents are in their own window" : "\(project.name)'s agents are in \(windows.count) windows")
                 .font(DesignSystem.Typography.callout)

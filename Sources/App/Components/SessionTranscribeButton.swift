@@ -24,7 +24,7 @@ struct SessionTranscribeButton: View {
     var isRetranscribe: Bool = false
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Menu {
                 Section("Transcribe in") {
                     ForEach(AppViewModel.LanguageOption.allCases) { option in
@@ -50,12 +50,12 @@ struct SessionTranscribeButton: View {
 
             if let note = viewModel.transcriptionEngineFallbackNote {
                 Label(note, systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
+                    .font(.themed(.caption))
+                    .foregroundStyle(DesignSystem.Colors.warning)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text(viewModel.configuredTranscriptionEngineName)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
 

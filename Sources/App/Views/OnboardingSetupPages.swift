@@ -87,7 +87,7 @@ struct OnboardingClaudePage: View {
                     .textSelection(.enabled)
                     .padding(DesignSystem.Dimensions.spacingS)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(DesignSystem.Colors.card))
+                    .background(RoundedRectangle(cornerRadius: .corner(6)).fill(DesignSystem.Colors.card))
                 Button(copied ? "Copied" : "Copy") {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(OnboardingClaudeSetup.installCommand, forType: .string)
@@ -239,7 +239,7 @@ struct OnboardingModelRow: View {
 
     var body: some View {
         HStack(spacing: DesignSystem.Dimensions.spacingM) {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Text(name)
                     .font(DesignSystem.Typography.callout.weight(.semibold))
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
@@ -384,7 +384,7 @@ struct OnboardingCrashReportsRow: View {
             Image(systemName: "ladybug")
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
                 .frame(width: 16)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Text("Send crash reports")
                     .font(DesignSystem.Typography.callout)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)

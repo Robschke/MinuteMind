@@ -25,7 +25,7 @@ struct OnboardingView: View {
                     .frame(maxWidth: 620)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, DesignSystem.Dimensions.spacingXXXL)
-                    .padding(.top, 56)
+                    .padding(.top, .space(56))
                     .padding(.bottom, DesignSystem.Dimensions.spacingXXL)
                     .transition(.opacity)
             }
@@ -125,7 +125,7 @@ struct OnboardingSymbol: View {
 
     var body: some View {
         Image(systemName: name)
-            .font(.system(size: 38, weight: .medium))
+            .font(.themed(size: 38, weight: .medium))
             .foregroundStyle(DesignSystem.Colors.accent)
             .frame(width: 88, height: 88)
             .background(Circle().fill(DesignSystem.Colors.accent.opacity(0.12)))
@@ -140,7 +140,7 @@ struct OnboardingPoint: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: DesignSystem.Dimensions.spacingM) {
             Image(systemName: symbol)
-                .font(.system(size: 14, weight: .medium))
+                .font(.themed(size: 14, weight: .medium))
                 .foregroundStyle(DesignSystem.Colors.accent)
                 .frame(width: 22)
             Text(text)
@@ -159,8 +159,8 @@ struct OnboardingShortcutRow: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: DesignSystem.Dimensions.spacingM) {
-            VStack(spacing: 3) {
-                HStack(spacing: 4) {
+            VStack(spacing: .space(3)) {
+                HStack(spacing: .space(4)) {
                     ForEach(Array(keys.enumerated()), id: \.offset) { _, key in
                         OnboardingKeyCap(label: key)
                     }
@@ -193,17 +193,17 @@ struct OnboardingKeyCap: View {
 
     var body: some View {
         Text(label)
-            .font(.system(size: 13, weight: .semibold, design: .rounded))
+            .font(.themed(size: 13, weight: .semibold, design: .rounded))
             .foregroundStyle(DesignSystem.Colors.textPrimary)
-            .padding(.horizontal, 8)
+            .padding(.horizontal, .space(8))
             .frame(minWidth: 30, minHeight: 28)
             .background(
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: .corner(6))
                     .fill(DesignSystem.Colors.card)
                     .shadow(color: .black.opacity(0.18), radius: 0, x: 0, y: 1.5)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: .corner(6))
                     .strokeBorder(DesignSystem.Colors.border, lineWidth: 1)
             )
     }
@@ -231,7 +231,7 @@ struct OnboardingProgressDots: View {
     let current: Int
 
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: .space(5)) {
             ForEach(0..<count, id: \.self) { position in
                 Capsule()
                     .fill(position <= current ? DesignSystem.Colors.accent : DesignSystem.Colors.border)

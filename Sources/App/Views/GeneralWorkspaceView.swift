@@ -18,7 +18,7 @@ struct GeneralWorkspaceView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .center, spacing: 10) {
+            HStack(alignment: .center, spacing: .space(10)) {
                 Text("General")
                     .font(DesignSystem.Typography.title3)
                 Text("Meetings processed without a project, and the knowledge kept from them")
@@ -27,8 +27,8 @@ struct GeneralWorkspaceView: View {
                     .lineLimit(1)
                 Spacer()
             }
-            .padding(.horizontal, 20)
-            .frame(height: 44)
+            .padding(.horizontal, .space(20))
+            .frame(height: .row(44))
             Divider()
             switch selectedTab {
             case .jobs:

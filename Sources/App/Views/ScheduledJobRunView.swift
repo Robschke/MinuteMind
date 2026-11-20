@@ -22,7 +22,7 @@ struct ScheduledJobRunView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 12) {
+            HStack(spacing: .space(12)) {
                 Button(action: onBack) {
                     Label(store.job(key)?.title ?? "Job", systemImage: "chevron.left")
                 }
@@ -36,18 +36,18 @@ struct ScheduledJobRunView: View {
                 .controlSize(.small)
                 .disabled(run == nil)
             }
-            .padding(.horizontal, 24)
-            .frame(height: 44)
+            .padding(.horizontal, .space(24))
+            .frame(height: .row(44))
             Divider()
             if let run {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: .space(16)) {
                         facts(run)
                         Divider()
                         MarkdownDisplayView(content: run.output)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .padding(24)
+                    .padding(.space(24))
                     .frame(maxWidth: 760, alignment: .leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -64,7 +64,7 @@ struct ScheduledJobRunView: View {
     }
 
     private func facts(_ run: ScheduledJobRun) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: .space(10)) {
             ScheduledJobStatusIcon(status: run.status)
             Text(ScheduledJobFormat.when(run.started))
                 .font(DesignSystem.Typography.headline)

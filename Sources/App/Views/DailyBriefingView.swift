@@ -40,7 +40,7 @@ struct DailyBriefingView: View {
                         ForEach(events) { event in
                             row(event)
                             if event.id != events.last?.id {
-                                Divider().padding(.leading, 12)
+                                Divider().padding(.leading, .space(12))
                             }
                         }
                     }
@@ -52,9 +52,9 @@ struct DailyBriefingView: View {
             }
         }
         .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: .corner(14)))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: .corner(14))
                 .strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5)
         )
         .onAppear(perform: reload)
@@ -64,11 +64,11 @@ struct DailyBriefingView: View {
 
     private var header: some View {
         HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Text("Record today?")
-                    .font(.headline)
+                    .font(.themed(.headline))
                 Text(summary)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
             Spacer()
@@ -76,13 +76,13 @@ struct DailyBriefingView: View {
                 onClose()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.themed(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
             .help("Dismiss until tomorrow")
         }
-        .padding(12)
+        .padding(.space(12))
     }
 
     private var summary: String {
@@ -94,15 +94,15 @@ struct DailyBriefingView: View {
     }
 
     private var emptyState: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Image(systemName: "checkmark.circle")
-                .foregroundStyle(.green)
+                .foregroundStyle(DesignSystem.Colors.success)
             Text("No meetings left today.")
-                .font(.subheadline)
+                .font(.themed(.subheadline))
                 .foregroundStyle(.secondary)
             Spacer()
         }
-        .padding(12)
+        .padding(.space(12))
     }
 
     @ViewBuilder
@@ -114,24 +114,24 @@ struct DailyBriefingView: View {
         Button {
             toggle(event)
         } label: {
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 1.5)
+            HStack(spacing: .space(10)) {
+                RoundedRectangle(cornerRadius: .corner(1.5))
                     .fill(accent)
                     .frame(width: 3, height: 28)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: .space(2)) {
                     Text(event.title)
-                        .font(.subheadline.weight(.medium))
+                        .font(.themed(.subheadline).weight(.medium))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
-                    HStack(spacing: 5) {
+                    HStack(spacing: .space(5)) {
                         Text(timeLabel(event))
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                         if let project {
                             ProjectAvatarView(projectID: project.id, pixelSize: 1)
                             Text(project.name)
-                                .font(.caption)
+                                .font(.themed(.caption))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                         }
@@ -141,12 +141,12 @@ struct DailyBriefingView: View {
                 Spacer(minLength: 8)
 
                 Image(systemName: isOn ? "record.circle.fill" : "circle")
-                    .font(.system(size: 17))
+                    .font(.themed(size: 17))
                     .foregroundStyle(isOn ? .red : .secondary.opacity(0.5))
                     .contentTransition(.symbolEffect(.replace))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
+            .padding(.horizontal, .space(12))
+            .padding(.vertical, .space(9))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -154,7 +154,7 @@ struct DailyBriefingView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Button(recordingCount == events.count ? "Record none" : "Record all") {
                 setAll(recordingCount != events.count)
             }
@@ -166,7 +166,7 @@ struct DailyBriefingView: View {
                 .controlSize(.small)
                 .buttonStyle(.borderedProminent)
         }
-        .padding(12)
+        .padding(.space(12))
     }
 
     // MARK: - Actions

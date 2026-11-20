@@ -56,15 +56,15 @@ struct CompanionChatCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: .space(10)) {
             header
             content
             if request.takesReply { replyField }
             footer
         }
-        .padding(12)
+        .padding(.space(12))
         .frame(width: Metrics.width, alignment: .leading)
-        .glass(cornerRadius: 14)
+        .glass(cornerRadius: .corner(14))
         .onHover { model.isHovering = $0 }
         .onExitCommand(perform: model.closeNotice)
         .task(id: request) {
@@ -77,21 +77,21 @@ struct CompanionChatCard: View {
     }
 
     private var header: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             CreatureView(
                 frame: CreatureRenderer.frame(.init(
                     mood: row.kind == .done ? .idle : .waiting, time: 0.05, look: nil,
                     avatar: row.avatar ?? CompanionAppearance.shared.avatar, animated: false)),
                 avatar: row.avatar, unit: 2, bodyColor: row.avatarColor)
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(headline).font(.system(size: Metrics.headline, weight: .semibold)).lineLimit(1)
+            VStack(alignment: .leading, spacing: .space(1)) {
+                Text(headline).font(.themed(size: Metrics.headline, weight: .semibold)).lineLimit(1)
                 Text("\(row.project) \u{00B7} \(row.session)")
-                    .font(.system(size: Metrics.secondary)).foregroundStyle(PillStyle.secondaryText).lineLimit(1)
+                    .font(.themed(size: Metrics.secondary)).foregroundStyle(PillStyle.secondaryText).lineLimit(1)
             }
             Spacer(minLength: 4)
             Button(action: model.closeNotice) {
-                Image(systemName: "xmark").font(.system(size: 10, weight: .bold))
+                Image(systemName: "xmark").font(.themed(size: 10, weight: .bold))
             }
             .buttonStyle(.plain)
             .foregroundStyle(PillStyle.secondaryText)
@@ -115,29 +115,29 @@ struct CompanionChatCard: View {
     private var content: some View {
         switch request {
         case .permission(let tool, let detail):
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Wants to use \(tool)").font(.system(size: Metrics.body, weight: .medium))
+            VStack(alignment: .leading, spacing: .space(6)) {
+                Text("Wants to use \(tool)").font(.themed(size: Metrics.body, weight: .medium))
                 if detail.isEmpty {
                     Text("Open the session to see what it would do.")
-                        .font(.system(size: Metrics.secondary)).foregroundStyle(PillStyle.secondaryText)
+                        .font(.themed(size: Metrics.secondary)).foregroundStyle(PillStyle.secondaryText)
                 } else {
                     scrolling(detail, monospaced: true, maxHeight: Metrics.permissionHeight)
                 }
             }
         case .question(let text, let options):
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: .space(6)) {
                 markdown(text)
                 if options.isEmpty {
-                    Text("Answer it in the session.").font(.system(size: Metrics.secondary)).foregroundStyle(PillStyle.secondaryText)
+                    Text("Answer it in the session.").font(.themed(size: Metrics.secondary)).foregroundStyle(PillStyle.secondaryText)
                 } else {
                     ForEach(Array(options.enumerated()), id: \.offset) { index, option in
                         Button { model.answerSession(row, .option(index)) } label: {
-                            HStack(spacing: 8) {
+                            HStack(spacing: .space(8)) {
                                 Text("\(index + 1)").monospacedDigit().foregroundStyle(PillStyle.secondaryText)
                                 Text(option).lineLimit(2)
                                 Spacer(minLength: 0)
                             }
-                            .font(.system(size: Metrics.body))
+                            .font(.themed(size: Metrics.body))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
                         }
@@ -148,13 +148,13 @@ struct CompanionChatCard: View {
                 }
             }
         case .plan(let plan):
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: .space(6)) {
                 if !plan.isEmpty { scrolling(plan, maxHeight: Metrics.planHeight) }
-                Text("Review and approve it in the session.").font(.system(size: Metrics.secondary)).foregroundStyle(PillStyle.secondaryText)
+                Text("Review and approve it in the session.").font(.themed(size: Metrics.secondary)).foregroundStyle(PillStyle.secondaryText)
             }
         case .finished(let message):
             if message.isEmpty {
-                Text("Finished without a message.").font(.system(size: Metrics.body)).foregroundStyle(PillStyle.secondaryText)
+                Text("Finished without a message.").font(.themed(size: Metrics.body)).foregroundStyle(PillStyle.secondaryText)
             } else {
                 scrolling(message, maxHeight: Metrics.messageHeight)
             }
@@ -172,7 +172,7 @@ struct CompanionChatCard: View {
         ScrollView {
             Group {
                 if monospaced {
-                    Text(text).font(.system(size: Metrics.code, design: .monospaced))
+                    Text(text).font(.themed(size: Metrics.code, design: .monospaced))
                 } else {
                     markdown(text, secondary: secondary)
                 }
@@ -209,7 +209,7 @@ struct CompanionChatCard: View {
     private var replyField: some View {
         TextField(replyPrompt, text: $model.sessionDraft, axis: .vertical)
             .textFieldStyle(.roundedBorder)
-            .font(.system(size: Metrics.body))
+            .font(.themed(size: Metrics.body))
             .lineLimit(1...4)
             .onSubmit(sendReply)
     }
@@ -237,7 +237,7 @@ struct CompanionChatCard: View {
     /// One row of actions, one blue button: Allow for a permission (Deny and Send once a reply
     /// is typed), else Send for a reply.
     private var footer: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: .space(6)) {
             Button("Open Session") { model.showSession(row.id) }
                 .buttonStyle(PillButtonStyle(.neutral))
             Spacer(minLength: 0)

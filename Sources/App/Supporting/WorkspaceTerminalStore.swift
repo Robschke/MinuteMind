@@ -7,7 +7,8 @@
 //               Sources/App/Supporting/WorkspaceTerminalSplit.swift (panes, drop zones),
 //               Sources/App/Supporting/TerminalSessionStatus.swift (status from hooks),
 //               Sources/App/Supporting/ClaudeSessionRequest.swift (what a session asks, answers),
-//               Sources/App/ViewModels/AppViewModel.swift (workspaceLaunch(for:kind:))
+//               Sources/App/ViewModels/AppViewModel.swift (workspaceLaunch(for:kind:)),
+//               Sources/App/Components/ThemeFonts.swift (the theme's terminal font)
 // Used by: Sources/App/Views/ProjectWorkspaceView.swift, Sources/App/Views/WorkspaceTerminalPane.swift,
 //          Sources/App/Views/WorkspaceClaudeWindowView.swift, Sources/App/Views/ClaudeAssistantWindowView.swift,
 //          Sources/App/Supporting/TerminalTabDragController.swift (drop zones and targets)
@@ -232,7 +233,13 @@ final class WorkspaceTerminalStore {
         appearanceObserver = NSApp?.observe(\.effectiveAppearance) { [weak self] _, _ in
             Task { @MainActor in
                 guard let self else { return }
-                self.sessionsByID.values.forEach { self.applyPalette($0.view) }
+                // The theme's terminal font too; only on a real change, since a new font
+                // reflows the screen.
+                let font = ThemeFonts.terminalFont(style: ThemeStore.shared.theme.style)
+                self.sessionsByID.values.forEach {
+                    self.applyPalette($0.view)
+                    if $0.view.font != font { $0.view.font = font }
+                }
             }
         }
         // A new theme recolours running terminals right away.
@@ -718,7 +725,7 @@ final class WorkspaceTerminalStore {
 
     private func makeView() -> WorkspaceTerminalView {
         let view = WorkspaceTerminalView(frame: NSRect(x: 0, y: 0, width: 800, height: 600))
-        view.font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
+        view.font = ThemeFonts.terminalFont(style: ThemeStore.shared.theme.style)
         view.caretColor = .controlAccentColor
         view.optionAsMetaKey = true
         applyPalette(view)

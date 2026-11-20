@@ -1,4 +1,68 @@
+// Purpose: DesignSystem, the app's design tokens: colours, text styles, spacing and radii, all
+//          following the active theme (ThemeStore), plus the helpers every view uses for sizes
+//          that are not tokens: Font.themed(...) for text, .space(_:) for paddings and gaps,
+//          .corner(_:) for corner radii, .row(_:) for fixed row and bar heights.
+// Dependencies: Sources/App/Supporting/ThemeStore.swift (active theme), Sources/App/Config/ThemeStyle.swift
+//               (font, density, corners), Sources/App/Components/ThemeFonts.swift (font lookup)
+// Used by: nearly every view
+// Notes: The helpers take the size the design calls for and return it in the theme's style, so a
+//        view keeps its proportions and the standard style returns exactly the system font and
+//        the given number (the built-in themes look as before). They read ThemeStore.shared,
+//        which is @Observable, so a view redraws when the theme changes. Geometry that must not
+//        scale (pixel creatures, their crowd and swap scene, the pill's pixel steps, hit areas,
+//        previews of other themes) keeps plain numbers.
+
 import SwiftUI
+
+extension Font {
+    /// A system-style font in the active theme: `size` scaled by the theme, its UI family (or
+    /// the terminal family for monospaced text). Drop-in for `.system(size:weight:design:)`.
+    @MainActor
+    static func themed(size: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default) -> Font {
+        let style = ThemeStore.shared.theme.style
+        if style.hasStandardFonts, design != .monospaced || style.terminalFontFamily == nil {
+            return .system(size: size, weight: weight, design: design)
+        }
+        return ThemeFonts.font(size: size, weight: weight, design: design, style: style)
+    }
+
+    /// A text style in the active theme. Drop-in for `.body`, `.caption`, `.system(.body, design:)`.
+    @MainActor
+    static func themed(_ textStyle: Font.TextStyle, design: Font.Design = .default) -> Font {
+        let style = ThemeStore.shared.theme.style
+        if style.hasStandardFonts, design != .monospaced || style.terminalFontFamily == nil {
+            return .system(textStyle, design: design)
+        }
+        return ThemeFonts.font(
+            size: ThemeFonts.systemSize(of: textStyle), weight: textStyle == .headline ? .bold : .regular,
+            design: design, style: style)
+    }
+}
+
+extension CGFloat {
+    /// A padding or gap in the active theme's density, rounded to half points.
+    @MainActor
+    static func space(_ value: CGFloat) -> CGFloat {
+        let scale = ThemeStore.shared.theme.style.density.scale
+        return scale == 1 ? value : (value * scale * 2).rounded() / 2
+    }
+
+    /// A fixed row or bar height in the active theme: grows with the text size (most of a row
+    /// is text) and shrinks or grows with the density (the rest is padding).
+    @MainActor
+    static func row(_ value: CGFloat) -> CGFloat {
+        let style = ThemeStore.shared.theme.style
+        let scale = 0.6 * style.fontScale + 0.4 * style.density.scale
+        return scale == 1 ? value : (value * scale).rounded()
+    }
+
+    /// A corner radius in the active theme's rounding.
+    @MainActor
+    static func corner(_ value: CGFloat) -> CGFloat {
+        let scale = ThemeStore.shared.theme.style.corners.scale
+        return scale == 1 ? value : value * scale
+    }
+}
 
 struct DesignSystem {
     // MARK: - Colors
@@ -36,52 +100,62 @@ struct DesignSystem {
     }
 
     // MARK: - Typography
-    
+
+    /// Text styles in the active theme's font and size scale (ThemeStyle); with the standard
+    /// style they are the system fonts at the sizes below.
+    @MainActor
     struct Typography {
+        private static func font(_ size: CGFloat, _ weight: Font.Weight, _ design: Font.Design = .default) -> Font {
+            .themed(size: size, weight: weight, design: design)
+        }
+
         // Display
-        static let largeTitle = Font.system(size: 34, weight: .bold, design: .default)
-        static let title1 = Font.system(size: 28, weight: .bold, design: .default)
-        static let title2 = Font.system(size: 22, weight: .semibold, design: .default)
-        static let title3 = Font.system(size: 20, weight: .semibold, design: .default)
-        
+        static var largeTitle: Font { font(34, .bold) }
+        static var title1: Font { font(28, .bold) }
+        static var title2: Font { font(22, .semibold) }
+        static var title3: Font { font(20, .semibold) }
+
         // Body
-        static let headline = Font.system(size: 17, weight: .semibold, design: .default)
-        static let body = Font.system(size: 15, weight: .regular, design: .default)
-        static let callout = Font.system(size: 14, weight: .regular, design: .default)
-        
+        static var headline: Font { font(17, .semibold) }
+        static var body: Font { font(15, .regular) }
+        static var callout: Font { font(14, .regular) }
+
         // Supporting
-        static let subheadline = Font.system(size: 13, weight: .regular, design: .default)
-        static let footnote = Font.system(size: 12, weight: .regular, design: .default)
-        static let caption1 = Font.system(size: 11, weight: .regular, design: .default)
-        static let caption2 = Font.system(size: 10, weight: .medium, design: .default)
-        
-        // Monospaced variants
-        static let monoBody = Font.system(size: 15, weight: .regular, design: .monospaced)
-        static let monoCaption = Font.system(size: 11, weight: .regular, design: .monospaced)
+        static var subheadline: Font { font(13, .regular) }
+        static var footnote: Font { font(12, .regular) }
+        static var caption1: Font { font(11, .regular) }
+        static var caption2: Font { font(10, .medium) }
+
+        // Monospaced variants (the theme's terminal font)
+        static var monoBody: Font { font(15, .regular, .monospaced) }
+        static var monoCaption: Font { font(11, .regular, .monospaced) }
     }
 
     // MARK: - Dimensions (8-point grid system)
 
+    /// Spacing follows the active theme's density, radii its corners (ThemeStyle); with the
+    /// standard style they are the values below.
+    @MainActor
     struct Dimensions {
         // Spacing scale
-        static let spacingXS: CGFloat = 4
-        static let spacingS: CGFloat = 8
-        static let spacingM: CGFloat = 12
-        static let spacingL: CGFloat = 16
-        static let spacingXL: CGFloat = 20
-        static let spacingXXL: CGFloat = 24
-        static let spacingXXXL: CGFloat = 32
-        
+        static var spacingXS: CGFloat { .space(4) }
+        static var spacingS: CGFloat { .space(8) }
+        static var spacingM: CGFloat { .space(12) }
+        static var spacingL: CGFloat { .space(16) }
+        static var spacingXL: CGFloat { .space(20) }
+        static var spacingXXL: CGFloat { .space(24) }
+        static var spacingXXXL: CGFloat { .space(32) }
+
         // Padding
-        static let padding: CGFloat = 16
-        static let paddingLarge: CGFloat = 20
-        static let spacing: CGFloat = 12
-        
+        static var padding: CGFloat { .space(16) }
+        static var paddingLarge: CGFloat { .space(20) }
+        static var spacing: CGFloat { .space(12) }
+
         // Radius
-        static let cornerRadius: CGFloat = 12
-        static let cornerRadiusLarge: CGFloat = 16
-        static let innerRadius: CGFloat = 8
-        static let pillRadius: CGFloat = 100
+        static var cornerRadius: CGFloat { .corner(12) }
+        static var cornerRadiusLarge: CGFloat { .corner(16) }
+        static var innerRadius: CGFloat { .corner(8) }
+        static var pillRadius: CGFloat { .corner(100) }
     }
 
     // MARK: - Shadows
@@ -190,7 +264,7 @@ struct HoverButtonStyle: ButtonStyle {
         configuration.label
             .foregroundColor(isHovering ? DesignSystem.Colors.accent : .secondary)
             .background(
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: .corner(6))
                     .fill(isHovering ? DesignSystem.Colors.accent.opacity(0.1) : Color.clear)
             )
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)

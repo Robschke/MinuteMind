@@ -28,7 +28,7 @@ struct MeetingMinutesSettingsView: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: .space(12)) {
             Picker("Settings", selection: $tab) {
                 ForEach(Tab.allCases) { Text($0.rawValue).tag($0) }
             }

@@ -73,7 +73,7 @@ struct InboxView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: .space(12)) {
             Text("Inbox")
                 .font(DesignSystem.Typography.title3)
             Picker("", selection: $filter) {
@@ -100,7 +100,7 @@ struct InboxView: View {
                 .help(unassignedCount > 0 ? "\(unassignedNote) \(unassignedCount == 1 ? "is" : "are") left out" : "Process every meeting with a project")
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, .space(20))
         .frame(height: 52)
     }
 
@@ -139,12 +139,12 @@ struct InboxView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: .space(8)) {
             Image(systemName: "checkmark.circle")
-                .font(.system(size: 32))
+                .font(.themed(size: 32))
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
             Text(filter == .toProcess ? "All caught up" : "Nothing skipped")
-                .font(.system(size: 15, weight: .medium))
+                .font(.themed(size: 15, weight: .medium))
             Text(filter == .toProcess
                  ? "Meetings you record wait here until they're processed."
                  : "Meetings you skip stay here, so you can still process them later.")
@@ -169,7 +169,7 @@ struct InboxView: View {
     @ViewBuilder
     private var undoToast: some View {
         if let undo {
-            HStack(spacing: 12) {
+            HStack(spacing: .space(12)) {
                 Text("Skipped \(undo.title)")
                     .lineLimit(1)
                 Button("Undo") {
@@ -179,11 +179,11 @@ struct InboxView: View {
                 .keyboardShortcut("z", modifiers: .command)
             }
             .font(DesignSystem.Typography.footnote)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            .padding(.horizontal, .space(14))
+            .padding(.vertical, .space(8))
             .background(.regularMaterial, in: Capsule())
             .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
-            .padding(.bottom, 16)
+            .padding(.bottom, .space(16))
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
@@ -228,12 +228,12 @@ private struct InboxRow: View {
     private var processed: Bool { viewModel.recentlyProcessed.contains(session.id) }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: .space(10)) {
             projectMarker
-                .padding(.top, 4)
-            VStack(alignment: .leading, spacing: 3) {
+                .padding(.top, .space(4))
+            VStack(alignment: .leading, spacing: .space(3)) {
                 Text(displayTitle)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.themed(size: 13, weight: .semibold))
                     .foregroundStyle(isAutoTitle && session.calendarEventTitle == nil ? DesignSystem.Colors.textSecondary : DesignSystem.Colors.textPrimary)
                     .lineLimit(1)
                 metaLine
@@ -243,7 +243,7 @@ private struct InboxRow: View {
             actions
                 .frame(minWidth: 170, alignment: .trailing)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, .space(6))
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
         .contextMenu {
@@ -259,7 +259,7 @@ private struct InboxRow: View {
                 ProjectAvatarView(projectID: project.id, pixelSize: 1)
             } else {
                 Image(systemName: "questionmark.folder")
-                    .font(.system(size: 11))
+                    .font(.themed(size: 11))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
             }
         }
@@ -267,7 +267,7 @@ private struct InboxRow: View {
     }
 
     private var metaLine: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: .space(4)) {
             Text(Self.meta(for: session))
             Text("\u{00B7}")
             Menu {
@@ -282,9 +282,9 @@ private struct InboxRow: View {
                     Button(project.name) { viewModel.assignSessionToProject(session, projectID: project.id) }
                 }
             } label: {
-                HStack(spacing: 2) {
+                HStack(spacing: .space(2)) {
                     Text(project?.name ?? "Choose project")
-                    Image(systemName: "chevron.down").font(.system(size: 8, weight: .semibold))
+                    Image(systemName: "chevron.down").font(.themed(size: 8, weight: .semibold))
                 }
             }
             .menuStyle(.borderlessButton)
@@ -303,7 +303,7 @@ private struct InboxRow: View {
     private var statusLine: some View {
         Group {
             if processed {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     Image(systemName: "checkmark.circle.fill").foregroundStyle(DesignSystem.Colors.success)
                     Text("Processed")
                     Button("Open Summary", action: onOpenSummary).buttonStyle(.link)
@@ -311,12 +311,12 @@ private struct InboxRow: View {
             } else if let stage {
                 StepStrip(stage: stage)
             } else if session.status == .transcribing || isQueued {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     ProgressView().controlSize(.mini)
                     Text(queueText)
                 }
             } else if session.status == .failed {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(DesignSystem.Colors.warning)
                     Text(session.lastErrorMessage ?? "Transcription failed")
                 }
@@ -326,7 +326,7 @@ private struct InboxRow: View {
                 Text(Self.preview(for: session))
             }
         }
-        .font(.system(size: 12))
+        .font(.themed(size: 12))
         .foregroundStyle(DesignSystem.Colors.textTertiary)
         .lineLimit(1)
     }
@@ -334,7 +334,7 @@ private struct InboxRow: View {
     @ViewBuilder
     private var actions: some View {
         let showAll = isSelected || hovering
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             if processed {
                 EmptyView()
             } else if stage != nil {
@@ -421,18 +421,18 @@ private struct StepStrip: View {
         if stage == .queued {
             Text("Waiting\u{2026}")
         } else if stage == .waitingForTranscript {
-            HStack(spacing: 6) {
+            HStack(spacing: .space(6)) {
                 ProgressView().controlSize(.mini)
                 Text("Will process after transcription")
             }
         } else {
             let current = Self.steps.firstIndex { $0.0 == stage } ?? 0
-            HStack(spacing: 6) {
+            HStack(spacing: .space(6)) {
                 ForEach(Self.steps.indices, id: \.self) { index in
                     if index > 0 { Text("\u{00B7}") }
-                    HStack(spacing: 3) {
+                    HStack(spacing: .space(3)) {
                         if index < current {
-                            Image(systemName: "checkmark").font(.system(size: 10))
+                            Image(systemName: "checkmark").font(.themed(size: 10))
                         } else if index == current {
                             ProgressView().controlSize(.mini)
                         }

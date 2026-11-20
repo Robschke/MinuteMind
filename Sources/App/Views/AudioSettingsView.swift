@@ -44,12 +44,12 @@ private struct AudioSettingsContent: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: .space(16)) {
+            VStack(alignment: .leading, spacing: .space(4)) {
                 Text("Audio")
-                    .font(.title3.weight(.semibold))
+                    .font(.themed(.title3).weight(.semibold))
                 Text("The microphone MinuteMind records from. System audio is always captured from all apps.")
-                    .font(.callout)
+                    .font(.themed(.callout))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -67,17 +67,17 @@ private struct AudioSettingsContent: View {
                 .frame(maxWidth: 420)
 
                 Text("Used for recordings and dictation, and remembered. MinuteMind stays on it when headphones connect, so pick your Mac's microphone to keep Bluetooth headphones sounding clear. A change during a recording switches it right away.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: 420, alignment: .leading)
 
                 TextField("Your name", text: $settings.ownSpeakerName, prompt: Text("You"))
                     .frame(maxWidth: 420)
-                    .padding(.top, 12)
+                    .padding(.top, .space(12))
 
                 Text("Your microphone is labelled with this name instead of \u{201C}You\u{201D}: in new transcripts, and in older meetings when you update their summary. Summaries use it too.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: 420, alignment: .leading)
@@ -86,7 +86,7 @@ private struct AudioSettingsContent: View {
 
             Spacer()
         }
-        .padding(24)
+        .padding(.space(24))
         .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear { deviceManager.refreshDevices() }
     }

@@ -33,7 +33,7 @@ struct IntegrationsSettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: .space(20)) {
                 serverSection
                 Divider()
                 tokenSection
@@ -45,7 +45,7 @@ struct IntegrationsSettingsView: View {
                 sharedProjectsSection
                 Spacer(minLength: 20)
             }
-            .padding(24)
+            .padding(.space(24))
         }
         .onAppear {
             portText = String(server.port)
@@ -70,22 +70,22 @@ struct IntegrationsSettingsView: View {
 
     private var serverSection: some View {
         GroupBox(label: sectionLabel("MCP server", systemImage: "point.3.connected.trianglepath.dotted")) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: .space(12)) {
                 Toggle("Allow MCP clients on this Mac to access MinuteMind", isOn: Binding(
                     get: { server.isEnabled },
                     set: { server.isEnabled = $0 }
                 ))
 
                 Text("Claude Code, Claude Desktop and other MCP clients can read and change meetings, transcripts, summaries, tasks, notes, calendar events, reminders and the knowledge base, including deleting them. The server only listens on this Mac (127.0.0.1).")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     statusIndicator
                     Spacer()
                     Text("Port")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     TextField("Port", text: $portText)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 80)
@@ -94,23 +94,23 @@ struct IntegrationsSettingsView: View {
                         .disabled(Int(portText) == server.port)
                 }
 
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Text(server.endpointURL)
-                        .font(.system(.caption, design: .monospaced))
+                        .font(.themed(.caption, design: .monospaced))
                         .textSelection(.enabled)
                     copyButton(id: "url", value: server.endpointURL)
                 }
             }
-            .padding(8)
+            .padding(.space(8))
         }
     }
 
     private var tokenSection: some View {
         GroupBox(label: sectionLabel("Access token", systemImage: "key.fill")) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(12)) {
+                HStack(spacing: .space(8)) {
                     Text(isTokenRevealed ? server.token : maskedToken)
-                        .font(.system(.caption, design: .monospaced))
+                        .font(.themed(.caption, design: .monospaced))
                         .textSelection(.enabled)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -126,7 +126,7 @@ struct IntegrationsSettingsView: View {
                 }
                 HStack {
                     Text("Clients send it as \"Authorization: Bearer <token>\". Anyone with this token has full access.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                     Spacer()
                     Button {
@@ -136,52 +136,52 @@ struct IntegrationsSettingsView: View {
                     }
                 }
             }
-            .padding(8)
+            .padding(.space(8))
         }
     }
 
     private var claudeCodeSection: some View {
         GroupBox(label: sectionLabel("Claude Code", systemImage: "terminal")) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(8)) {
                 Text("Run this once in a terminal:")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                 snippet(id: "claude-code", display: claudeCodeCommand(token: displayToken), copy: claudeCodeCommand(token: server.token))
             }
-            .padding(8)
+            .padding(.space(8))
         }
     }
 
     private var claudeDesktopSection: some View {
         GroupBox(label: sectionLabel("Claude Desktop", systemImage: "macwindow")) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(8)) {
                 Text("Add this to ~/Library/Application Support/Claude/claude_desktop_config.json and restart Claude Desktop. Requires Node.js (npx).")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 snippet(id: "claude-desktop", display: claudeDesktopConfig(token: displayToken), copy: claudeDesktopConfig(token: server.token))
             }
-            .padding(8)
+            .padding(.space(8))
         }
     }
 
     private var sharedProjectsSection: some View {
         GroupBox(label: sectionLabel("Shared Projects", systemImage: "person.2.fill")) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(8)) {
+                HStack(spacing: .space(8)) {
                     Text("Display name")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     TextField("Your name", text: $displayName)
                         .textFieldStyle(.roundedBorder)
                         .frame(maxWidth: 240)
                         .onChange(of: displayName) { _, value in ContributorName.current = value }
                 }
                 Text(ContributorNameText.settingsExplanation)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(8)
+            .padding(.space(8))
         }
     }
 
@@ -192,32 +192,32 @@ struct IntegrationsSettingsView: View {
         switch server.status {
         case .running:
             Label("Running · \(server.toolCount) tools", systemImage: "circle.fill")
-                .foregroundStyle(.green)
-                .font(.caption)
+                .foregroundStyle(DesignSystem.Colors.success)
+                .font(.themed(.caption))
         case .starting:
             Label("Starting…", systemImage: "circle.dotted")
                 .foregroundStyle(.secondary)
-                .font(.caption)
+                .font(.themed(.caption))
         case .stopped:
             Label("Off", systemImage: "circle")
                 .foregroundStyle(.secondary)
-                .font(.caption)
+                .font(.themed(.caption))
         case .failed(let message):
             Label("Failed: \(message)", systemImage: "exclamationmark.triangle.fill")
-                .foregroundStyle(.red)
-                .font(.caption)
+                .foregroundStyle(DesignSystem.Colors.error)
+                .font(.themed(.caption))
         }
     }
 
     private func snippet(id: String, display: String, copy: String) -> some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: .space(8)) {
             Text(display)
-                .font(.system(.caption, design: .monospaced))
+                .font(.themed(.caption, design: .monospaced))
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(8)
+                .padding(.space(8))
                 .background(Color(nsColor: .textBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .clipShape(RoundedRectangle(cornerRadius: .corner(6)))
             copyButton(id: id, value: copy)
         }
     }
@@ -240,7 +240,7 @@ struct IntegrationsSettingsView: View {
 
     private func sectionLabel(_ title: String, systemImage: String) -> some View {
         Label(title, systemImage: systemImage)
-            .font(.headline)
+            .font(.themed(.headline))
     }
 
     // MARK: - Helpers

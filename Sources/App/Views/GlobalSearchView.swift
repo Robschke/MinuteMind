@@ -195,7 +195,7 @@ struct GlobalSearchView: View {
                 .accessibilityHidden(true)
             panel
                 .frame(width: Self.width)
-                .padding(.top, 72)
+                .padding(.top, .space(72))
         }
     }
 
@@ -214,9 +214,9 @@ struct GlobalSearchView: View {
                     .padding(.vertical, DesignSystem.Dimensions.spacingL)
             }
         }
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: .corner(16), style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: .corner(16), style: .continuous)
                 .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.18 : 0.08), lineWidth: 1))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 10)
         .accessibilityElement(children: .contain)
@@ -226,11 +226,11 @@ struct GlobalSearchView: View {
     private var field: some View {
         HStack(spacing: DesignSystem.Dimensions.spacingS) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 18))
+                .font(.themed(size: 18))
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
             TextField("Search pages, projects, sessions, meetings and knowledge", text: $model.query)
                 .textFieldStyle(.plain)
-                .font(.system(size: 20))
+                .font(.themed(size: 20))
                 .focused($fieldFocused)
                 .onKeyPress(.upArrow) {
                     model.moveHighlight(by: -1)
@@ -267,7 +267,7 @@ struct GlobalSearchView: View {
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                             .padding(.horizontal, DesignSystem.Dimensions.spacingL)
                             .padding(.top, DesignSystem.Dimensions.spacingS)
-                            .padding(.bottom, 2)
+                            .padding(.bottom, .space(2))
                         ForEach(group.results) { result in
                             row(result)
                                 .id(result.id)
@@ -291,7 +291,7 @@ struct GlobalSearchView: View {
         return HStack(spacing: DesignSystem.Dimensions.spacingS) {
             icon(result)
                 .frame(width: 24, height: 24)
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: .space(1)) {
                 Text(result.title)
                     .font(DesignSystem.Typography.callout)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
@@ -306,7 +306,7 @@ struct GlobalSearchView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, DesignSystem.Dimensions.spacingS)
-        .padding(.vertical, 5)
+        .padding(.vertical, .space(5))
         .background(
             RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
                 .fill(selected ? Color.accentColor.opacity(0.12) : Color.clear))
@@ -323,7 +323,7 @@ struct GlobalSearchView: View {
             ProjectAvatarView(projectID: id, pixelSize: 1.5)
         } else {
             Image(systemName: result.icon)
-                .font(.system(size: 14))
+                .font(.themed(size: 14))
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
         }
     }

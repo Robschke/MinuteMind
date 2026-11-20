@@ -114,11 +114,11 @@ struct SpeakerNamingSheet: View {
     // MARK: - Sections
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: .space(4)) {
             Text("Name Speakers")
-                .font(.headline)
+                .font(.themed(.headline))
             Text("Listen to a few seconds of each voice, then enter who it was. The names replace the speaker labels in the transcript — and are remembered, so this person is recognized automatically in future recordings.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
 
             if isTextOnly {
@@ -126,23 +126,23 @@ struct SpeakerNamingSheet: View {
                     "This transcript was made before voice samples were stored — you can rename the labels, but there is nothing to play back and no voice is learned. Transcribe again to enable both.",
                     systemImage: "info.circle"
                 )
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
-                .padding(.top, 4)
+                .padding(.top, .space(4))
             }
         }
         .padding()
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: .space(8)) {
             Image(systemName: "person.2.slash")
-                .font(.largeTitle)
+                .font(.themed(.largeTitle))
                 .foregroundStyle(.secondary)
             Text("No speakers were detected for this recording.")
-                .font(.subheadline)
+                .font(.themed(.subheadline))
             Text("Enable \"Identify speakers\" in Settings → Automation and transcribe again.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
@@ -152,12 +152,12 @@ struct SpeakerNamingSheet: View {
 
     @ViewBuilder
     private func speakerRow(_ profile: RecordingSession.SpeakerProfile) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: .space(12)) {
             Button {
                 togglePlayback(for: profile)
             } label: {
                 Image(systemName: playingLabel == profile.label ? "stop.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 26))
+                    .font(.themed(size: 26))
                     .foregroundStyle(Color.accentColor)
             }
             .buttonStyle(.plain)
@@ -169,20 +169,20 @@ struct SpeakerNamingSheet: View {
                     ? "No audio sample stored for this speaker"
                     : "Play \(Int(profile.sampleDuration.rounded()))s of this speaker")
 
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 5) {
+            VStack(alignment: .leading, spacing: .space(2)) {
+                HStack(spacing: .space(5)) {
                     Text(profile.label)
-                        .font(.subheadline.weight(.medium))
+                        .font(.themed(.subheadline).weight(.medium))
                     if profile.wasAutoMatched == true {
                         Label("Recognized", systemImage: "sparkles")
-                            .font(.caption2)
+                            .font(.themed(.caption2))
                             .labelStyle(.titleAndIcon)
                             .foregroundStyle(Color.accentColor)
                             .help("Matched against a voice you named before — correct it if it's wrong")
                     }
                 }
                 Text(subtitle(for: profile))
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
             .frame(width: 190, alignment: .leading)
@@ -209,7 +209,7 @@ struct SpeakerNamingSheet: View {
             }
         }
         .padding(.horizontal)
-        .padding(.vertical, 10)
+        .padding(.vertical, .space(10))
         .background(
             highlightedLabel == profile.label ? Color.accentColor.opacity(0.08) : .clear)
     }
@@ -218,11 +218,11 @@ struct SpeakerNamingSheet: View {
         HStack {
             if playingLabel != nil {
                 Label("Playing…", systemImage: "speaker.wave.2.fill")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             } else if needsProject {
                 Text("Next: choose a project to process this meeting.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
             Spacer()

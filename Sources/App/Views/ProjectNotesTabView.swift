@@ -84,7 +84,7 @@ struct ProjectNotesTabView: View {
     private var searchBar: some View {
         HStack(spacing: DesignSystem.Dimensions.spacingS) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 13))
+                .font(.themed(size: 13))
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
             TextField("Search notes…", text: $searchText)
                 .textFieldStyle(.plain)
@@ -94,7 +94,7 @@ struct ProjectNotesTabView: View {
                     searchText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 13))
+                        .font(.themed(size: 13))
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                 }
                 .buttonStyle(.plain)
@@ -153,7 +153,7 @@ struct ProjectNotesTabView: View {
                 selectedNote = note
             } label: {
                 Label("New Note", systemImage: "square.and.pencil")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.themed(size: 12, weight: .medium))
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
@@ -165,10 +165,10 @@ struct ProjectNotesTabView: View {
     private func filterChip(_ label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                .font(.themed(size: 11, weight: isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? Color.accentColor : DesignSystem.Colors.textSecondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
+                .padding(.horizontal, .space(8))
+                .padding(.vertical, .space(3))
                 .background(
                     Capsule()
                         .fill(isSelected ? Color.accentColor.opacity(0.12) : DesignSystem.Colors.card)
@@ -211,11 +211,11 @@ struct ProjectNotesTabView: View {
     private func noteRow(_ note: EventNote) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingXS) {
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 5) {
+                VStack(alignment: .leading, spacing: .space(2)) {
+                    HStack(spacing: .space(5)) {
                         if note.isManual {
                             Image(systemName: "pencil")
-                                .font(.system(size: 10))
+                                .font(.themed(size: 10))
                                 .foregroundStyle(DesignSystem.Colors.textTertiary)
                         }
                         Text(note.eventTitle)
@@ -250,10 +250,10 @@ struct ProjectNotesTabView: View {
                 HStack(spacing: DesignSystem.Dimensions.spacingXS) {
                     ForEach(note.tags, id: \.self) { tag in
                         Text(tag)
-                            .font(.system(size: 10))
+                            .font(.themed(size: 10))
                             .foregroundStyle(Color.accentColor)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
+                            .padding(.horizontal, .space(6))
+                            .padding(.vertical, .space(2))
                             .background(Capsule().fill(Color.accentColor.opacity(0.1)))
                     }
                 }
@@ -273,7 +273,7 @@ struct ProjectNotesTabView: View {
         VStack(spacing: DesignSystem.Dimensions.spacingM) {
             Spacer()
             Image(systemName: "note.text")
-                .font(.system(size: 36))
+                .font(.themed(size: 36))
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
             Text(searchText.isEmpty && selectedTag == nil ? "No notes yet" : "No matching notes")
                 .font(DesignSystem.Typography.callout.weight(.medium))
@@ -346,7 +346,7 @@ private struct NoteDetailSheet: View {
 
     private var header: some View {
         HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 if note.isManual {
                     TextField("Note title", text: $title)
                         .font(DesignSystem.Typography.headline)
@@ -368,8 +368,8 @@ private struct NoteDetailSheet: View {
                     showDeleteConfirm = true
                 } label: {
                     Image(systemName: "trash")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.red.opacity(0.8))
+                        .font(.themed(size: 13))
+                        .foregroundStyle(DesignSystem.Colors.error.opacity(0.8))
                 }
                 .buttonStyle(.plain)
                 .help("Delete note")
@@ -397,7 +397,7 @@ private struct NoteDetailSheet: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: DesignSystem.Dimensions.spacingXS) {
                 Image(systemName: "tag")
-                    .font(.system(size: 11))
+                    .font(.themed(size: 11))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
 
                 ForEach(tags, id: \.self) { tag in
@@ -405,9 +405,9 @@ private struct NoteDetailSheet: View {
                         // Drag this chip
                         .draggable(tag) {
                             Text(tag)
-                                .font(.system(size: 11))
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 3)
+                                .font(.themed(size: 11))
+                                .padding(.horizontal, .space(7))
+                                .padding(.vertical, .space(3))
                                 .background(Capsule().fill(Color.accentColor.opacity(0.15)))
                         }
                         // Drop onto this chip to reorder
@@ -428,7 +428,7 @@ private struct NoteDetailSheet: View {
                 if showTagField {
                     TextField("tag", text: $newTag)
                         .textFieldStyle(.plain)
-                        .font(.system(size: 11))
+                        .font(.themed(size: 11))
                         .frame(width: 80)
                         .onSubmit { commitTag() }
                 } else {
@@ -436,7 +436,7 @@ private struct NoteDetailSheet: View {
                         showTagField = true
                     } label: {
                         Image(systemName: "plus.circle")
-                            .font(.system(size: 12))
+                            .font(.themed(size: 12))
                             .foregroundStyle(DesignSystem.Colors.textTertiary)
                     }
                     .buttonStyle(.plain)
@@ -451,17 +451,17 @@ private struct NoteDetailSheet: View {
     // MARK: - Helpers
 
     private func tagChip(_ tag: String) -> some View {
-        HStack(spacing: 3) {
-            Text(tag).font(.system(size: 11)).foregroundStyle(DesignSystem.Colors.textSecondary)
+        HStack(spacing: .space(3)) {
+            Text(tag).font(.themed(size: 11)).foregroundStyle(DesignSystem.Colors.textSecondary)
             Button {
                 tags.removeAll { $0 == tag }
             } label: {
-                Image(systemName: "xmark").font(.system(size: 8, weight: .bold))
+                Image(systemName: "xmark").font(.themed(size: 8, weight: .bold))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 7).padding(.vertical, 3)
+        .padding(.horizontal, .space(7)).padding(.vertical, .space(3))
         .background(
             Capsule().fill(DesignSystem.Colors.card)
                 .overlay(Capsule().stroke(DesignSystem.Colors.divider, lineWidth: 1))

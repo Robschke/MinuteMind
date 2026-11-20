@@ -261,8 +261,10 @@ final class ThemeStore {
     }
 }
 
-/// Applies the active theme to a window's content: control tint, accent colour and the base text
-/// colour (secondary and tertiary text derive from it). With Studio these are the system's own.
+/// Applies the active theme to a window's content: control tint, accent colour, the base text
+/// colour (secondary and tertiary text derive from it) and the default font, which every text
+/// without a font of its own (control labels, list rows) takes. With Studio these are the
+/// system's own.
 private struct ThemedWindow: ViewModifier {
     func body(content: Content) -> some View {
         let palette = ThemeStore.shared.palette
@@ -270,6 +272,7 @@ private struct ThemedWindow: ViewModifier {
             .tint(palette.accent)
             .accentColor(palette.accent)
             .foregroundStyle(palette.textPrimary)
+            .font(.themed(.body))
     }
 }
 

@@ -52,7 +52,7 @@ struct ProjectTimelineHeader: View {
     // MARK: - Timeline Bar
 
     private var timelineBar: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: .space(6)) {
             HStack {
                 if let start = project.startDate {
                     Text(dateLabel(start))
@@ -112,7 +112,7 @@ struct ProjectTimelineHeader: View {
                     isEditingDates = true
                 } label: {
                     Image(systemName: "pencil")
-                        .font(.caption2)
+                        .font(.themed(.caption2))
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                 }
                 .buttonStyle(.plain)
@@ -126,7 +126,7 @@ struct ProjectTimelineHeader: View {
     // MARK: - Date Edit Popover
 
     private var dateEditPopover: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .space(12)) {
             Text("Project Timeline")
                 .font(DesignSystem.Typography.headline)
 
@@ -140,7 +140,7 @@ struct ProjectTimelineHeader: View {
                     viewModel.updateProjectTimeline(project, startDate: nil, targetDate: nil)
                     isEditingDates = false
                 }
-                .foregroundStyle(.red)
+                .foregroundStyle(DesignSystem.Colors.error)
 
                 Spacer()
 
@@ -154,7 +154,7 @@ struct ProjectTimelineHeader: View {
                 .buttonStyle(.borderedProminent)
             }
         }
-        .padding(16)
+        .padding(.space(16))
         .frame(width: 280)
     }
 

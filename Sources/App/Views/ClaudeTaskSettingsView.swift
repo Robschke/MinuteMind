@@ -19,24 +19,24 @@ struct ClaudeTaskSettingsView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: .space(10)) {
             Text("Claude mini tasks")
-                .font(.subheadline)
+                .font(.themed(.subheadline))
 
             if settings.quickDictationMode == "toggle" {
                 Text("Choose a hold key above to use Claude mini tasks.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             } else {
                 Text("Hold \(keyName) and Control, say a small task (\u{201C}write a short email to the team that the meeting moves to Friday\u{201D}), then let go. Claude's answer is inserted where your cursor is, like a dictation, and stays on the clipboard. Open Chat in the pill continues in the Claude app instead.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
                 if !claudeInstalled {
                     Label("Needs Claude Code installed and logged in (claude.com/code).", systemImage: "exclamationmark.triangle")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
+                        .font(.themed(.caption))
+                        .foregroundStyle(DesignSystem.Colors.warning)
                 }
 
                 Toggle("Enable Claude mini tasks", isOn: $settings.claudeTaskEnabled)
@@ -51,27 +51,27 @@ struct ClaudeTaskSettingsView: View {
                 .frame(maxWidth: 280, alignment: .leading)
                 .disabled(!settings.claudeTaskEnabled || !settings.quickDictationEnabled)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: .space(2)) {
                     Toggle("Let Claude run terminal commands", isOn: $settings.claudeTaskAllowsTerminal)
                     Text("Claude always uses MinuteMind (todos, calendar, notes, reminders, meetings) and the web without asking. With this on it may also run shell commands on your Mac. Deleting in MinuteMind always asks first.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .disabled(!settings.claudeTaskEnabled || !settings.quickDictationEnabled)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: .space(4)) {
                     Text("Your instructions for every task")
-                        .font(.caption)
+                        .font(.themed(.caption))
                     TextEditor(text: $settings.claudeTaskPrompt)
-                        .font(.body)
+                        .font(.themed(.body))
                         .frame(minHeight: 70, maxHeight: 140)
                         .scrollContentBackground(.hidden)
-                        .padding(4)
-                        .background(RoundedRectangle(cornerRadius: 6).fill(Color(nsColor: .textBackgroundColor)))
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.25)))
+                        .padding(.space(4))
+                        .background(RoundedRectangle(cornerRadius: .corner(6)).fill(Color(nsColor: .textBackgroundColor)))
+                        .overlay(RoundedRectangle(cornerRadius: .corner(6)).stroke(Color.secondary.opacity(0.25)))
                     Text("For example your name for signatures, your usual tone, or the language to write in.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                 }
                 .disabled(!settings.claudeTaskEnabled || !settings.quickDictationEnabled)
