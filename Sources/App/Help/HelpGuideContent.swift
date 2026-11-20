@@ -337,7 +337,7 @@ enum HelpGuideContent {
 
         ## Appearance
 
-        Settings > Appearance > Companion: show or hide it, the creature (blob, duck, dog, puppy, pug, several cats, lime, plus your own avatars, see below), size (a slider from small to large; pixel avatars snap to sizes where their pixels stay sharp), colour, "come to the pointer when I shake the mouse" with a Sensitivity slider below it (Gentle: two short flips are enough, Hard: five wide ones), and "Show the companion in screen shares" (off by default, so others do not see it).
+        Settings > Appearance > Companion: show or hide it, the creature (blob, duck, dog, puppy, pug, several cats, lime, plus your own avatars, see below), size (a slider from small to large in half steps), colour, "come to the pointer when I shake the mouse" with a Sensitivity slider below it (Gentle: two short flips are enough, Hard: five wide ones), and "Show the companion in screen shares" (off by default, so others do not see it).
 
         ## Your own avatars
 

@@ -532,7 +532,7 @@ private struct CompanionAppearanceSection: View {
                     }
                     GridRow {
                         Text("Size").frame(width: 80, alignment: .leading)
-                        Slider(value: $appearance.unitSize, in: CompanionAppearance.sizeRange, step: 0.25) {
+                        Slider(value: $appearance.unitSize, in: CompanionAppearance.sizeRange, step: 0.5) {
                             Text("Size")
                         } minimumValueLabel: {
                             Text("Small").font(.themed(.caption))

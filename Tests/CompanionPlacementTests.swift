@@ -1,6 +1,8 @@
 // Purpose: Tests for the desktop companion's geometry: start position, staying on screen, the
-//          remembered position per display, the side popups open to, and fanned-out windows.
-// Dependencies: Sources/App/Supporting/CompanionPlacement.swift
+//          remembered position per display, the side popups open to, fanned-out windows, and
+//          the sizes the companion can have (half points).
+// Dependencies: Sources/App/Supporting/CompanionPlacement.swift,
+//               Sources/App/Supporting/CompanionAppearance.swift (snappedSize)
 
 import CoreGraphics
 import Testing
@@ -112,5 +114,17 @@ struct CompanionPlacementTests {
         #expect(creature.maxX == window.maxX - 14 && creature.minY == window.minY + 12)
         #expect(CompanionPlacement.isNearDock(CGPoint(x: origin.x - 20, y: origin.y + 20), windowFrame: window))
         #expect(!CompanionPlacement.isNearDock(CGPoint(x: origin.x - 200, y: origin.y), windowFrame: window))
+    }
+
+    @Test("Every size is a half point between 1.5 and 6")
+    func sizesSnapToHalfPoints() {
+        #expect(CompanionAppearance.snappedSize(3) == 3)
+        #expect(CompanionAppearance.snappedSize(2.5) == 2.5)
+        #expect(CompanionAppearance.snappedSize(2.25) == 2.5)
+        #expect(CompanionAppearance.snappedSize(3.2) == 3)
+        #expect(CompanionAppearance.snappedSize(3.3) == 3.5)
+        #expect(CompanionAppearance.snappedSize(5.9) == 6)
+        #expect(CompanionAppearance.snappedSize(0.4) == 1.5)
+        #expect(CompanionAppearance.snappedSize(40) == 6)
     }
 }

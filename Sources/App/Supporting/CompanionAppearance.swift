@@ -10,9 +10,10 @@
 //          CompanionController.swift (resizes its panels), Sources/App/Views/AppearanceSettingsView.swift,
 //          Sources/App/ViewModels/AppViewModel+Companion.swift (projectBodyColor: project creatures)
 // Notes: User request 2026-10-13: size and colour adjustable in Settings, Appearance; a choice of
-//        other creatures may follow later. The size is a slider (1.5 to 6 points per unit, 3 is
-//        the size the creature was designed at); pixel avatars snap to half points so their
-//        pixels stay crisp, svg avatars are sharp at any size. One colour for light and
+//        other creatures may follow later. The size is a slider (1.5 to 6 points per unit in half steps, 3
+//        is the size the creature was designed at). Every size is a half point, whatever the
+//        avatar's kind, so pixel-drawn parts (pixel avatars, bubble, badges) stay crisp on
+//        Retina screens, also beside an svg avatar. One colour for light and
 //        dark mode: the creature floats over every app, not inside a themed window. Keys:
 //        mm.companionSize (points per unit; older builds stored small, medium, large), mm.companionColor (hex, absent = theme accent),
 //        mm.companionLastColor (the last own colour, restored when switching back to it),
@@ -120,11 +121,18 @@ final class CompanionAppearance {
         }
     }
 
+    /// A size the companion can have: inside `sizeRange`, on the nearest half point.
+    static func snappedSize(_ value: Double) -> Double {
+        let clamped = min(max(value, sizeRange.lowerBound), sizeRange.upperBound)
+        return (clamped * 2).rounded() / 2
+    }
+
     /// Points per creature unit, set with the size slider (the creature is 12 units wide).
+    /// Always a half point inside `sizeRange`.
     var unitSize: Double {
         didSet {
-            let clamped = min(max(unitSize, Self.sizeRange.lowerBound), Self.sizeRange.upperBound)
-            if clamped != unitSize { unitSize = clamped; return }
+            let snapped = Self.snappedSize(unitSize)
+            if snapped != unitSize { unitSize = snapped; return }
             defaults.set(unitSize, forKey: "mm.companionSize")
             announceChange()
         }
@@ -166,7 +174,7 @@ final class CompanionAppearance {
         // A number since the slider; Small, Medium and Large before it.
         let stored = defaults.object(forKey: "mm.companionSize")
         let number = (stored as? NSNumber)?.doubleValue ?? (stored as? String).flatMap { Self.namedSizes[$0] } ?? 3
-        unitSize = min(max(number, Self.sizeRange.lowerBound), Self.sizeRange.upperBound)
+        unitSize = Self.snappedSize(number)
         customColor = (defaults.object(forKey: "mm.companionColor") as? Int).map { UInt32(truncatingIfNeeded: $0) }
         isLoaded = true
         avatarsObserver = NotificationCenter.default.addObserver(
@@ -176,11 +184,8 @@ final class CompanionAppearance {
         }
     }
 
-    /// Points per unit as drawn: a pixel avatar snaps to half points so its pixels stay sharp
-    /// on Retina screens, an svg avatar takes the slider's value as it is.
-    var pixel: CGFloat {
-        avatar.kind == .pixel ? CGFloat((unitSize * 2).rounded() / 2) : CGFloat(unitSize)
-    }
+    /// Points per unit as drawn: the unit size, a half point for every kind of avatar.
+    var pixel: CGFloat { CGFloat(unitSize) }
 
     /// The creature's body colour; its outline and shine derive from it.
     var bodyColor: Color { bodyColor(for: avatar) }

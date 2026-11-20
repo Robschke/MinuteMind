@@ -331,14 +331,14 @@ enum AppSettingsCatalog {
                 }),
             AppSetting(
                 id: "companion_size", title: "Size", location: companionPlace,
-                summary: "Size of the companion, a number from 1.5 (small) to 6 (large) points per creature unit; 3 is the standard size. \"small\", \"medium\" and \"large\" are 2, 3 and 4.",
+                summary: "Size of the companion, a number from 1.5 (small) to 6 (large) points per creature unit in half steps (other numbers are rounded to the nearest half); 3 is the standard size. \"small\", \"medium\" and \"large\" are 2, 3 and 4.",
                 helpTopic: "companion", storageKeys: ["mm.companionSize"], kind: .text,
                 read: { _ in .string(String(format: "%g", CompanionAppearance.shared.unitSize)) },
                 write: { _, value in
                     let text = value.string.trimmingCharacters(in: .whitespaces).lowercased()
                     guard let number = CompanionAppearance.namedSizes[text] ?? Double(text.replacingOccurrences(of: ",", with: ".")),
                           CompanionAppearance.sizeRange.contains(number) else {
-                        return "Use a number from 1.5 to 6, or small, medium or large."
+                        return "Use a number from 1.5 to 6 (in half steps; other numbers are rounded to the nearest half), or small, medium or large."
                     }
                     CompanionAppearance.shared.unitSize = number
                     return nil
