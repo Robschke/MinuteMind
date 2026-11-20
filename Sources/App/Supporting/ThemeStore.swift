@@ -3,7 +3,8 @@
 //          files in the Themes folder, reloaded while the app runs.
 // Dependencies: Sources/App/Config/AppTheme.swift (themes, custom settings),
 //               Sources/App/Config/ThemeFile.swift, Sources/App/Supporting/ThemeFileStore.swift
-//               (theme files), AppKit (NSApp.appearance)
+//               (theme files), Sources/App/Components/ThemeFonts.swift (its installed-font
+//               checks are cleared when fonts change), AppKit (NSApp.appearance, font set changes)
 // Used by: Sources/App/Components/DesignSystem.swift (Colors), Sources/App/Components/SpeakerPalette.swift,
 //          Sources/App/MinuteMindApp.swift (tint at every scene root),
 //          Sources/App/Supporting/WorkspaceTerminalStore.swift (terminal colours, via notification),
@@ -16,7 +17,9 @@
 //        profiles, several of them, each deletable), mm.appearanceMode (system, light, dark;
 //        applied through NSApp.appearance). A theme file is selected as "file:<id>". The folder
 //        is checked every 1.5 s; when the selected file is deleted the app falls back to the
-//        built-in it was based on, as with a deleted profile.
+//        built-in it was based on, as with a deleted profile. When fonts are installed or
+//        removed (NSFont.fontSetChangedNotification) the active theme is applied again, so a
+//        theme whose font was missing takes it without a restart.
 
 import AppKit
 import Observation
@@ -101,6 +104,7 @@ final class ThemeStore {
     let fileStore: ThemeFileStore
     @ObservationIgnored private var fileSignature = ""
     @ObservationIgnored private var fileTimer: Timer?
+    @ObservationIgnored private var fontSetObserver: NSObjectProtocol?
 
     /// The selected theme file, if one is selected.
     var selectedFileTheme: ThemeFile? { fileThemes.first { $0.themeID == themeID } }
@@ -195,7 +199,23 @@ final class ThemeStore {
             fileTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
                 MainActor.assumeIsolated { self?.reloadFileThemes() }
             }
+            fontSetObserver = NotificationCenter.default.addObserver(
+                forName: NSFont.fontSetChangedNotification, object: nil, queue: .main
+            ) { [weak self] _ in
+                MainActor.assumeIsolated { self?.fontSetChanged() }
+            }
         }
+    }
+
+    // MARK: - Fonts
+
+    /// Fonts were installed or removed: the installed-font checks start over and the active theme
+    /// is applied again, so SwiftUI and the AppKit views pick its fonts anew. The theme is
+    /// reported as changed by hand: it is equal to the one before, and Observation tells nobody
+    /// about an equal value, while views that only read its style (Font.themed) must redraw.
+    func fontSetChanged() {
+        withMutation(keyPath: \.theme) { ThemeFonts.forgetInstalled() }
+        rebuild()
     }
 
     // MARK: - Theme files

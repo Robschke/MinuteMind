@@ -1,10 +1,12 @@
 // Purpose: Tests for theme files: what the validator accepts and refuses, how a file resolves
 //          into a theme (base, derived text colours, style), the round trip through JSON, the
-//          warnings, the folder store and how ThemeStore picks files up and falls back.
+//          warnings, the folder store, how ThemeStore picks files up and falls back, and that
+//          it applies the theme again when the Mac's fonts change.
 // Dependencies: Sources/App/Config/ThemeFile.swift, Sources/App/Supporting/ThemeFileStore.swift,
 //               Sources/App/Supporting/ThemeStore.swift
 
 import Foundation
+import Observation
 import Testing
 
 @testable import MinuteMindApp
@@ -175,5 +177,24 @@ struct ThemeFileTests {
         #expect(themes.fileThemes.isEmpty)
         #expect(themes.themeID == "midnight")
         #expect(themes.theme.style == .standard)
+    }
+
+    @Test func aChangedFontSetAppliesTheActiveThemeAgain() throws {
+        let suite = "ThemeFileTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let themes = ThemeStore(defaults: defaults, fileStore: ThemeFileStore(folder: temporaryFolder()))
+        let before = themes.theme
+
+        // Views that read the theme (fonts, sizes) or its colours redraw, although the theme
+        // itself is the same.
+        nonisolated(unsafe) var themeChanged = false
+        nonisolated(unsafe) var paletteChanged = false
+        withObservationTracking { _ = themes.theme } onChange: { themeChanged = true }
+        withObservationTracking { _ = themes.palette } onChange: { paletteChanged = true }
+        themes.fontSetChanged()
+        #expect(themeChanged)
+        #expect(paletteChanged)
+        #expect(themes.theme == before)
     }
 }

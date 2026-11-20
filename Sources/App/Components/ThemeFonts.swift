@@ -3,20 +3,28 @@
 //          terminals, the code editor and other AppKit text.
 // Dependencies: Sources/App/Config/ThemeStyle.swift
 // Used by: Sources/App/Components/DesignSystem.swift (Font.themed, Typography),
+//          Sources/App/Supporting/ThemeStore.swift (forgets the checks when fonts change),
 //          Sources/App/Views/ThemePreviewSheet.swift (preview_theme picture),
 //          Sources/App/Supporting/WorkspaceTerminalStore.swift, Sources/App/Views/WorkspaceCodeEditor.swift
 // Notes: With the standard style the system fonts come back unchanged, so the built-in themes
 //        look exactly as before. A family that is not installed falls back to the system font
-//        (checked once per family name), so a theme from another Mac never shows a missing-font
-//        placeholder. Weights are applied to the family; a family without that weight shows its
+//        (checked once per family name until the Mac's fonts change, `forgetInstalled`), so a
+//        theme from another Mac never shows a missing-font placeholder and takes its font as soon
+//        as it is installed. Weights are applied to the family; a family without that weight shows its
 //        nearest face.
 
 import AppKit
 import SwiftUI
 
 enum ThemeFonts {
-    /// Families known to be installed, checked once each.
+    /// Whether a family is installed, checked once each until `forgetInstalled`.
     @MainActor private static var installed: [String: Bool] = [:]
+
+    /// Fonts were installed or removed: every family is checked again when next asked for.
+    @MainActor
+    static func forgetInstalled() {
+        installed.removeAll()
+    }
 
     @MainActor
     static func isInstalled(_ family: String) -> Bool {
