@@ -82,18 +82,18 @@ struct MascotAvatarFile: Equatable, Sendable {
         file.name = string("name") ?? ""
         file.kind = string("kind", required: false) ?? MascotAvatar.Kind.pixel.rawValue
         file.bodyColor = string("bodyColor", required: false)
+        if let version = object["formatVersion"], !(version is NSNull) {
+            if let number = (version as? NSNumber).flatMap(Self.wholeNumber) {
+                file.formatVersion = number
+            } else {
+                issues.append("\"formatVersion\" must be a whole number.")
+            }
+        }
         if file.isSVG {
             // A drawing in any style: no pixel rows, colours or mouth.
             let (art, artIssues) = SVGAvatarArt.read(object["svg"])
             file.svg = art
             issues += artIssues
-            if let version = object["formatVersion"], !(version is NSNull) {
-                if let number = (version as? NSNumber).flatMap(Self.wholeNumber) {
-                    file.formatVersion = number
-                } else {
-                    issues.append("\"formatVersion\" must be a whole number.")
-                }
-            }
             return (file, issues)
         }
         file.featureColor = string("featureColor") ?? ""
@@ -116,14 +116,6 @@ struct MascotAvatarFile: Equatable, Sendable {
             issues.append(object["neutralMouth"] == nil
                 ? "\"neutralMouth\" is missing (use [] when the body already draws the mouth)."
                 : "\"neutralMouth\" must be a list of [x, y] pairs, for example [[5, 9], [6, 9]].")
-        }
-
-        if let version = object["formatVersion"], !(version is NSNull) {
-            if let number = (version as? NSNumber).flatMap(Self.wholeNumber) {
-                file.formatVersion = number
-            } else {
-                issues.append("\"formatVersion\" must be a whole number.")
-            }
         }
         return (file, issues)
     }
