@@ -127,6 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
     func applicationWillTerminate(_ notification: Notification) {
         viewModel?.projectStore.flushPendingSaves()
+        viewModel?.recordClaudeSessionsEndedAtQuit()
     }
 
     /// Whether this hold key is the one the user selected for quick dictation.

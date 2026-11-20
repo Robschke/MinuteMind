@@ -52,6 +52,7 @@ enum AppSettingsCatalog {
         "mm.onboardingScreenRecordingRequested": "first-launch setup bookkeeping",
         "mm.onboardingSelectGeneral": "first-launch setup bookkeeping",
         "mm.onboardingStep": "first-launch setup bookkeeping",
+        "mm.projectAgentActivity": "when each project's Claude sessions last opened and closed, for the sidebar's Recently used order",
         "mm.pendingProjectID": "the record picker's project (start_recording takes a project instead)",
         "mm.processWithoutAsking": "old key, replaced by mm.processOnceAssigned",
         "mm.recordingConsentAcknowledged": "one-time recording notice",
@@ -299,6 +300,16 @@ enum AppSettingsCatalog {
                 read: { _ in .string(ThemeStore.shared.appearanceMode.rawValue) },
                 write: { _, value in
                     ThemeStore.shared.appearanceMode = ThemeStore.AppearanceMode(rawValue: value.string) ?? .system
+                    return nil
+                }),
+            AppSetting(
+                id: "sidebar_project_order", title: "Sidebar", location: "Settings > Appearance",
+                summary: "Order of the projects in the sidebar: manual (the order dragged by the user) or recentlyUsed (starred first, then projects with an open Claude session, then by when their last session closed).",
+                helpTopic: "projects", storageKeys: [ProjectSidebarSort.storageKey], kind: .choice,
+                options: { _ in ProjectSidebarSort.allCases.map { Option(value: $0.rawValue, label: $0.label) } },
+                read: { .string($0.projectSidebarSort.rawValue) },
+                write: { vm, value in
+                    if let sort = ProjectSidebarSort(rawValue: value.string) { vm.projectSidebarSort = sort }
                     return nil
                 }),
             AppSetting(

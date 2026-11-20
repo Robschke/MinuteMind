@@ -354,6 +354,7 @@ enum HelpGuideContent {
         - Right click a project: Star / Unstar (starred projects show a star in the sidebar, come first in the project wheel with their creature or a star, and are always in the project switcher), Edit Project..., Companion (its creature), Make Shared Project..., Arrange Projects.
         - **Edit Project...** (also a right click on the project's name at the top of its own sidebar, or on its creature in the switcher) opens the project settings: name, companion creature, avatar colour (Default is the creature's natural colour; Own Colour opens the system colour panel with wheel, sliders and hex code, and paints the creature's body only, the headphones and other details keep theirs) and the export folder.
         - Long press a project (or Arrange Projects) to drag the projects into your order.
+        - **Order** (Settings > Appearance > Sidebar): Manual order (the default, your dragged order) or Recently used. Recently used puts starred projects first, then projects with an open Claude session (the one opened last on top), then the others by when their last Claude session closed, and projects that never had one at the bottom in your manual order. The list moves by itself as sessions open and close; arranging is off while Recently used is chosen.
 
         ## Inside a project
 
@@ -539,13 +540,14 @@ enum HelpGuideContent {
         id: "appearance",
         title: "Appearance and Themes",
         icon: "paintpalette",
-        summary: "Themes, custom colours and saved profiles, light and dark mode.",
+        summary: "Themes, custom colours and saved profiles, light and dark mode, the sidebar's project order.",
         body: """
         Settings > Appearance:
 
         - **Theme:** Studio (standard macOS look, the default), Ember (warm paper and terracotta), Midnight (deep navy and cyan), Voltage (electric violet and lime), or Custom.
         - **Custom:** start from a built-in theme and set accent, background, card and border colours for light and dark. Save custom colours as named profiles; they appear next to the built-in themes and can be renamed or deleted.
         - **Mode:** System, Light or Dark.
+        - **Sidebar:** the order of the projects in the sidebar, Manual order or Recently used (see Projects).
         - **Companion:** see Desktop Companion.
 
         The workspace terminal and Claude follow the theme's colours.
@@ -578,7 +580,7 @@ enum HelpGuideContent {
 
         - **Automation:** Startup (open MinuteMind at login, needed for jobs and meeting detection), Auto-recording, Live Dictation (default language), Quick Dictation (with Claude mini tasks), Parakeet, Pipeline (processing, engine, audio cleanup, name correction, speakers, task auto-accept), Task Review Reminders, Reminders Sync.
         - **Audio:** the microphone and your name in transcripts.
-        - **Appearance:** theme, light or dark, the companion.
+        - **Appearance:** theme, light or dark, the sidebar's project order, the companion.
         - **AI:** Claude Code status, the Claude model, summary prompts.
         - **Dictionary:** terms and how they are misheard.
         - **Integrations:** the MCP server, access token, Claude Code and Claude Desktop setup, your display name for Shared Projects.
