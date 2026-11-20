@@ -20,6 +20,10 @@
 //        renamed (name field, saved on Return or focus loss, or the card's context menu),
 //        duplicated and deleted (with confirmation; the app falls back to the profile's base
 //        theme). A bookmark marks profile cards; the Custom card says it is a draft.
+//        Theme files (made by Claude, ThemeFile) sit after the profiles as plain cards; a right
+//        click shows the file in Finder or moves it to the Trash. They are changed by asking
+//        Claude, so they have no colour editor. A line under the grid says how to get one and
+//        names files that do not pass.
 //        Companion section (same day): show on the desktop, come to the pointer on a mouse
 //        shake, avatar (every avatar of the catalog, the built-in ones and the user's own, each
 //        shown as a still preview at its size; a right click deletes one, and deleted or edited
@@ -33,6 +37,7 @@ struct AppearanceSettingsView: View {
     @State private var store = ThemeStore.shared
     @State private var naming: NamingRequest?
     @State private var profileToDelete: SavedThemeProfile?
+    @State private var fileThemeToDelete: ThemeFile?
 
     /// The text field sheet for saving or renaming a profile.
     private struct NamingRequest: Identifiable {
@@ -43,7 +48,8 @@ struct AppearanceSettingsView: View {
     }
 
     private var options: [AppTheme] {
-        AppTheme.builtIn + store.profiles.map { $0.resolve() } + [store.custom.resolve()]
+        AppTheme.builtIn + store.profiles.map { $0.resolve() } + store.fileThemes.map { $0.resolve() }
+            + [store.custom.resolve()]
     }
 
     var body: some View {
@@ -98,6 +104,7 @@ struct AppearanceSettingsView: View {
                               alignment: .leading, spacing: 14) {
                         ForEach(options) { theme in
                             let profile = store.profiles.first { $0.themeID == theme.id }
+                            let file = store.fileThemes.first { $0.themeID == theme.id }
                             ThemeCard(theme: theme, isSelected: store.themeID == theme.id) {
                                 store.themeID = theme.id
                             }
@@ -109,6 +116,11 @@ struct AppearanceSettingsView: View {
                                         naming = NamingRequest(name: store.nextProfileName())
                                     }
                                     Button("Delete\u{2026}", role: .destructive) { profileToDelete = profile }
+                                } else if let file {
+                                    Button("Show in Finder") {
+                                        NSWorkspace.shared.activateFileViewerSelecting([store.fileStore.url(for: file.id)])
+                                    }
+                                    Button("Delete\u{2026}", role: .destructive) { fileThemeToDelete = file }
                                 } else if theme.id == AppTheme.customID {
                                     Button("Save as Profile\u{2026}") {
                                         store.themeID = AppTheme.customID
@@ -119,6 +131,8 @@ struct AppearanceSettingsView: View {
                         }
                     }
                 }
+
+                fileThemeNotes
 
                 if store.themeID == AppTheme.customID || store.selectedProfile != nil {
                     CustomThemeEditor(
@@ -154,6 +168,40 @@ struct AppearanceSettingsView: View {
         } message: { profile in
             let base = AppTheme.builtIn(id: profile.settings.baseID)?.name ?? AppTheme.studio.name
             Text("The profile is removed. If it is in use, the app switches to \(base), the theme it was based on.")
+        }
+        .confirmationDialog(
+            "Delete \u{201C}\(fileThemeToDelete?.name ?? "")\u{201D}?",
+            isPresented: Binding(get: { fileThemeToDelete != nil }, set: { if !$0 { fileThemeToDelete = nil } }),
+            presenting: fileThemeToDelete
+        ) { file in
+            Button("Move to Trash", role: .destructive) { try? store.deleteFileTheme(id: file.id) }
+        } message: { file in
+            let base = AppTheme.builtIn(id: file.base)?.name ?? AppTheme.studio.name
+            Text("Its file goes to the Trash. If it is in use, the app switches to \(base), the theme it was based on.")
+        }
+    }
+
+    /// How new themes come about, and theme files that do not pass (their last good version
+    /// stays in use until they are fixed).
+    @ViewBuilder
+    private var fileThemeNotes: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Ask Claude for a new look, for example \u{201C}make MinuteMind look like a terminal\u{201D}. It saves the theme as a file in the Themes folder.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            ForEach(store.fileThemeProblems.keys.sorted(), id: \.self) { name in
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(DesignSystem.Colors.warning)
+                    Text("\(name): \(store.fileThemeProblems[name]?.first ?? "")")
+                        .lineLimit(2)
+                    Button("Show in Finder") {
+                        NSWorkspace.shared.activateFileViewerSelecting([store.fileStore.folder.appendingPathComponent(name)])
+                    }
+                    .buttonStyle(.link)
+                }
+                .font(.caption)
+            }
         }
     }
 }

@@ -12,6 +12,8 @@
 //        - Changes are noticed by a signature of names, sizes and modification dates, which the
 //          theme store compares every second or two; a handful of small files makes that cheap
 //          and it catches in-place edits a folder watcher would miss.
+//        - Deleting moves the file to the Trash (removing it only where there is no Trash), so a
+//          theme deleted by mistake can be put back.
 
 import Foundation
 
@@ -98,7 +100,13 @@ final class ThemeFileStore {
         return url
     }
 
+    /// Moves the file to the Trash, so a deleted theme can be put back from there.
     func delete(id: String) throws {
-        try fileManager.removeItem(at: url(for: id))
+        let url = url(for: id)
+        do {
+            try fileManager.trashItem(at: url, resultingItemURL: nil)
+        } catch {
+            try fileManager.removeItem(at: url)
+        }
     }
 }

@@ -283,11 +283,12 @@ enum AppSettingsCatalog {
         [
             AppSetting(
                 id: "theme", title: "Theme", location: "Settings > Appearance",
-                summary: "Colour theme of the app. Custom uses the colours set in Settings; saved profiles are listed by name.",
+                summary: "Theme of the app (colours, and for theme files also font, corners, density and terminal font). Custom uses the colours set in Settings; saved profiles and theme files (save_theme) are listed by name.",
                 helpTopic: "appearance", storageKeys: ["mm.theme"], kind: .choice,
                 options: { _ in
                     AppTheme.builtIn.map { Option(value: $0.id, label: $0.name) }
                         + ThemeStore.shared.profiles.map { Option(value: $0.themeID, label: $0.name) }
+                        + ThemeStore.shared.fileThemes.map { Option(value: $0.themeID, label: $0.name) }
                         + [Option(value: AppTheme.customID, label: "Custom")]
                 },
                 read: { _ in .string(ThemeStore.shared.themeID) },
