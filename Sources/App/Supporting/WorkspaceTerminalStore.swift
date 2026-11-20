@@ -11,6 +11,7 @@
 // Used by: Sources/App/Views/ProjectWorkspaceView.swift, Sources/App/Views/WorkspaceTerminalPane.swift,
 //          Sources/App/Views/WorkspaceClaudeWindowView.swift, Sources/App/Views/ClaudeAssistantWindowView.swift,
 //          Sources/App/Supporting/TerminalTabDragController.swift (drop zones and targets)
+//          Sources/App/ViewModels/AppViewModel+ProjectAgentActivity.swift (Claude sessions opening and closing)
 // Notes: SwiftUI rebuilds NSViewRepresentables freely; the terminal views (and with them the child
 //        processes) therefore live here, and the representable only re-parents them.
 //        Strips (user request 2026-10-13, see WorkspaceTerminalLayout): a project's workspace pane
@@ -221,6 +222,11 @@ final class WorkspaceTerminalStore {
     /// When each session was last focused (clicked into, or brought forward), for the companion's
     /// double click; ignored by observation so a click redraws nothing.
     @ObservationIgnored private var focusedAt: [UUID: Date] = [:]
+    /// A Claude session (not a plain terminal) opened in this project; for the sidebar's
+    /// Recently used order (AppViewModel+ProjectAgentActivity.swift).
+    @ObservationIgnored var onClaudeSessionOpened: ((UUID) -> Void)?
+    /// A Claude session of this project closed; the others may still be open.
+    @ObservationIgnored var onClaudeSessionClosed: ((UUID) -> Void)?
 
     init() {
         appearanceObserver = NSApp?.observe(\.effectiveAppearance) { [weak self] _, _ in
@@ -334,6 +340,7 @@ final class WorkspaceTerminalStore {
         } else {
             layout.append(session.id, to: groupID)
         }
+        if !kind.isTerminal { onClaudeSessionOpened?(group.projectID) }
         return session
     }
 
@@ -345,6 +352,7 @@ final class WorkspaceTerminalStore {
         try? FileManager.default.removeItem(at: session.statusFile)
         layout.remove(sessionID)
         focusedAt[sessionID] = nil
+        if !session.isTerminal { onClaudeSessionClosed?(session.projectID) }
     }
 
     /// Ends whatever runs in the session and starts it again (Claude, or a fresh shell) in a

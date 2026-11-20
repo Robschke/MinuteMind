@@ -1,8 +1,10 @@
-// Purpose: ContentView, the main window: the sidebar (Home's, or the open project's own) beside the
-//          page of the current place, the Ctrl+Tab project switcher and the Cmd+K search over
-//          both, and the window-wide sheets and alerts.
+// Purpose: ContentView, the main window: the sidebar (Home's, the open project's own or the agent
+//          cockpit's) beside the page of the current place, the Ctrl+Tab project switcher and the
+//          Cmd+K search over both, and the window-wide sheets and alerts.
 // Dependencies: Sources/App/Views/ProjectsSidebarView.swift (Home sidebar),
 //               Sources/App/Views/ProjectContextSidebar.swift (project sidebar),
+//               Sources/App/Views/AgentCockpitSidebar.swift, AgentCockpitView.swift,
+//               AgentCockpitPicker.swift (cockpit and its Cmd+T picker),
 //               Sources/App/Views/HomeView.swift, Sources/App/Views/ProjectSwitcherView.swift,
 //               Sources/App/Views/GlobalSearchView.swift (Cmd+K search),
 //               Sources/App/Components/MainWindowEventMonitor.swift (mouse back and forward, Ctrl+Tab,
@@ -10,8 +12,9 @@
 //               Sources/App/ViewModels/AppViewModel+Navigation.swift (currentPlace, visits),
 //               Sources/App/Components/TitlebarDragBlocker.swift (drags inside the title bar band)
 // Used by: Sources/App/MinuteMindApp.swift (main window)
-// Notes: The sidebar slides: Home's goes out to the left as a project's comes in from the right,
-//        and back the other way; between two projects it crossfades (Reduce Motion: no slide).
+// Notes: The sidebar slides: Home's goes out to the left as a project's or the cockpit's comes in
+//        from the right, and back the other way; between two projects, or a project and the
+//        cockpit, it crossfades (Reduce Motion: no slide).
 //        It is clipped at its sides only, so its background reaches up under the traffic lights.
 //        Every change of the current place is recorded here as a visit, whoever made it.
 //        The page reaches up into the title bar band like the sidebar (the toolbar only holds the
@@ -157,6 +160,9 @@ struct ContentView: View {
                 } else if viewModel.isShowingCalendar {
                     CalendarView()
                         .environment(viewModel)
+                } else if viewModel.isShowingCockpit {
+                    AgentCockpitView()
+                        .environment(viewModel)
                 } else if viewModel.selectedProjectID == ProjectRepositoryService.generalProjectID {
                     GeneralWorkspaceView()
                         .environment(viewModel)
@@ -192,6 +198,18 @@ struct ContentView: View {
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: switcher.isShown)
+        .overlay {
+            // The cockpit's project picker (Cmd+T); it closes with the cockpit.
+            if viewModel.isShowingCockpitPicker && viewModel.isShowingCockpit {
+                AgentCockpitPicker()
+                    .environment(viewModel)
+                    .transition(.opacity)
+            }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: viewModel.isShowingCockpitPicker)
+        .onChange(of: viewModel.isShowingCockpit) { _, shown in
+            if !shown { viewModel.isShowingCockpitPicker = false }
+        }
         .globalSearch(search)
         .onChange(of: viewModel.currentPlace) { old, new in
             viewModel.recordNavigation(from: old, to: new)
@@ -200,16 +218,23 @@ struct ContentView: View {
         .onDisappear { eventMonitor.stop() }
     }
 
-    /// Home's sidebar, or the open project's own; they slide past each other.
+    /// Home's sidebar, or the open project's or the cockpit's own; they slide past each other.
     private var sidebar: some View {
-        let projectID = viewModel.currentPlace.projectID
+        let inner = innerSidebarKey
         return ZStack {
-            if let projectID {
-                // The inner stack crossfades between projects; the outer one slides in and out.
+            if let inner {
+                // The inner stack crossfades between projects and the cockpit; the outer one
+                // slides in and out.
                 ZStack {
-                    ProjectContextSidebar(projectID: projectID)
-                        .id(projectID)
-                        .transition(.opacity)
+                    Group {
+                        if let projectID = viewModel.currentPlace.projectID {
+                            ProjectContextSidebar(projectID: projectID)
+                        } else {
+                            AgentCockpitSidebar()
+                        }
+                    }
+                    .id(inner)
+                    .transition(.opacity)
                 }
                 .transition(reduceMotion ? .opacity : .move(edge: .trailing))
             } else {
@@ -218,8 +243,16 @@ struct ContentView: View {
             }
         }
         .clipShape(SidesOnlyClip())
-        .animation(.smooth(duration: 0.3), value: projectID != nil)
-        .animation(.easeOut(duration: 0.15), value: projectID)
+        .animation(.smooth(duration: 0.3), value: inner != nil)
+        .animation(.easeOut(duration: 0.15), value: inner)
+    }
+
+    /// Which sidebar replaces Home's: the open project's (its ID) or the cockpit's; nil on Home
+    /// and the other pages.
+    private var innerSidebarKey: String? {
+        if let projectID = viewModel.currentPlace.projectID { return projectID.uuidString }
+        if viewModel.currentPlace == .cockpit { return "cockpit" }
+        return nil
     }
 
     /// The project "Edit Project…" opened; nil once it is closed or the project is gone.

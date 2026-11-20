@@ -76,7 +76,7 @@ enum HelpGuideContent {
 
         ## The window
 
-        MinuteMind opens on Home: your projects as tiles with their creatures. A creature shows what the project's Claude sessions do: it types on its laptop while one works, waves while one waits for you, holds its thumb up with a green check when one has finished and you have not opened that session yet, and sleeps while its sessions are idle. The sidebar lists Home, Inbox (meetings waiting to be processed), All Transcripts (every recording, with the record button), All Tasks, Calendar, Clipboard (your dictation history), General (a workspace for meetings without a project) and your projects. Settings is the gear at the bottom of the sidebar (Cmd+,).
+        MinuteMind opens on Home: your projects as tiles with their creatures. A creature shows what the project's Claude sessions do: it types on its laptop while one works, waves while one waits for you, holds its thumb up with a green check when one has finished and you have not opened that session yet, and sleeps while its sessions are idle. The sidebar lists Home, Cockpit (every running Claude session of every project, see Workspace), Inbox (meetings waiting to be processed), All Transcripts (every recording, with the record button), All Tasks, Calendar, Clipboard (your dictation history), General (a workspace for meetings without a project) and your projects. Settings is the gear at the bottom of the sidebar (Cmd+,).
 
         Click a project (its tile or its row) to enter it: the sidebar then belongs to that project, with its sections and its files. Click the project's name at the top of the sidebar to go back Home. The back and forward buttons of your mouse go to the previous and next place, like in a browser. Hold Cmd and press K to switch projects.
 
@@ -354,6 +354,7 @@ enum HelpGuideContent {
         - Right click a project: Star / Unstar (starred projects show a star in the sidebar, come first in the project wheel with their creature or a star, and are always in the project switcher), Edit Project..., Companion (its creature), Make Shared Project..., Arrange Projects.
         - **Edit Project...** (also a right click on the project's name at the top of its own sidebar, or on its creature in the switcher) opens the project settings: name, companion creature, avatar colour (Default is the creature's natural colour; Own Colour opens the system colour panel with wheel, sliders and hex code, and paints the creature's body only, the headphones and other details keep theirs) and the export folder.
         - Long press a project (or Arrange Projects) to drag the projects into your order.
+        - **Order** (Settings > Appearance > Sidebar): Manual order (the default, your dragged order) or Recently used. Recently used puts starred projects first, then projects with an open Claude session (the one opened last on top), then the others by when their last Claude session closed, and projects that never had one at the bottom in your manual order. The list moves by itself as sessions open and close; arranging is off while Recently used is chosen.
 
         ## Inside a project
 
@@ -377,7 +378,7 @@ enum HelpGuideContent {
         id: "workspace",
         title: "Project Workspace and Claude Code",
         icon: "terminal",
-        summary: "The workspace folder, its files in the sidebar, the editor, Claude Code sessions, terminals, splits and git branches.",
+        summary: "The workspace folder, its files in the sidebar, the editor, Claude Code sessions, terminals, splits, git branches and the agent cockpit.",
         body: """
         Every project has a workspace: a folder (a git repository) holding its processed meetings (meetings/), quick recordings (recordings/), knowledge (knowledge/), jobs (jobs/) and anything you or Claude add, such as plans, notes or cloned code. Its CLAUDE.md tells Claude what the folder is; text you add outside the MinuteMind block is kept.
 
@@ -386,9 +387,20 @@ enum HelpGuideContent {
         - **Agents** in the project's sidebar: every open Claude session of the project, its creature showing the state: typing while it works, waving while it waits for you, the error face when it stopped with an error, a thumb up with a green check when it finished and you have not opened it since, asleep while it is idle. Click one to open it in the Workspace.
         - **Files** in the project's sidebar: browse, drag to move (Option copies), rename, New File / New Folder, Duplicate, Copy Path, Move to Trash (Cmd+Delete). meetings/, recordings/, knowledge/ and CLAUDE.md stay in place. The folder button beside Files shows the folder in Finder.
         - **Editor:** click a file to open it (from any section, it switches to Workspace), with syntax colours, a Markdown preview, images and PDFs. Changes save by themselves; double click opens a file in its usual app.
-        - **Claude Code:** up to six sessions per project in tabs (the sparkle button; right click for Sonnet instead of Opus), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.
+        - **Claude Code:** up to six sessions per project in tabs (the sparkle button or Cmd+N, File > New Claude Session; right click the sparkle for Sonnet instead of Opus; in a Claude window Cmd+N adds a tab there), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.
         - **Layout:** Claude sits below the file (default), beside it, or in its own window (buttons in Claude's tab strip). Drag a tab onto a pane to split it, or use Split Right / Split Down in the tab's menu; drag a tab out to give it its own window.
         - **Branch row** at the bottom of the project's sidebar: the checked-out git branch; switch or create branches there. Uncommitted changes come along or are kept for you on the branch you leave. If it says "git is not installed", click Install: it opens Apple's installer for the Command Line Tools (or run `xcode-select --install` in Terminal). Until then the workspace keeps no history and Shared Projects cannot sync.
+
+        ## Cockpit
+
+        Cockpit in the Home sidebar is for working with agents across projects. Its sidebar lists every project with a running Claude session and that project's sessions below it, each with the project's creature showing its state; the page shows the chosen project's Claude tabs and splits, without files or jobs. Click a session to work in it, click a project to see its tabs, and click the arrow beside a project to fold it.
+
+        - **+ on a project** (shown when the pointer is over it): starts another Claude session there; right click for Sonnet.
+        - **+ at the top:** starts a session in a project that has none yet, or creates a new project with New Project... and starts one in it. You stay in the cockpit.
+        - **Cmd+T** opens a search over all your projects, in the same order as the Home sidebar, each with its creature and how many agents it runs. Type to filter, use the arrow keys and press Return to start an Opus session in that project (also in one that already runs agents), or pick New Project... at the end. Esc closes it.
+        - **Cmd+N** starts another Opus session in the project shown on the right.
+        - A project leaves the list when its last Claude session closes. Sessions in their own window stay there; clicking one brings the window forward.
+        - The sessions are the same as in each project's Workspace, so you can switch between the two at any time. Click Cockpit at the top of its sidebar to go back Home.
 
         Claude in the workspace has MinuteMind's tools, so it can read meetings, tasks, the calendar and the knowledge, and change settings.
         """
@@ -539,13 +551,14 @@ enum HelpGuideContent {
         id: "appearance",
         title: "Appearance and Themes",
         icon: "paintpalette",
-        summary: "Themes, custom colours and saved profiles, light and dark mode.",
+        summary: "Themes, custom colours and saved profiles, light and dark mode, the sidebar's project order.",
         body: """
         Settings > Appearance:
 
         - **Theme:** Studio (standard macOS look, the default), Ember (warm paper and terracotta), Midnight (deep navy and cyan), Voltage (electric violet and lime), or Custom.
         - **Custom:** start from a built-in theme and set accent, background, card and border colours for light and dark. Save custom colours as named profiles; they appear next to the built-in themes and can be renamed or deleted.
         - **Mode:** System, Light or Dark.
+        - **Sidebar:** the order of the projects in the sidebar, Manual order or Recently used (see Projects).
         - **Companion:** see Desktop Companion.
 
         The workspace terminal and Claude follow the theme's colours.
@@ -578,7 +591,7 @@ enum HelpGuideContent {
 
         - **Automation:** Startup (open MinuteMind at login, needed for jobs and meeting detection), Auto-recording, Live Dictation (default language), Quick Dictation (with Claude mini tasks), Parakeet, Pipeline (processing, engine, audio cleanup, name correction, speakers, task auto-accept), Task Review Reminders, Reminders Sync.
         - **Audio:** the microphone and your name in transcripts.
-        - **Appearance:** theme, light or dark, the companion.
+        - **Appearance:** theme, light or dark, the sidebar's project order, the companion.
         - **AI:** Claude Code status, the Claude model, summary prompts.
         - **Dictionary:** terms and how they are misheard.
         - **Integrations:** the MCP server, access token, Claude Code and Claude Desktop setup, your display name for Shared Projects.

@@ -27,8 +27,24 @@ struct MinuteMindApp: App {
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1440, height: 920)
         .commands {
-            // Import an existing audio file (Voice Memo, call export, …) as a transcript card.
-            CommandGroup(after: .newItem) {
+            // Replaces SwiftUI's New Window: a second main window would fight the first over the
+            // same terminal views. Cmd+N starts a Claude session where the keyboard is, Cmd+T
+            // opens the cockpit's project picker (AppViewModel+Cockpit.swift).
+            CommandGroup(replacing: .newItem) {
+                Button("New Claude Session") {
+                    viewModel.startClaudeSessionHere()
+                }
+                .keyboardShortcut("n", modifiers: .command)
+
+                Button("Start Agent in Project\u{2026}") {
+                    viewModel.toggleCockpitPicker()
+                }
+                .keyboardShortcut("t", modifiers: .command)
+                .disabled(!viewModel.isShowingCockpit)
+
+                Divider()
+
+                // Import an existing audio file (Voice Memo, call export, …) as a transcript card.
                 Button("Import Audio\u{2026}") {
                     Task { await viewModel.importAudioFromPicker() }
                 }
@@ -127,6 +143,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
     func applicationWillTerminate(_ notification: Notification) {
         viewModel?.projectStore.flushPendingSaves()
+        viewModel?.recordClaudeSessionsEndedAtQuit()
     }
 
     /// Whether this hold key is the one the user selected for quick dictation.

@@ -1,10 +1,12 @@
-// Purpose: The Home sidebar: Home, Inbox, All Transcripts and the other destinations, then the
-//          projects. A click on a project enters it, and ContentView swaps this sidebar for the
-//          project's own (ProjectContextSidebar). Projects can be arranged: a long press makes
-//          them wiggle, dragging reorders them.
+// Purpose: The Home sidebar: Home, the agent cockpit, Inbox, All Transcripts and the other
+//          destinations, then the projects. A click on a project enters it, and ContentView swaps
+//          this sidebar for the project's own (ProjectContextSidebar). Projects can be arranged: a
+//          long press makes them wiggle, dragging reorders them. Or they sort by Recently used
+//          (Settings).
 // Dependencies: Sources/App/ViewModels/AppViewModel.swift (projects, reorderProjects, setProjectStarred),
-//               Sources/App/Supporting/CompanionCast.swift (firstFreeAvatar for the New Project sheet),
-//               Sources/App/Components/ProjectCompanionChooser.swift (its creature tiles),
+//               Sources/App/ViewModels/AppViewModel+ProjectAgentActivity.swift (sidebarProjects, the
+//               order chosen in Settings > Appearance),
+//               Sources/App/Views/NewProjectSheet.swift (New Project sheet),
 //               Sources/App/Components/ProjectAvatarView.swift (each row's creature),
 //               Sources/App/Views/ProjectSidebarArranging.swift (order maths, wiggle),
 //               Sources/App/Views/SharedProjectSetupViews.swift (name sheet, Join shared form),
@@ -24,6 +26,9 @@
 //        every drop. A cancelled gesture never calls onEnded, so `gestureActive` cleans up.
 //        No autoscroll yet: a row can only be dragged within the visible part of the list.
 //        General is not a project and stays first, dimmed while arranging.
+//        With Recently used (ProjectSidebarOrder.swift) the rows move by themselves as Claude
+//        sessions open and close, animated; arranging is then off (no long press, no drag, no
+//        Arrange Projects, no Move Up/Down), and switching to it ends a running arrangement.
 //        Right click offers Edit Project… (the settings sheet: name, companion, avatar colour) and
 //        stars or unstars a project (`setProjectStarred`); a starred row shows a yellow star
 //        after the name and the project leads the companion's project wheel.
@@ -38,15 +43,8 @@ struct ProjectsSidebarView: View {
     @Environment(AppViewModel.self) private var viewModel
     @Environment(\.fullScreenSidebarControl) private var sidebarControl
     @State private var showingNewProjectSheet = false
-    @State private var newProjectName = ""
-    /// The new project's creature; preset to a free one each time the sheet opens.
-    @State private var newProjectCompanion: MascotAvatar?
-    @State private var newProjectMode: NewProjectMode = .create
-    @State private var isJoiningSharedProject = false
     /// The project "Make Shared Project…" waits on while the display name is asked for.
     @State private var projectAwaitingName: Project?
-
-    private enum NewProjectMode: Hashable { case create, join }
 
     /// Projects wiggle and can be dragged into a new order.
     @State private var isArranging = false
@@ -94,6 +92,28 @@ struct ProjectsSidebarView: View {
                 .buttonStyle(.plain)
                 .padding(.horizontal, DesignSystem.Dimensions.spacingS)
                 .padding(.top, DesignSystem.Dimensions.spacingM)
+
+                // Cockpit: the running Claude sessions of every project, without files or jobs.
+                Button {
+                    viewModel.go(to: .cockpit)
+                } label: {
+                    HStack(spacing: DesignSystem.Dimensions.spacingS) {
+                        Image(systemName: "gauge.with.dots.needle.33percent")
+                            .font(.system(size: 14))
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+                            .frame(width: 18)
+                        Text("Cockpit")
+                            .font(DesignSystem.Typography.callout)
+                            .lineLimit(1)
+                        Spacer()
+                    }
+                    .padding(.horizontal, DesignSystem.Dimensions.spacingM)
+                    .padding(.vertical, DesignSystem.Dimensions.spacingS)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, DesignSystem.Dimensions.spacingS)
+                .padding(.top, DesignSystem.Dimensions.spacingS)
 
                 // Inbox: meetings waiting to be processed. Right after Home, because it is where decisions wait.
                 Button {
@@ -312,7 +332,7 @@ struct ProjectsSidebarView: View {
             .frame(minHeight: 24)
             .contentShape(Rectangle())
             .contextMenu {
-                if !isArranging, viewModel.projects.count > 1 {
+                if !isArranging, canArrange, viewModel.projects.count > 1 {
                     Button("Arrange Projects") { startArranging() }
                 }
             }
@@ -384,7 +404,8 @@ struct ProjectsSidebarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(DesignSystem.Colors.card)
         .sheet(isPresented: $showingNewProjectSheet) {
-            newProjectSheet
+            NewProjectSheet(isPresented: $showingNewProjectSheet) { project in select(project) }
+                .environment(viewModel)
         }
         // Home's New Project tile.
         .onChange(of: viewModel.requestsNewProject) { _, requested in
@@ -410,6 +431,9 @@ struct ProjectsSidebarView: View {
         .onChange(of: dragTargetIndex) { _, _ in
             guard draggedID != nil else { return }
             NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+        }
+        .onChange(of: viewModel.projectSidebarSort) { _, _ in
+            if isArranging, !canArrange { stopArranging() }
         }
         .onChange(of: viewModel.projects.map(\.id)) { _, ids in
             // Projects added or deleted meanwhile join or leave the arrangement.
@@ -446,9 +470,13 @@ struct ProjectsSidebarView: View {
         ]
     }
 
-    /// The projects in the order shown: saved, arranged, or with the dragged row in its new slot.
+    /// Only the manual order can be arranged.
+    private var canArrange: Bool { viewModel.projectSidebarSort == .manual }
+
+    /// The projects in the order shown: the chosen order, arranged, or with the dragged row in its
+    /// new slot.
     private var displayedProjects: [Project] {
-        guard isArranging else { return viewModel.projects }
+        guard isArranging else { return viewModel.sidebarProjects }
         var ids = arrangedIDs
         if let draggedID, let from = ids.firstIndex(of: draggedID) {
             ids = ProjectArrangement.moved(ids, from: from, to: dragTargetIndex)
@@ -502,7 +530,7 @@ struct ProjectsSidebarView: View {
             if !project.isShared, project.id != ProjectRepositoryService.generalProjectID {
                 Button("Make Shared Project…") { makeShared(project) }
             }
-            if !isArranging {
+            if !isArranging, canArrange {
                 Divider()
                 Button("Arrange Projects") { startArranging() }
             }
@@ -510,8 +538,12 @@ struct ProjectsSidebarView: View {
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { select(project) }
-        .accessibilityAction(named: "Move Up") { move(project, by: -1) }
-        .accessibilityAction(named: "Move Down") { move(project, by: 1) }
+        .accessibilityActions {
+            if canArrange {
+                Button("Move Up") { move(project, by: -1) }
+                Button("Move Down") { move(project, by: 1) }
+            }
+        }
     }
 
     /// Click, long press and drag in one gesture (see the file header).
@@ -523,7 +555,7 @@ struct ProjectsSidebarView: View {
                     pressedID = project.id
                     pressMoved = false
                     longPressTask?.cancel()
-                    if !isArranging {
+                    if !isArranging, canArrange {
                         longPressTask = Task { @MainActor in
                             try? await Task.sleep(for: Self.longPressDelay)
                             guard !Task.isCancelled, pressedID == project.id, !pressMoved else { return }
@@ -533,7 +565,7 @@ struct ProjectsSidebarView: View {
                 }
                 let distance = hypot(value.translation.width, value.translation.height)
                 // Dragged straight away, Finder style: arranging starts with the drag.
-                if !isArranging, !pressMoved, abs(value.translation.height) > 4,
+                if !isArranging, canArrange, !pressMoved, abs(value.translation.height) > 4,
                    abs(value.translation.height) > abs(value.translation.width) {
                     longPressTask?.cancel()
                     startArranging()
@@ -599,7 +631,7 @@ struct ProjectsSidebarView: View {
     }
 
     private func startArranging() {
-        guard !isArranging else { return }
+        guard !isArranging, canArrange else { return }
         arrangedIDs = viewModel.projects.map(\.id)
         NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
         withAnimation(DesignSystem.Animation.quick) { isArranging = true }
@@ -638,98 +670,6 @@ struct ProjectsSidebarView: View {
         ids = ProjectArrangement.moved(ids, from: from, to: to)
         if isArranging { arrangedIDs = ids }
         viewModel.reorderProjects(ids)
-    }
-
-    private var newProjectSheet: some View {
-        VStack(spacing: DesignSystem.Dimensions.spacingXL) {
-            Text("New Project")
-                .font(DesignSystem.Typography.title2)
-
-            Picker("", selection: $newProjectMode) {
-                Text("Create new").tag(NewProjectMode.create)
-                Text("Join shared").tag(NewProjectMode.join)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .fixedSize()
-            .disabled(isJoiningSharedProject)
-
-            switch newProjectMode {
-            case .create:
-                createProjectForm
-            case .join:
-                JoinSharedProjectForm(
-                    onCancel: { showingNewProjectSheet = false },
-                    onJoined: { project in
-                        showingNewProjectSheet = false
-                        select(project)
-                    },
-                    isJoining: $isJoiningSharedProject)
-            }
-        }
-        .padding(DesignSystem.Dimensions.spacingXXXL)
-        .frame(width: 380)
-        .interactiveDismissDisabled(isJoiningSharedProject)
-        .onAppear {
-            newProjectMode = .create
-            newProjectCompanion = firstFreeCompanion
-        }
-    }
-
-    /// Today's New Project form: name, companion.
-    private var createProjectForm: some View {
-        VStack(spacing: DesignSystem.Dimensions.spacingXL) {
-            VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingS) {
-                Text("PROJECT NAME")
-                    .font(DesignSystem.Typography.caption2)
-                    .tracking(0.6)
-                    .foregroundStyle(DesignSystem.Colors.textTertiary)
-                
-                TextField("Enter project name", text: $newProjectName)
-                    .textFieldStyle(.roundedBorder)
-                    .font(DesignSystem.Typography.body)
-            }
-
-            companionChooser
-
-            HStack(spacing: DesignSystem.Dimensions.spacingM) {
-                Button("Cancel") {
-                    showingNewProjectSheet = false
-                    newProjectName = ""
-                }
-                .keyboardShortcut(.cancelAction)
-                .buttonStyle(.bordered)
-
-                Spacer()
-
-                Button("Create") {
-                    viewModel.createProject(name: newProjectName, companion: newProjectCompanion)
-                    showingNewProjectSheet = false
-                    newProjectName = ""
-                }
-                .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
-                .disabled(newProjectName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
-        }
-    }
-
-    /// The first creature no project and not the home companion wears.
-    private var firstFreeCompanion: MascotAvatar? {
-        CompanionCast.firstFreeAvatar(
-            used: Set(viewModel.projects.compactMap(\.companionCreature)), homeAvatar: CompanionAppearance.shared.avatar)
-    }
-
-    /// The new project's creature, in its natural colour (an avatar colour is picked in the
-    /// project settings).
-    private var companionChooser: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingM) {
-            Text("COMPANION")
-                .font(DesignSystem.Typography.caption2)
-                .tracking(0.6)
-                .foregroundStyle(DesignSystem.Colors.textTertiary)
-            ProjectCompanionChooser(selection: $newProjectCompanion)
-        }
     }
 }
 

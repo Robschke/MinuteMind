@@ -24,6 +24,8 @@ enum NavigationPlace: Hashable, Sendable {
     case allTasks
     case calendar
     case clipboard
+    /// The agent cockpit: running Claude sessions of every project.
+    case cockpit
     /// A project (or General) and its section.
     case project(UUID, ProjectTab)
 

@@ -12,7 +12,9 @@
 //        session to the creature, fanned out beside it (CompanionController places them and can
 //        put them back). Windows are found through the strips' registered views
 //        (`dropZoneView(for:)`), so a project workspace in the main window counts too; the Claude
-//        (General) window is opened first when it has sessions but is closed.
+//        (General) window is opened first when it has sessions but is closed. While the agent
+//        cockpit is open, a session of a project strip is shown there rather than in its
+//        project's Workspace, so a notice's Show never leaves the cockpit.
 
 import AppKit
 import SwiftUI
@@ -114,6 +116,12 @@ extension AppViewModel {
         }
         if group.rootID == WorkspaceTerminalStore.assistantKey {
             openWindowAction?(id: "claude-assistant")
+            return
+        }
+        // The cockpit is open: it shows the session's space there instead of leaving it.
+        if isShowingCockpit {
+            cockpitProjectID = group.projectID
+            mainWindow?.makeKeyAndOrderFront(nil)
             return
         }
         // A project workspace that is not on screen: show it in the main window.

@@ -26,6 +26,7 @@ extension AppViewModel {
     var currentPlace: NavigationPlace {
         if isShowingInbox { return .inbox }
         if isShowingClipboard { return .clipboard }
+        if isShowingCockpit { return .cockpit }
         if isShowingAllTasks { return .allTasks }
         if isShowingCalendar { return .calendar }
         if let id = selectedProjectID, projectExists(id) { return .project(id, projectTab(for: id)) }
@@ -86,6 +87,9 @@ extension AppViewModel {
         case .clipboard:
             clearPages()
             isShowingClipboard = true
+        case .cockpit:
+            clearPages()
+            isShowingCockpit = true
         }
     }
 
@@ -101,6 +105,7 @@ extension AppViewModel {
         isShowingCalendar = false
         isShowingInbox = false
         isShowingClipboard = false
+        isShowingCockpit = false
     }
 
     /// Called whenever `currentPlace` changed: records the visit unless a back or forward step
