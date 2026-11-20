@@ -397,7 +397,7 @@ enum HelpGuideContent {
 
         - **+ on a project** (shown when the pointer is over it): starts another Claude session there; right click for Sonnet.
         - **+ at the top:** starts a session in a project that has none yet, or creates a new project with New Project... and starts one in it. You stay in the cockpit.
-        - **Cmd+T** opens a search over all your projects, each with its creature and how many agents it runs. Type to filter, use the arrow keys and press Return to start an Opus session in that project (also in one that already runs agents), or pick New Project... at the end. Esc closes it.
+        - **Cmd+T** opens a search over all your projects, in the same order as the Home sidebar, each with its creature and how many agents it runs. Type to filter, use the arrow keys and press Return to start an Opus session in that project (also in one that already runs agents), or pick New Project... at the end. Esc closes it.
         - **Cmd+N** starts another Opus session in the project shown on the right.
         - A project leaves the list when its last Claude session closes. Sessions in their own window stay there; clicking one brings the window forward.
         - The sessions are the same as in each project's Workspace, so you can switch between the two at any time. Click Cockpit at the top of its sidebar to go back Home.

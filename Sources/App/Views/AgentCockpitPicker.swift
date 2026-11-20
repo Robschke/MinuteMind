@@ -1,13 +1,16 @@
 // Purpose: AgentCockpitPicker, the cockpit's project picker (Cmd+T): a search field over every
 //          project and General, each with its creature in the pose of its Claude sessions and how
-//          many agents it runs, plus New Project… at the end. Return or a click starts an Opus
+//          many agents it runs, in the Home sidebar's order, plus New Project… at the end. Return or a click starts an Opus
 //          session in the chosen project and shows it in the cockpit.
 // Dependencies: Sources/App/Supporting/AgentCockpitSpaces.swift (matching),
-//               Sources/App/ViewModels/AppViewModel+Cockpit.swift (spaces, startCockpitSession),
+//               Sources/App/ViewModels/AppViewModel+Cockpit.swift (cockpitPickerOrder, spaces,
+//               startCockpitSession),
 //               Sources/App/Components/AgentStatusCreatureView.swift (creatures)
 // Used by: Sources/App/Views/ContentView.swift (overlay while the cockpit shows)
 // Notes: Looks and keys like the Cmd+K search (Spotlight panel near the top, arrows, Return,
-//        Esc, a click beside it closes it), so the two feel like one family. Projects that already
+//        Esc, a click beside it closes it), so the two feel like one family. Rows follow the Home
+//        sidebar (manual or recently used, as set in Settings), so the project used last is near
+//        the top; a query ranks name matches first and keeps that order among equals. Projects that already
 //        run agents are listed too: choosing one starts another session there. New Project… stays
 //        the last row whatever the query, so a name that does not exist yet is one arrow away;
 //        it opens the cockpit's New Project sheet through `requestsNewProject`. Closing without a
@@ -34,7 +37,7 @@ struct AgentCockpitPicker: View {
     }
 
     private var rows: [Row] {
-        let order = viewModel.cockpitOrder
+        let order = viewModel.cockpitPickerOrder
         let names = Dictionary(uniqueKeysWithValues: order.compactMap { id in
             viewModel.cockpitProject(id).map { (id, $0.name) }
         })

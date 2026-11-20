@@ -5,6 +5,7 @@
 //               Sources/App/Supporting/WorkspaceTerminalStore.swift (sessions, strips, focus),
 //               Sources/App/ViewModels/AppViewModel.swift (isShowingCockpit, cockpitProjectID,
 //               cockpitCollapsedIDs, workspaceLaunch(for:kind:)),
+//               Sources/App/ViewModels/AppViewModel+ProjectAgentActivity.swift (sidebarProjects),
 //               Sources/App/Services/ProjectRepositoryService.swift (General)
 // Used by: Sources/App/Views/AgentCockpitSidebar.swift, Sources/App/Views/AgentCockpitView.swift,
 //          Sources/App/Views/AgentCockpitPicker.swift, Sources/App/MinuteMindApp.swift (File menu),
@@ -28,6 +29,13 @@ extension AppViewModel {
     /// Every space in the Home sidebar's order: General first, then the projects.
     var cockpitOrder: [UUID] {
         [ProjectRepositoryService.generalProjectID] + projects.map(\.id)
+    }
+
+    /// Every space as the Home sidebar shows it right now: General first, then the projects in the
+    /// order chosen in Settings (manual or recently used). The Cmd+T picker lists them this way;
+    /// the cockpit's own list keeps `cockpitOrder`, so its rows do not move while agents work.
+    var cockpitPickerOrder: [UUID] {
+        [ProjectRepositoryService.generalProjectID] + sidebarProjects.map(\.id)
     }
 
     /// Spaces with at least one open Claude session (plain terminals do not count).
