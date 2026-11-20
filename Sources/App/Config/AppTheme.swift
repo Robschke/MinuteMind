@@ -1,7 +1,10 @@
-// Purpose: AppTheme, the colour themes of the app: the four built-in themes (Studio, Ember,
-//          Midnight, Voltage) and the user's Custom theme, each with light and dark values.
+// Purpose: AppTheme, the themes of the app: the four built-in themes (Studio, Ember, Midnight,
+//          Voltage) and the user's Custom theme, each with light and dark colours and a style
+//          (ThemeStyle: font, corners, density, terminal font). Theme files (ThemeFile) resolve
+//          into the same type.
 // Dependencies: AppKit (dynamic NSColor), SwiftUI
 // Used by: Sources/App/Supporting/ThemeStore.swift (active theme, persistence),
+//          Sources/App/Config/ThemeFile.swift (file themes resolve into it),
 //          Sources/App/Views/AppearanceSettingsView.swift (picker, custom editor),
 //          Sources/App/Components/DesignSystem.swift (Colors read the active theme)
 // Notes: User decisions 2026-10-05: four themes from the design review plus a Custom theme that
@@ -121,6 +124,8 @@ struct AppTheme: Identifiable, Equatable, Sendable {
     var danger: ThemeColor
     /// Eight speaker colours (SpeakerPalette slots).
     var speakers: [ThemeColor]
+    /// Font, corners, density and terminal font; the built-ins all use the standard style.
+    var style: ThemeStyle = .standard
 
     static let customID = "custom"
 
@@ -223,7 +228,7 @@ struct CustomThemeSettings: Codable, Equatable, Sendable {
             surface: theme.surface, card: card ?? theme.card, border: border ?? theme.border,
             textPrimary: theme.textPrimary, textSecondary: theme.textSecondary,
             textTertiary: theme.textTertiary, success: theme.success, warning: theme.warning,
-            danger: theme.danger, speakers: theme.speakers)
+            danger: theme.danger, speakers: theme.speakers, style: theme.style)
         if let background {
             let light = background.resolved(dark: false)
             let dark = background.resolved(dark: true)

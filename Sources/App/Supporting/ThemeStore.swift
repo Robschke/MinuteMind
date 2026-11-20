@@ -1,6 +1,9 @@
-// Purpose: ThemeStore, the active colour theme and appearance mode, persisted and applied to the
-//          whole app (SwiftUI views through DesignSystem.Colors, AppKit through a notification).
-// Dependencies: Sources/App/Config/AppTheme.swift (themes, custom settings), AppKit (NSApp.appearance)
+// Purpose: ThemeStore, the active theme and appearance mode, persisted and applied to the whole
+//          app (SwiftUI views through DesignSystem, AppKit through a notification), and the theme
+//          files in the Themes folder, reloaded while the app runs.
+// Dependencies: Sources/App/Config/AppTheme.swift (themes, custom settings),
+//               Sources/App/Config/ThemeFile.swift, Sources/App/Supporting/ThemeFileStore.swift
+//               (theme files), AppKit (NSApp.appearance)
 // Used by: Sources/App/Components/DesignSystem.swift (Colors), Sources/App/Components/SpeakerPalette.swift,
 //          Sources/App/MinuteMindApp.swift (tint at every scene root),
 //          Sources/App/Supporting/WorkspaceTerminalStore.swift (terminal colours, via notification),
@@ -9,9 +12,11 @@
 //        it, so every view that uses a token redraws when the theme changes, without threading an
 //        environment value through the app. Colours are built once per change, not per access.
 //        Keys: mm.theme (theme id), mm.themeCustom (JSON of CustomThemeSettings, the Custom draft),
-//        mm.themeProfiles (JSON of saved custom themes, user request 2026-10-13: save the Custom
-//        colours as named profiles, several of them, each deletable), mm.appearanceMode (system,
-//        light, dark; applied through NSApp.appearance).
+//        mm.themeProfiles (JSON of saved custom themes: the Custom colours saved as named
+//        profiles, several of them, each deletable), mm.appearanceMode (system, light, dark;
+//        applied through NSApp.appearance). A theme file is selected as "file:<id>". The folder
+//        is checked every 1.5 s; when the selected file is deleted the app falls back to the
+//        built-in it was based on, as with a deleted profile.
 
 import AppKit
 import Observation
@@ -89,6 +94,17 @@ final class ThemeStore {
         }
     }
 
+    /// Themes from the Themes folder, by name.
+    private(set) var fileThemes: [ThemeFile]
+    /// Issues per file name for theme files that do not pass (their last good version stays).
+    private(set) var fileThemeProblems: [String: [String]]
+    let fileStore: ThemeFileStore
+    @ObservationIgnored private var fileSignature = ""
+    @ObservationIgnored private var fileTimer: Timer?
+
+    /// The selected theme file, if one is selected.
+    var selectedFileTheme: ThemeFile? { fileThemes.first { $0.themeID == themeID } }
+
     /// The selected saved profile, if one is selected.
     var selectedProfile: SavedThemeProfile? { profiles.first { $0.themeID == themeID } }
 
@@ -156,20 +172,67 @@ final class ThemeStore {
         }
     }
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, fileStore: ThemeFileStore = ThemeFileStore()) {
         self.defaults = defaults
+        self.fileStore = fileStore
+        let loaded = fileStore.load()
+        self.fileThemes = loaded.themes
+        self.fileThemeProblems = loaded.problems
         let id = defaults.string(forKey: "mm.theme") ?? AppTheme.studio.id
         let custom = defaults.data(forKey: "mm.themeCustom")
             .flatMap { try? JSONDecoder().decode(CustomThemeSettings.self, from: $0) } ?? CustomThemeSettings()
         let profiles = defaults.data(forKey: "mm.themeProfiles")
             .flatMap { try? JSONDecoder().decode([SavedThemeProfile].self, from: $0) } ?? []
-        let theme = Self.resolve(id: id, custom: custom, profiles: profiles)
+        let theme = Self.resolve(id: id, custom: custom, profiles: profiles, files: loaded.themes)
         self.themeID = id
         self.custom = custom
         self.profiles = profiles
         self.appearanceMode = AppearanceMode(rawValue: defaults.string(forKey: "mm.appearanceMode") ?? "") ?? .system
         self.theme = theme
         self.palette = Palette(theme)
+        fileSignature = fileStore.signature()
+        if !AppViewModel.isTestProcess {
+            fileTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.reloadFileThemes() }
+            }
+        }
+    }
+
+    // MARK: - Theme files
+
+    /// Reads the Themes folder again when something in it changed (or always, with `force`).
+    func reloadFileThemes(force: Bool = false) {
+        let signature = fileStore.signature()
+        guard force || signature != fileSignature else { return }
+        fileSignature = signature
+        let previous = fileThemes
+        let loaded = fileStore.load(previous: previous)
+        if loaded.problems != fileThemeProblems { fileThemeProblems = loaded.problems }
+        guard loaded.themes != previous else { return }
+        fileThemes = loaded.themes
+        if themeID.hasPrefix(ThemeFile.idPrefix) {
+            if selectedFileTheme == nil {
+                // The selected file is gone: back to the built-in it was based on.
+                let base = previous.first { $0.themeID == themeID }?.base
+                themeID = base.flatMap { AppTheme.builtIn(id: $0)?.id } ?? AppTheme.studio.id
+            } else {
+                rebuild()
+            }
+        }
+    }
+
+    /// Writes a checked theme file and picks it up at once.
+    @discardableResult
+    func saveFileTheme(_ file: ThemeFile) throws -> URL {
+        let url = try fileStore.save(file)
+        reloadFileThemes(force: true)
+        return url
+    }
+
+    /// Deletes a theme file; when it was selected, the app switches to its base theme.
+    func deleteFileTheme(id: String) throws {
+        try fileStore.delete(id: id)
+        reloadFileThemes(force: true)
     }
 
     /// Sets NSApp.appearance from the saved mode; call once at launch.
@@ -182,15 +245,18 @@ final class ThemeStore {
     }
 
     private func rebuild() {
-        theme = Self.resolve(id: themeID, custom: custom, profiles: profiles)
+        theme = Self.resolve(id: themeID, custom: custom, profiles: profiles, files: fileThemes)
         palette = Palette(theme)
         NotificationCenter.default.post(name: .minuteMindThemeChanged, object: nil)
     }
 
-    /// A deleted profile's ID falls back to Studio.
-    private static func resolve(id: String, custom: CustomThemeSettings, profiles: [SavedThemeProfile]) -> AppTheme {
+    /// A deleted profile's or file's ID falls back to Studio.
+    private static func resolve(
+        id: String, custom: CustomThemeSettings, profiles: [SavedThemeProfile], files: [ThemeFile]
+    ) -> AppTheme {
         if id == AppTheme.customID { return custom.resolve() }
         if let profile = profiles.first(where: { $0.themeID == id }) { return profile.resolve() }
+        if let file = files.first(where: { $0.themeID == id }) { return file.resolve() }
         return AppTheme.builtIn(id: id) ?? .studio
     }
 }
