@@ -2,7 +2,9 @@
 //          (the side of one pixel) and its colour (the creature's own, or one the user picked).
 //          Persisted and shared.
 // Dependencies: Sources/App/Config/AppTheme.swift (ThemeColor hex helpers),
-//               Sources/App/Components/DesignSystem.swift (accent)
+//               Sources/App/Components/DesignSystem.swift (accent),
+//               Sources/App/Supporting/MascotAvatarCatalog.swift (the stored id as an avatar),
+//               Sources/App/Supporting/MascotAvatarStore.swift (.mascotAvatarsChanged)
 // Used by: Sources/App/Supporting/CompanionPlacement.swift (sizes), Sources/App/Views/CompanionView.swift
 //          and Sources/App/Components/PillPixelStyle.swift (colour), Sources/App/Supporting/
 //          CompanionController.swift (resizes its panels), Sources/App/Views/AppearanceSettingsView.swift,
@@ -13,7 +15,7 @@
 //        dark mode: the creature floats over every app, not inside a themed window. Keys:
 //        mm.companionSize (small, medium, large), mm.companionColor (hex, absent = theme accent),
 //        mm.companionLastColor (the last own colour, restored when switching back to it),
-//        mm.companionAvatar (blob, duck, dog, puppy, pug, cat, coolCat, sweetCat, lime; MascotAvatar), mm.companionComesOnShake
+//        mm.companionAvatar (an avatar's id, MascotAvatarCatalog), mm.companionComesOnShake
 //        (default on: shaking the mouse brings the creature to the pointer),
 //        mm.companionShakeStrength (1 gentle to 5 hard, default 3; MouseShakeDetector levels),
 //        mm.companionVisibleInScreenShares (default off: the creature is hidden from screen
@@ -66,7 +68,30 @@ final class CompanionAppearance {
 
     var avatar: MascotAvatar {
         didSet {
-            defaults.set(avatar.rawValue, forKey: "mm.companionAvatar")
+            if !isFollowingCatalog { defaults.set(avatar.id, forKey: "mm.companionAvatar") }
+            announceChange()
+        }
+    }
+
+    /// The id the user chose for the companion, also while that avatar is deleted.
+    var avatarID: String {
+        defaults.string(forKey: "mm.companionAvatar") ?? MascotAvatarCatalog.fallback.id
+    }
+
+    /// True while `avatar` only follows the catalog: the stored id is the user's choice and
+    /// stays, so a deleted avatar that comes back is the companion again.
+    @ObservationIgnored private var isFollowingCatalog = false
+    @ObservationIgnored private var avatarsObserver: NSObjectProtocol?
+
+    /// The avatars changed (one was saved, deleted or restored): shows the stored choice as it
+    /// is now drawn, the Blob while it is gone, and has every creature on the desktop redrawn.
+    private func avatarsChanged() {
+        let current = MascotAvatarCatalog.resolve(defaults.string(forKey: "mm.companionAvatar") ?? "")
+        if current != avatar {
+            isFollowingCatalog = true
+            avatar = current
+            isFollowingCatalog = false
+        } else {
             announceChange()
         }
     }
@@ -143,7 +168,7 @@ final class CompanionAppearance {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        avatar = MascotAvatar(rawValue: defaults.string(forKey: "mm.companionAvatar") ?? "") ?? .blob
+        avatar = MascotAvatarCatalog.resolve(defaults.string(forKey: "mm.companionAvatar") ?? "")
         comesOnShake = defaults.object(forKey: "mm.companionComesOnShake") as? Bool ?? true
         let storedStrength = defaults.object(forKey: "mm.companionShakeStrength") as? Int ?? MouseShakeDetector.defaultStrength
         shakeStrength = min(max(storedStrength, MouseShakeDetector.strengths.lowerBound),
@@ -152,6 +177,11 @@ final class CompanionAppearance {
         size = Size(rawValue: defaults.string(forKey: "mm.companionSize") ?? "") ?? .medium
         customColor = (defaults.object(forKey: "mm.companionColor") as? Int).map { UInt32(truncatingIfNeeded: $0) }
         isLoaded = true
+        avatarsObserver = NotificationCenter.default.addObserver(
+            forName: .mascotAvatarsChanged, object: MascotAvatarStore.shared, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.avatarsChanged() }
+        }
     }
 
     var pixel: CGFloat { size.pixel }

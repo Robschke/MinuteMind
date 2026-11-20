@@ -2,9 +2,13 @@
 //          little Tamagotchi-style creature that floats over every app: which mood it is in and
 //          which 12 x 13 pixel frame it shows at a given moment.
 // Dependencies: Sources/App/Supporting/TerminalSessionStatus.swift (the Claude sessions' status),
-//               Sources/App/Supporting/MascotAvatar.swift (the bodies of every creature)
-// Used by: Sources/App/Supporting/CompanionController.swift (picks the mood, samples frames),
-//          Sources/App/Views/CompanionView.swift (draws them), Tests/AssistantMascotPoseTests.swift
+//               Sources/App/Supporting/MascotAvatar.swift (the bodies of every creature),
+//               Sources/App/Supporting/CreatureRenderer.swift (CreaturePose, the input)
+// Used by: Sources/App/Supporting/CreatureRenderer.swift (the frames of pixel avatars; every other
+//          caller goes through it), Sources/App/Views/CreatureView.swift (draws them),
+//          Sources/App/Supporting/MascotAvatarValidator.swift (reads where the moods paint),
+//          Sources/App/Supporting/CompanionController.swift (picks the mood),
+//          Tests/AssistantMascotPoseTests.swift, Tests/MascotRenderBaselineTests.swift
 // Notes: User request 2026-10-13: a small animated pixel creature, Tamagotchi style. It started as
 //        the main page's assistant button and became the desktop companion the same day, taking
 //        over the meeting pill's job (user decision: it replaces the pill completely).
@@ -133,7 +137,7 @@ enum MascotBubble: Equatable, Sendable {
     case heart
 }
 
-enum MascotMood: Equatable, Sendable {
+enum MascotMood: Equatable, Sendable, CaseIterable {
     case idle
     /// Nothing happened for a long time.
     case sleeping
@@ -223,27 +227,8 @@ struct MascotFrame: Equatable, Sendable {
 }
 
 enum AssistantMascotPose {
-    struct Input {
-        var mood: MascotMood
-        /// Seconds on any steady clock; only differences and time slots matter.
-        var time: TimeInterval
-        /// Where the eyes point (each -1, 0 or 1; y -1 is up), nil when nobody moves the mouse.
-        var look: (x: Int, y: Int)?
-        var hovering = false
-        /// Seconds since a hop started (a click, a finished Claude turn), nil without one.
-        var hopAge: TimeInterval?
-        /// Seconds since the mood began: talking, waiting and celebrating depend on it.
-        var moodAge: TimeInterval = 0
-        /// A recording runs: headphones over any mood.
-        var headphones = false
-        var avatar: MascotAvatar = .blob
-        var animated = true
-        /// Running to the pointer after a mouse shake: -1 left, 1 right, nil when not running.
-        var running: Int?
-        /// Waiting waves until answered instead of calming down after `waitingExcitement` (the
-        /// small companions, whose pose is their only sign).
-        var keepsWaving = false
-    }
+    /// What to draw: mood, time, look and what the creature wears (CreaturePose).
+    typealias Input = CreaturePose
 
     /// How long a hop takes, in seconds: six frames at 8 fps, squash to squash.
     static let hopDuration: TimeInterval = 0.75
@@ -370,7 +355,7 @@ enum AssistantMascotPose {
             if talking, mouthOpen {
                 openMouth(&frame.grid)
             } else {
-                frame.grid.paint([(4, 10), (5, 9), (6, 9), (7, 10)], .outline)
+                frown(&frame.grid)
             }
             frame.grid.paint([(2, 8), (9, 8)], .body)
             frame.bubble = .error
@@ -523,6 +508,24 @@ enum AssistantMascotPose {
     private static func wideSmile(_ grid: inout MascotGrid) {
         grid.paint([(3, 9), (4, 10), (5, 10), (6, 10), (7, 10), (8, 9)], .outline)
     }
+
+    /// The error face's mouth, corners down.
+    private static func frown(_ grid: inout MascotGrid) {
+        grid.paint([(4, 10), (5, 9), (6, 9), (7, 10)], .outline)
+    }
+
+    /// Every pixel one of the mouths above can take, row by row. An avatar's body has to be
+    /// filled there and its neutral mouth has to stay inside (MascotAvatarValidator).
+    static let mouthArea: [(x: Int, y: Int)] = {
+        var grid = MascotGrid(rows: [])
+        openMouth(&grid)
+        smile(&grid)
+        wideSmile(&grid)
+        frown(&grid)
+        return (0..<MascotGrid.height).flatMap { y in
+            (0..<MascotGrid.width).compactMap { x in grid[x, y] == nil ? nil : (x: x, y: y) }
+        }
+    }()
 
     private static func waveRightArm(_ grid: inout MascotGrid, high: Bool, avatar: MascotAvatar) {
         if avatar.nubs.contains(where: { $0 == (11, 8) }) { grid[11, 8] = nil }

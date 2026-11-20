@@ -444,7 +444,7 @@ final class AppViewModel {
 
     /// True inside a test process. Tests create AppViewModel against the real App Support folder,
     /// so anything that deletes or rewrites user data at launch must not run there.
-    static let isTestProcess: Bool = {
+    nonisolated static let isTestProcess: Bool = {
         let process = ProcessInfo.processInfo
         return process.environment["XCTestConfigurationFilePath"] != nil
             || process.processName.contains("xctest")
@@ -3649,7 +3649,7 @@ final class AppViewModel {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
         var project = Project(name: trimmed)
-        project.companionAvatar = companion?.rawValue
+        project.companionAvatar = companion?.id
         projects.insert(project, at: 0)
         projectStore.debouncedSaveProjects(projects)
         if enter { selectedProjectID = project.id }
@@ -3756,7 +3756,7 @@ final class AppViewModel {
     /// Gives a project its own companion creature (nil: none).
     func setProjectCompanion(_ project: Project, _ avatar: MascotAvatar?) {
         guard let index = projects.firstIndex(where: { $0.id == project.id }) else { return }
-        projects[index].companionAvatar = avatar?.rawValue
+        projects[index].companionAvatar = avatar?.id
         projects[index].updatedAt = Date()
         projectStore.debouncedSaveProjects(projects)
     }

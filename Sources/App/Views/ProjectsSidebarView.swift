@@ -603,7 +603,7 @@ struct ProjectsSidebarView: View {
             )) {
                 Text("None").tag(MascotAvatar?.none)
                 Divider()
-                ForEach(MascotAvatar.allCases) { avatar in
+                ForEach(MascotAvatarCatalog.all) { avatar in
                     Text(companionLabel(avatar, for: project)).tag(MascotAvatar?.some(avatar))
                 }
             }

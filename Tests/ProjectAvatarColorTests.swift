@@ -16,7 +16,7 @@ struct ProjectAvatarColorTests {
 
     private func project(_ name: String, _ avatar: MascotAvatar?, legacy: String?, sortOrder: Int) -> Project {
         var project = Project(name: name)
-        project.companionAvatar = avatar?.rawValue
+        project.companionAvatar = avatar?.id
         project.legacyColorHex = legacy
         project.sortOrder = sortOrder
         return project
@@ -41,7 +41,7 @@ struct ProjectAvatarColorTests {
     @Test("Saved projects round-trip, Default included, and keep colorHex for older builds")
     func roundTrip() throws {
         var own = Project(name: "Own", avatarColorHex: "#123456")
-        own.companionAvatar = MascotAvatar.duck.rawValue
+        own.companionAvatar = MascotAvatar.duck.id
         let plain = Project(name: "Plain")
         let data = try JSONEncoder().encode([own, plain])
 
@@ -96,7 +96,7 @@ struct ProjectAvatarColorTests {
     @Test("A project that already has an avatar colour keeps it")
     func keepsAvatarColour() throws {
         var set = Project(name: "Set", avatarColorHex: "#ABCDEF")
-        set.companionAvatar = MascotAvatar.lime.rawValue
+        set.companionAvatar = MascotAvatar.lime.id
         let old = project("Old", .duck, legacy: "#000001", sortOrder: 0)
         let migrated = try #require(ProjectAvatarColorMigration.migrated([set, old], homeAvatar: .blob))
         #expect(migrated.first { $0.name == "Set" }?.avatarColorHex == "#ABCDEF")

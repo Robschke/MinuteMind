@@ -2,7 +2,8 @@
 //          (sidekick) per project that has its own avatar and a running Claude session, and which
 //          of them is in front, drawn big in the companion's place.
 // Dependencies: Sources/App/Models/Project.swift (companionCreature, avatarColorHex),
-//               Sources/App/Supporting/MascotAvatar.swift, Sources/App/Supporting/TerminalSessionStatus.swift
+//               Sources/App/Supporting/MascotAvatarCatalog.swift (firstFreeAvatar),
+//               Sources/App/Supporting/TerminalSessionStatus.swift
 //               (pure otherwise, unit tested in Tests/CompanionCastTests.swift)
 // Used by: Sources/App/Supporting/CompanionController.swift,
 //          Sources/App/ViewModels/AppViewModel+Companion.swift (sessionToOpen)
@@ -81,7 +82,7 @@ enum CompanionCast {
     /// The creature a new project starts with: the first one no project and not the home
     /// companion wears; nil when every one is taken.
     static func firstFreeAvatar(used: Set<MascotAvatar>, homeAvatar: MascotAvatar) -> MascotAvatar? {
-        MascotAvatar.allCases.first { $0 != homeAvatar && !used.contains($0) }
+        MascotAvatarCatalog.all.first { $0 != homeAvatar && !used.contains($0) }
     }
 
     /// One of a project's Claude sessions, as `sessionToOpen` weighs it.
