@@ -20,7 +20,7 @@ struct MCPAppControlTools {
 
     static let names: Set<String> = ["open_in_app", "start_recording", "stop_recording"]
 
-    static let places = ["settings", "all_transcripts", "inbox", "all_tasks", "calendar", "clipboard", "project", "general"]
+    static let places = ["settings", "all_transcripts", "inbox", "all_tasks", "calendar", "clipboard", "cockpit", "project", "general"]
 
     static var definitions: [[String: Any]] {
         [
@@ -98,6 +98,7 @@ struct MCPAppControlTools {
         case "all_tasks": destination = .allTasks
         case "calendar": destination = .calendar
         case "clipboard": destination = .clipboard
+        case "cockpit": destination = .cockpit
         case "project", "general":
             let id: UUID
             if place == "general" {

@@ -27,6 +27,7 @@ extension AppViewModel {
     func globalSearchEntries() -> [GlobalSearchEntry] {
         var entries: [GlobalSearchEntry] = [
             .init(section: .places, title: "Home", subtitle: "Page", icon: "house", target: .place(.home)),
+            .init(section: .places, title: "Cockpit", subtitle: "Page", icon: "gauge.with.dots.needle.33percent", target: .place(.cockpit)),
             .init(section: .places, title: "Inbox", subtitle: "Page", icon: "tray", target: .place(.inbox)),
             .init(section: .places, title: "All Transcripts", subtitle: "Page", icon: "doc.text", target: .place(.allTranscripts)),
             .init(section: .places, title: "All Tasks", subtitle: "Page", icon: "checklist", target: .place(.allTasks)),

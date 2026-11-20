@@ -102,16 +102,34 @@ final class AppViewModel {
     private(set) var projects: [Project] = []
     private(set) var tasks: [ProjectTask] = []
     private(set) var epics: [Epic] = []
-    var selectedProjectID: UUID? { didSet { if selectedProjectID != nil { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false } } }
-    var isShowingAllTasks = false { didSet { if isShowingAllTasks { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false } } }
+    var selectedProjectID: UUID? { didSet { if selectedProjectID != nil { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false; isShowingCockpit = false } } }
+    var isShowingAllTasks = false { didSet { if isShowingAllTasks { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false; isShowingCockpit = false } } }
     /// When set to true, all other exclusive navigation flags (isShowingAllTasks,
     /// isShowingAIAssistant) must be set to false.
-    var isShowingCalendar = false { didSet { if isShowingCalendar { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false } } }
+    var isShowingCalendar = false { didSet { if isShowingCalendar { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false; isShowingCockpit = false } } }
     /// Inbox of meetings waiting to be processed. Turning any other destination on turns this
     /// off (didSets above), so existing navigation code needs no change.
-    var isShowingInbox = false { didSet { if isShowingInbox { isShowingClipboard = false; isShowingHome = false } } }
+    var isShowingInbox = false { didSet { if isShowingInbox { isShowingClipboard = false; isShowingHome = false; isShowingCockpit = false } } }
     /// The dictation history ("Clipboard" in the sidebar). Exclusive like the inbox.
-    var isShowingClipboard = false { didSet { if isShowingClipboard { isShowingInbox = false; isShowingHome = false } } }
+    var isShowingClipboard = false { didSet { if isShowingClipboard { isShowingInbox = false; isShowingHome = false; isShowingCockpit = false } } }
+    /// The agent cockpit (AgentCockpitView): every project with running Claude sessions and
+    /// their sessions, without files or jobs. Exclusive like the others, both ways.
+    var isShowingCockpit = false {
+        didSet {
+            guard isShowingCockpit else { return }
+            selectedProjectID = nil
+            isShowingAllTasks = false
+            isShowingCalendar = false
+            isShowingInbox = false
+            isShowingClipboard = false
+            isShowingHome = false
+        }
+    }
+    /// The space (project or General) whose Claude strip the cockpit shows; kept while the app
+    /// runs so coming back to the cockpit shows the same one (AppViewModel+Cockpit.swift).
+    var cockpitProjectID: UUID?
+    /// Spaces folded in the cockpit's sidebar.
+    var cockpitCollapsedIDs: Set<UUID> = []
     /// Home: the project tiles (HomeView). The window opens on it. Exclusive like the others:
     /// turning it on clears every other destination, any other destination turns it off.
     var isShowingHome = true {
@@ -122,6 +140,7 @@ final class AppViewModel {
             isShowingCalendar = false
             isShowingInbox = false
             isShowingClipboard = false
+            isShowingCockpit = false
         }
     }
     /// Each project's section (Overview, Workspace, Jobs), remembered across launches
@@ -3614,14 +3633,17 @@ final class AppViewModel {
 
     // MARK: - Project Management
 
-    func createProject(name: String, companion: MascotAvatar? = nil) {
+    /// Adds a project and, unless `enter` is false (the cockpit stays where it is), opens it.
+    @discardableResult
+    func createProject(name: String, companion: MascotAvatar? = nil, enter: Bool = true) -> Project? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty else { return nil }
         var project = Project(name: trimmed)
         project.companionAvatar = companion?.rawValue
         projects.insert(project, at: 0)
         projectStore.debouncedSaveProjects(projects)
-        selectedProjectID = project.id
+        if enter { selectedProjectID = project.id }
+        return project
     }
 
     /// Puts the projects in the order the user arranged in the sidebar. IDs not listed keep

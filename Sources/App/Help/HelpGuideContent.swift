@@ -76,7 +76,7 @@ enum HelpGuideContent {
 
         ## The window
 
-        MinuteMind opens on Home: your projects as tiles with their creatures. A creature shows what the project's Claude sessions do: it types on its laptop while one works, waves while one waits for you, holds its thumb up with a green check when one has finished and you have not opened that session yet, and sleeps while its sessions are idle. The sidebar lists Home, Inbox (meetings waiting to be processed), All Transcripts (every recording, with the record button), All Tasks, Calendar, Clipboard (your dictation history), General (a workspace for meetings without a project) and your projects. Settings is the gear at the bottom of the sidebar (Cmd+,).
+        MinuteMind opens on Home: your projects as tiles with their creatures. A creature shows what the project's Claude sessions do: it types on its laptop while one works, waves while one waits for you, holds its thumb up with a green check when one has finished and you have not opened that session yet, and sleeps while its sessions are idle. The sidebar lists Home, Cockpit (every running Claude session of every project, see Workspace), Inbox (meetings waiting to be processed), All Transcripts (every recording, with the record button), All Tasks, Calendar, Clipboard (your dictation history), General (a workspace for meetings without a project) and your projects. Settings is the gear at the bottom of the sidebar (Cmd+,).
 
         Click a project (its tile or its row) to enter it: the sidebar then belongs to that project, with its sections and its files. Click the project's name at the top of the sidebar to go back Home. The back and forward buttons of your mouse go to the previous and next place, like in a browser. Hold Cmd and press K to switch projects.
 
@@ -377,7 +377,7 @@ enum HelpGuideContent {
         id: "workspace",
         title: "Project Workspace and Claude Code",
         icon: "terminal",
-        summary: "The workspace folder, its files in the sidebar, the editor, Claude Code sessions, terminals, splits and git branches.",
+        summary: "The workspace folder, its files in the sidebar, the editor, Claude Code sessions, terminals, splits, git branches and the agent cockpit.",
         body: """
         Every project has a workspace: a folder (a git repository) holding its processed meetings (meetings/), quick recordings (recordings/), knowledge (knowledge/), jobs (jobs/) and anything you or Claude add, such as plans, notes or cloned code. Its CLAUDE.md tells Claude what the folder is; text you add outside the MinuteMind block is kept.
 
@@ -389,6 +389,15 @@ enum HelpGuideContent {
         - **Claude Code:** up to six sessions per project in tabs (the sparkle button; right click for Sonnet instead of Opus), plus plain terminals (Shift+Opt+Cmd+N). Opt+Cmd+Left/Right switches sessions. Each pane's frame shows its state: blue working, orange waiting for you, green done, red error.
         - **Layout:** Claude sits below the file (default), beside it, or in its own window (buttons in Claude's tab strip). Drag a tab onto a pane to split it, or use Split Right / Split Down in the tab's menu; drag a tab out to give it its own window.
         - **Branch row** at the bottom of the project's sidebar: the checked-out git branch; switch or create branches there. Uncommitted changes come along or are kept for you on the branch you leave. If it says "git is not installed", click Install: it opens Apple's installer for the Command Line Tools (or run `xcode-select --install` in Terminal). Until then the workspace keeps no history and Shared Projects cannot sync.
+
+        ## Cockpit
+
+        Cockpit in the Home sidebar is for working with agents across projects. Its sidebar lists every project with a running Claude session and that project's sessions below it, each with the project's creature showing its state; the page shows the chosen project's Claude tabs and splits, without files or jobs. Click a session to work in it, click a project to see its tabs, and click the arrow beside a project to fold it.
+
+        - **+ on a project** (shown when the pointer is over it): starts another Claude session there; right click for Sonnet.
+        - **+ at the top:** starts a session in a project that has none yet, or creates a new project with New Project... and starts one in it. You stay in the cockpit.
+        - A project leaves the list when its last Claude session closes. Sessions in their own window stay there; clicking one brings the window forward.
+        - The sessions are the same as in each project's Workspace, so you can switch between the two at any time. Click Cockpit at the top of its sidebar to go back Home.
 
         Claude in the workspace has MinuteMind's tools, so it can read meetings, tasks, the calendar and the knowledge, and change settings.
         """

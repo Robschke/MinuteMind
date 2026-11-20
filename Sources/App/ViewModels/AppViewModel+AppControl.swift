@@ -19,7 +19,7 @@ import Foundation
 extension AppViewModel {
     enum AppDestination: Equatable {
         case settings(MeetingMinutesSettingsView.Tab)
-        case allTranscripts, inbox, allTasks, calendar, clipboard
+        case allTranscripts, inbox, allTasks, calendar, clipboard, cockpit
         /// A project (General included, `ProjectRepositoryService.generalProjectID`) and optionally a tab.
         case project(UUID, ProjectTab?)
     }
@@ -53,6 +53,7 @@ extension AppViewModel {
         case .allTasks: isShowingAllTasks = true
         case .calendar: isShowingCalendar = true
         case .clipboard: isShowingClipboard = true
+        case .cockpit: go(to: .cockpit)
         case .project(let id, let tab):
             guard id == ProjectRepositoryService.generalProjectID || projects.contains(where: { $0.id == id }) else {
                 throw AppControlError.failed("No project with id \(id.uuidString).")
