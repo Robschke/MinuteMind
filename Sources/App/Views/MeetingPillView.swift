@@ -78,7 +78,8 @@ struct MeetingPillView: View {
             // bottom of the larger panel instead of floating in its middle and then dropping.
             // Beside the companion the content hugs the edge facing the creature instead.
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: contentAlignment)
-            .environment(\.pillPixelStyle, model.companionMode)
+            .environment(\.pillPixelStyle, model.usesPixelFinish)
+            .environment(\.pillThemedCard, model.companionMode && !model.usesPixelFinish)
             .animation(reduceMotion ? .easeInOut(duration: 0.15) : .spring(duration: 0.35, bounce: 0.15), value: model.displayKind)
             .animation(.spring(duration: 0.3, bounce: 0.1), value: model.showsRecordingControls)
             .animation(reduceMotion ? nil : .spring(duration: 0.3, bounce: 0.1), value: model.idleExpanded)
@@ -1381,6 +1382,18 @@ struct PillButtonStyle: ButtonStyle {
     }
 }
 
+private struct PillThemedCardKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// Cards beside the companion in the theme's look (the pixel finish is off).
+    var pillThemedCard: Bool {
+        get { self[PillThemedCardKey.self] }
+        set { self[PillThemedCardKey.self] = newValue }
+    }
+}
+
 private struct GlassBackground: NSViewRepresentable {
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
@@ -1400,15 +1413,31 @@ private struct Glass: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.pillPixelStyle) private var pixel
+    @Environment(\.pillThemedCard) private var themed
 
     func body(content: Content) -> some View {
         if pixel {
             content
                 .clipShape(PixelPanelShape())
                 .modifier(PixelPanelBackground())
+        } else if themed {
+            themedCard(content)
         } else {
             glass(content)
         }
+    }
+
+    /// Beside the companion: the theme's card, border and corners, solid so it reads on any
+    /// wallpaper.
+    @ViewBuilder
+    private func themedCard(_ content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        let increased = contrast == .increased
+        content
+            .background(DesignSystem.Colors.card, in: shape)
+            .clipShape(shape)
+            .overlay { shape.strokeBorder(DesignSystem.Colors.border, lineWidth: increased ? 1.5 : 1) }
+            .shadow(color: .black.opacity(colorScheme == .dark ? 0.45 : 0.16), radius: quiet ? 3 : 10, y: quiet ? 1 : 4)
     }
 
     @ViewBuilder

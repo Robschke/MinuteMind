@@ -52,7 +52,7 @@ struct MCPAvatarToolsTests {
         #expect(MCPAvatarTools.names.isSubset(of: Set(MinuteMindMCPServer.exposedToolNames())))
     }
 
-    @Test("The rules carry the format, the face grid from the pose code and two valid examples")
+    @Test("The rules carry the format, the face grid from the pose code and valid examples of both kinds")
     func rules() throws {
         let rules = try tools.execute(toolName: "get_avatar_rules", arguments: [:]).text
         for word in ["preview_avatar", "save_avatar", "neutralMouth", "featureColor", "\"o\", \"b\", \"h\", \"c\", \"e\", \"f\"", "y 9: x 3, 4, 5, 6, 7, 8"] {
@@ -65,7 +65,7 @@ struct MCPAvatarToolsTests {
 
         // The examples are complete drafts: each one passes the validator as printed.
         let blocks = rules.components(separatedBy: "```json\n").dropFirst().compactMap { $0.components(separatedBy: "\n```").first }
-        #expect(blocks.count == 2)
+        #expect(blocks.count == 3)
         for block in blocks {
             let draft = try object(block)
             #expect((try? MascotAvatarValidator.validated(draft)) != nil)

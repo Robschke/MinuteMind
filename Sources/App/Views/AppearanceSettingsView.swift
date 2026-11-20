@@ -532,12 +532,13 @@ private struct CompanionAppearanceSection: View {
                     }
                     GridRow {
                         Text("Size").frame(width: 80, alignment: .leading)
-                        Picker("Size", selection: $appearance.size) {
-                            ForEach(CompanionAppearance.Size.allCases) { size in
-                                Text(size.label).tag(size)
-                            }
+                        Slider(value: $appearance.unitSize, in: CompanionAppearance.sizeRange, step: 0.25) {
+                            Text("Size")
+                        } minimumValueLabel: {
+                            Text("Small").font(.themed(.caption))
+                        } maximumValueLabel: {
+                            Text("Large").font(.themed(.caption))
                         }
-                        .pickerStyle(.segmented)
                         .labelsHidden()
                         .frame(width: 240)
                         // Size and colour only matter while it shows; Show stays usable.

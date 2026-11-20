@@ -1248,6 +1248,8 @@ final class CompanionController {
         ))
         if frame != model.frame { model.frame = frame }
         if model.frontAvatar != frontMember?.avatar { model.frontAvatar = frontMember?.avatar }
+        let frontKind = (frontMember?.avatar ?? CompanionAppearance.shared.avatar).kind
+        if pill.model.frontAvatarKind != frontKind { pill.model.frontAvatarKind = frontKind }
         if model.frontName != frontMember?.name { model.frontName = frontMember?.name }
         let frontColor = frontMember.map(Self.bodyColor(of:))
         if model.frontColor != frontColor { model.frontColor = frontColor }

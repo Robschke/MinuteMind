@@ -6,10 +6,11 @@
 //               border), Sources/App/Components/DesignSystem.swift (accent)
 // Used by: Sources/App/Views/MeetingPillView.swift (Glass, PillButtonStyle, RecordingDot,
 //          LevelBars, DictationWave switch to these when `pillPixelStyle` is set)
-// Notes: User request 2026-10-13: cards and recording "a bit more in line" with the pixel creature,
-//        not too much. Decisions:
-//        - Only in companion mode; the bottom-centre pill (companion hidden, screen share) keeps
-//          its glass look.
+// Notes: Cards and recording "a bit more in line" with the pixel creature, not too much. Decisions:
+//        - Only in companion mode, and only while the creature in front is a pixel avatar and the
+//          theme's corners are square (MeetingPillModel.usesPixelFinish); otherwise the cards take
+//          the theme's look, and the bottom-centre pill (companion hidden, screen share) keeps its
+//          glass look.
 //        - Text stays in the system font at the same sizes: legibility first, the pixel feel comes
 //          from shapes, edges and shadows. The timer uses monospaced digits in SF Mono.
 //        - A solid card instead of frosted glass: pixel art has no blur, and a solid fill reads on

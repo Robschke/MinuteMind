@@ -10,10 +10,11 @@
 //          CompanionController.swift (resizes its panels), Sources/App/Views/AppearanceSettingsView.swift,
 //          Sources/App/ViewModels/AppViewModel+Companion.swift (projectBodyColor: project creatures)
 // Notes: User request 2026-10-13: size and colour adjustable in Settings, Appearance; a choice of
-//        other creatures may follow later. Sizes are whole-point pixels (2, 3, 4 pt) so the pixel
-//        art stays crisp; 3 pt is the size the creature was designed at. One colour for light and
+//        other creatures may follow later. The size is a slider (1.5 to 6 points per unit, 3 is
+//        the size the creature was designed at); pixel avatars snap to half points so their
+//        pixels stay crisp, svg avatars are sharp at any size. One colour for light and
 //        dark mode: the creature floats over every app, not inside a themed window. Keys:
-//        mm.companionSize (small, medium, large), mm.companionColor (hex, absent = theme accent),
+//        mm.companionSize (points per unit; older builds stored small, medium, large), mm.companionColor (hex, absent = theme accent),
 //        mm.companionLastColor (the last own colour, restored when switching back to it),
 //        mm.companionAvatar (an avatar's id, MascotAvatarCatalog), mm.companionComesOnShake
 //        (default on: shaking the mouse brings the creature to the pointer),
@@ -33,25 +34,10 @@ extension Notification.Name {
 @Observable
 @MainActor
 final class CompanionAppearance {
-    enum Size: String, CaseIterable, Identifiable {
-        case small, medium, large
-        var id: String { rawValue }
-        var label: String {
-            switch self {
-            case .small: "Small"
-            case .medium: "Medium"
-            case .large: "Large"
-            }
-        }
-        /// The side of one pixel in points.
-        var pixel: CGFloat {
-            switch self {
-            case .small: 2
-            case .medium: 3
-            case .large: 4
-            }
-        }
-    }
+    /// Points per creature unit (one pixel of a pixel avatar) the size slider allows.
+    static let sizeRange: ClosedRange<Double> = 1.5...6
+    /// The old Small, Medium and Large, still accepted by name.
+    static let namedSizes: [String: Double] = ["small": 2, "medium": 3, "large": 4]
 
     static let shared = CompanionAppearance()
 
@@ -134,9 +120,12 @@ final class CompanionAppearance {
         }
     }
 
-    var size: Size {
+    /// Points per creature unit, set with the size slider (the creature is 12 units wide).
+    var unitSize: Double {
         didSet {
-            defaults.set(size.rawValue, forKey: "mm.companionSize")
+            let clamped = min(max(unitSize, Self.sizeRange.lowerBound), Self.sizeRange.upperBound)
+            if clamped != unitSize { unitSize = clamped; return }
+            defaults.set(unitSize, forKey: "mm.companionSize")
             announceChange()
         }
     }
@@ -174,7 +163,10 @@ final class CompanionAppearance {
         shakeStrength = min(max(storedStrength, MouseShakeDetector.strengths.lowerBound),
                             MouseShakeDetector.strengths.upperBound)
         visibleInScreenShares = defaults.bool(forKey: "mm.companionVisibleInScreenShares")
-        size = Size(rawValue: defaults.string(forKey: "mm.companionSize") ?? "") ?? .medium
+        // A number since the slider; Small, Medium and Large before it.
+        let stored = defaults.object(forKey: "mm.companionSize")
+        let number = (stored as? NSNumber)?.doubleValue ?? (stored as? String).flatMap { Self.namedSizes[$0] } ?? 3
+        unitSize = min(max(number, Self.sizeRange.lowerBound), Self.sizeRange.upperBound)
         customColor = (defaults.object(forKey: "mm.companionColor") as? Int).map { UInt32(truncatingIfNeeded: $0) }
         isLoaded = true
         avatarsObserver = NotificationCenter.default.addObserver(
@@ -184,7 +176,11 @@ final class CompanionAppearance {
         }
     }
 
-    var pixel: CGFloat { size.pixel }
+    /// Points per unit as drawn: a pixel avatar snaps to half points so its pixels stay sharp
+    /// on Retina screens, an svg avatar takes the slider's value as it is.
+    var pixel: CGFloat {
+        avatar.kind == .pixel ? CGFloat((unitSize * 2).rounded() / 2) : CGFloat(unitSize)
+    }
 
     /// The creature's body colour; its outline and shine derive from it.
     var bodyColor: Color { bodyColor(for: avatar) }
