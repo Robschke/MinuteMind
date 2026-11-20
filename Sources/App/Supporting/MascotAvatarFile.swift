@@ -1,9 +1,10 @@
 // Purpose: MascotAvatarFile, an avatar as it is written to disk and sent over MCP: one JSON
 //          object with id, name, kind, the 13 rows of the body, the two colours, the neutral
-//          mouth and a format version. Reads such an object, writes one, and turns it into the
-//          MascotAvatar the app draws.
+//          mouth and a format version; an avatar of kind "svg" carries its drawings (SVGAvatarArt)
+//          instead of rows, feature colour and mouth. Reads such an object, writes one, and turns
+//          it into the MascotAvatar the app draws.
 // Dependencies: Sources/App/Supporting/MascotAvatar.swift (the avatar, the built-in ones and
-//               their traits)
+//               their traits), Sources/App/Supporting/SVGAvatarArt.swift (svg drawings)
 // Used by: Sources/App/Supporting/MascotAvatarValidator.swift (checks a file),
 //          Sources/App/Supporting/MascotAvatarStore.swift (the avatars folder),
 //          Sources/App/Services/MCP/MCPAvatarTools.swift (drafts from Claude, get_avatar)
@@ -31,7 +32,11 @@ struct MascotAvatarFile: Equatable, Sendable {
     var featureColor: String
     /// Pairs of x and y.
     var neutralMouth: [[Int]]
+    /// The drawings of an avatar of kind "svg"; rows, featureColor and neutralMouth are unused then.
+    var svg: SVGAvatarArt?
     var formatVersion: Int = MascotAvatarFile.currentFormatVersion
+
+    var isSVG: Bool { kind == MascotAvatar.Kind.svg.rawValue }
 
     /// An avatar's current data, as a file would hold it.
     init(_ avatar: MascotAvatar) {
@@ -42,6 +47,7 @@ struct MascotAvatarFile: Equatable, Sendable {
         bodyColor = avatar.naturalBody.map(Self.hex)
         featureColor = Self.hex(avatar.featureColor)
         neutralMouth = avatar.neutralMouth.map { [$0.0, $0.1] }
+        svg = avatar.art
     }
 
     init(id: String, name: String, rows: [String], bodyColor: String?, featureColor: String, neutralMouth: [[Int]]) {
@@ -76,6 +82,20 @@ struct MascotAvatarFile: Equatable, Sendable {
         file.name = string("name") ?? ""
         file.kind = string("kind", required: false) ?? MascotAvatar.Kind.pixel.rawValue
         file.bodyColor = string("bodyColor", required: false)
+        if file.isSVG {
+            // A drawing in any style: no pixel rows, colours or mouth.
+            let (art, artIssues) = SVGAvatarArt.read(object["svg"])
+            file.svg = art
+            issues += artIssues
+            if let version = object["formatVersion"], !(version is NSNull) {
+                if let number = (version as? NSNumber).flatMap(Self.wholeNumber) {
+                    file.formatVersion = number
+                } else {
+                    issues.append("\"formatVersion\" must be a whole number.")
+                }
+            }
+            return (file, issues)
+        }
         file.featureColor = string("featureColor") ?? ""
 
         if let rows = object["rows"] as? [String] {
@@ -110,7 +130,13 @@ struct MascotAvatarFile: Equatable, Sendable {
 
     /// The JSON object written to disk and returned over MCP.
     var jsonObject: [String: Any] {
-        [
+        if isSVG {
+            return [
+                "id": id, "name": name, "kind": kind, "bodyColor": bodyColor ?? NSNull(),
+                "svg": svg?.jsonObject ?? [:], "formatVersion": formatVersion,
+            ]
+        }
+        return [
             "id": id, "name": name, "kind": kind, "rows": rows,
             "bodyColor": bodyColor ?? NSNull(), "featureColor": featureColor,
             "neutralMouth": neutralMouth, "formatVersion": formatVersion,
@@ -147,6 +173,9 @@ struct MascotAvatarFile: Equatable, Sendable {
     /// read fall back to black and the accent.
     var avatar: MascotAvatar {
         let base = builtIn
+        if isSVG, let svg {
+            return MascotAvatar(id: id, name: base?.name ?? name, art: svg, naturalBody: bodyColor.flatMap(Self.color))
+        }
         return MascotAvatar(
             id: id,
             name: base?.name ?? name,

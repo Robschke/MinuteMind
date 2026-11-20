@@ -3,7 +3,8 @@
 //          kind and returns a CreatureFrame, which CreatureView draws.
 // Dependencies: Sources/App/Supporting/MascotAvatar.swift (the avatar and its kind),
 //               Sources/App/Supporting/AssistantMascotPose.swift (the pixel renderer: moods,
-//               bubbles, MascotFrame)
+//               bubbles, MascotFrame), Sources/App/Supporting/SVGCreatureRenderer.swift (the svg
+//               renderer)
 // Used by: Sources/App/Views/CreatureView.swift (draws a frame), Sources/App/Supporting/
 //          CompanionController.swift (samples the companion's and the sidekicks' frames), and
 //          every view that shows a creature through CreatureView
@@ -45,6 +46,7 @@ struct CreaturePose {
 /// One moment of a creature, ready to draw; which case it is follows from the avatar's kind.
 enum CreatureFrame: Equatable, Sendable {
     case pixel(MascotFrame)
+    case svg(SVGCreatureFrame)
 
     /// The Blob's bare body, shown until the first pose is sampled.
     static let resting = CreatureFrame.pixel(MascotFrame(grid: .body))
@@ -53,6 +55,7 @@ enum CreatureFrame: Equatable, Sendable {
     var bubble: MascotBubble? {
         switch self {
         case .pixel(let frame): frame.bubble
+        case .svg(let frame): frame.bubble
         }
     }
 
@@ -60,6 +63,7 @@ enum CreatureFrame: Equatable, Sendable {
     var bubbleLift: Int {
         switch self {
         case .pixel(let frame): frame.bubbleLift
+        case .svg(let frame): frame.bubbleLift
         }
     }
 }
@@ -68,6 +72,12 @@ enum CreatureRenderer {
     static func frame(_ pose: CreaturePose) -> CreatureFrame {
         switch pose.avatar.kind {
         case .pixel: .pixel(AssistantMascotPose.frame(pose))
+        case .svg:
+            if let art = pose.avatar.art {
+                .svg(SVGCreatureRenderer.frame(pose, art: art))
+            } else {
+                .pixel(AssistantMascotPose.frame(pose))
+            }
         }
     }
 }

@@ -68,14 +68,19 @@ enum MascotAvatarValidator {
                 issues.append("\"name\" must be one line of at most \(maxNameLength) characters.")
             }
         }
-        if file.kind != MascotAvatar.Kind.pixel.rawValue {
-            issues.append("\"kind\" is \"\(file.kind)\": only \"pixel\" is supported.")
+        if MascotAvatar.Kind(rawValue: file.kind) == nil {
+            issues.append("\"kind\" is \"\(file.kind)\": use \"pixel\" or \"svg\".")
         }
         if file.formatVersion != MascotAvatarFile.currentFormatVersion {
             issues.append("\"formatVersion\" is \(file.formatVersion): this version of MinuteMind reads \(MascotAvatarFile.currentFormatVersion).")
         }
         if let body = file.bodyColor, MascotAvatarFile.color(body) == nil {
             issues.append("\"bodyColor\" is \"\(body)\": use #RRGGBB (for example #F5A65B), or null for the theme's accent colour.")
+        }
+        if file.isSVG {
+            // Drawings in any style: their own checks, none of the pixel face rules.
+            if let svg = file.svg, readIssues.allSatisfy({ !$0.hasPrefix("\"svg") }) { issues += svg.issues() }
+            return issues
         }
         if wasRead("featureColor"), MascotAvatarFile.color(file.featureColor) == nil {
             issues.append("\"featureColor\" is \"\(file.featureColor)\": use #RRGGBB (for example #C8702A).")

@@ -3,6 +3,7 @@
 //          of the frame's kind. The pixel renderer's canvas lives here too.
 // Dependencies: Sources/App/Supporting/CreatureRenderer.swift (CreaturePose, CreatureFrame),
 //               Sources/App/Supporting/AssistantMascotPose.swift (MascotFrame, inks),
+//               Sources/App/Views/SVGCreatureCanvas.swift (the svg renderer's drawing),
 //               Sources/App/Supporting/CompanionAppearance.swift (the home companion's avatar,
 //               size and colour), Sources/App/Components/DesignSystem.swift (theme colours)
 // Used by: Sources/App/Views/CompanionView.swift (the desktop companion, its sidekicks, the
@@ -50,6 +51,10 @@ struct CreatureView: View {
         switch frame {
         case .pixel(let frame):
             MascotCanvas(frame: frame, avatar: avatar, pixelSize: unit, bodyColor: bodyColor)
+        case .svg(let frame):
+            SVGCreatureCanvas(
+                frame: frame, avatar: avatar ?? CompanionAppearance.shared.avatar,
+                unit: unit ?? CreatureView.unit, bodyColor: bodyColor)
         }
     }
 }
