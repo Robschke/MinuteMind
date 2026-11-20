@@ -57,7 +57,7 @@ enum ThemeFileGuide {
         }
         ```
 
-        Advice: give every colour a light and a dark value unless the look is meant to stay the same in both modes (then tell the user that Light mode will look dark too). Keep body text at a contrast of 4.5:1 or more on the background; `preview_theme` and `save_theme` warn below that. Pick fonts from `list_fonts`; a family that is not installed falls back to the system font. Look at the `preview_theme` picture before saving.
+        Advice: give every colour a light and a dark value unless the look is meant to stay the same in both modes (then tell the user that Light mode will look dark too). Keep body text at a contrast of 4.5:1 or more on the background; `preview_theme` and `save_theme` warn below that, on `card` as well. Whenever you set `background`, set `card` (and `border`) too: text colours are derived from the background, while an unset card stays the base theme's, so light text can end up on a light card. Pick fonts from `list_fonts`; a family that is not installed falls back to the system font. Look at the `preview_theme` picture before saving.
         """
     }
 }

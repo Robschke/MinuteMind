@@ -259,7 +259,8 @@ enum ThemeFileValidator {
     }
 
     /// Things worth fixing that do not stop the theme from working: fonts that are not
-    /// installed (the system font is used instead) and text that is hard to read.
+    /// installed (the system font is used instead) and text that is hard to read on the page
+    /// (`background`) or on raised panels (`card`, where most text sits).
     static func warnings(for file: ThemeFile, installedFamilies: Set<String>) -> [String] {
         var warnings: [String] = []
         let lowercased = Set(installedFamilies.map { $0.lowercased() })
@@ -271,13 +272,14 @@ enum ThemeFileValidator {
         let theme = file.resolve()
         for dark in [false, true] {
             let mode = dark ? "dark" : "light"
-            let background = theme.background.resolved(dark: dark)
-            for (name, color, minimum) in [
-                ("textPrimary", theme.textPrimary, 4.5), ("textSecondary", theme.textSecondary, 3.0),
-            ] {
-                let ratio = contrast(color.resolved(dark: dark), background)
-                if ratio < minimum {
-                    warnings.append("In \(mode) mode \(name) on background has a contrast of \(String(format: "%.1f", ratio)):1, below \(minimum):1, so text is hard to read.")
+            for (surfaceName, surface) in [("background", theme.background), ("card", theme.card)] {
+                for (name, color, minimum) in [
+                    ("textPrimary", theme.textPrimary, 4.5), ("textSecondary", theme.textSecondary, 3.0),
+                ] {
+                    let ratio = contrast(color.resolved(dark: dark), surface.resolved(dark: dark))
+                    if ratio < minimum {
+                        warnings.append("In \(mode) mode \(name) on \(surfaceName) has a contrast of \(String(format: "%.1f", ratio)):1, below \(minimum):1, so text is hard to read.")
+                    }
                 }
             }
         }

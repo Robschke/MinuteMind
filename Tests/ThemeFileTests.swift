@@ -110,7 +110,28 @@ struct ThemeFileTests {
         let warnings = ThemeFileValidator.warnings(for: file, installedFamilies: ["Menlo"])
         #expect(warnings.contains { $0.contains("\"No Such Font\" is not installed") })
         #expect(warnings.contains { $0.contains("textPrimary") })
-        #expect(ThemeFileValidator.warnings(for: try validated(terminal), installedFamilies: ["Menlo"]).isEmpty)
+        // Readable on the page and on its own dark card, fonts installed: nothing to say.
+        var readable = terminal
+        readable["colors"] = ["background": "#0B0F14", "card": "#141A22"]
+        #expect(ThemeFileValidator.warnings(for: try validated(readable), installedFamilies: ["Menlo"]).isEmpty)
+    }
+
+    @Test func warnsWhenTextDerivedFromTheBackgroundSitsOnTheBaseCard() throws {
+        // Only a dark background for both modes: text turns light in both, the card stays the
+        // base theme's, which is light in Light mode.
+        let file = try validated(["id": "night", "name": "Night", "base": "ember", "colors": ["background": "#0B0F14"]])
+        let theme = file.resolve()
+        #expect(theme.card == AppTheme.ember.card)
+        let warnings = ThemeFileValidator.warnings(for: file, installedFamilies: [])
+        #expect(warnings.contains { $0.contains("In light mode textPrimary on card") })
+        #expect(!warnings.contains { $0.contains("on background") })
+        #expect(!warnings.contains { $0.contains("In dark mode") })
+
+        let withCard = try validated([
+            "id": "night", "name": "Night", "base": "ember",
+            "colors": ["background": "#0B0F14", "card": "#141A22", "border": "#2A3340"],
+        ])
+        #expect(ThemeFileValidator.warnings(for: withCard, installedFamilies: []).isEmpty)
     }
 
     // MARK: - Folder
