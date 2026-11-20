@@ -561,17 +561,20 @@ enum HelpGuideContent {
         id: "appearance",
         title: "Appearance and Themes",
         icon: "paintpalette",
-        summary: "Themes, custom colours and saved profiles, light and dark mode, the sidebar's project order.",
+        summary: "Themes, custom colours and saved profiles, themes Claude designs (colours, fonts, corners, density, terminal font), light and dark mode, the sidebar's project order.",
         body: """
         Settings > Appearance:
 
         - **Theme:** Studio (standard macOS look, the default), Ember (warm paper and terracotta), Midnight (deep navy and cyan), Voltage (electric violet and lime), or Custom.
         - **Custom:** start from a built-in theme and set accent, background, card and border colours for light and dark. Save custom colours as named profiles; they appear next to the built-in themes and can be renamed or deleted.
+        - **Themes by Claude:** ask any Claude with MinuteMind's tools (a workspace session, the voice assistant, Claude Desktop) for a look, for example "make MinuteMind look like a terminal, dark, Menlo, square corners, compact". Claude can set every colour, the app's font and text size, how round corners are, how dense the layout is, and the terminal and editor font. It saves the theme as a file in the Themes folder and switches to it; it then appears as a card next to the other themes. Ask Claude again to change it. Right click its card to show the file in Finder or move it to the Trash.
         - **Mode:** System, Light or Dark.
         - **Sidebar:** the order of the projects in the sidebar, Manual order or Recently used (see Projects).
         - **Companion:** see Desktop Companion.
 
-        The workspace terminal and Claude follow the theme's colours.
+        The workspace terminal and Claude follow the theme's colours, and a theme by Claude can also set their font and size.
+
+        \(ThemeFileGuide.markdown)
         """
     )
 

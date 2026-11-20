@@ -11,6 +11,7 @@
 //               Sources/App/Services/MCP/MCPDiagnosticsTools.swift (health report, app log, repairs),
 //               Sources/App/Services/MCP/MCPUpdateTools.swift (check_for_update, update_app),
 //               Sources/App/Services/MCP/MCPAvatarTools.swift (companion avatars, with a picture),
+//               Sources/App/Services/MCP/MCPThemeTools.swift (themes by prompt, with a picture),
 //               Sources/App/Services/AgentTools.swift (tool definitions),
 //               Sources/App/Services/ToolExecutor.swift (tool execution),
 //               Sources/App/ViewModels/AppViewModel.swift (owner; data access)
@@ -181,7 +182,10 @@ final class MinuteMindMCPServer {
                 update_app installs it after the user agreed (MinuteMind restarts). \
                 When the user wants a new companion avatar or a change to one, call \
                 get_avatar_rules, draw it, check the picture from preview_avatar and save it \
-                with save_avatar.
+                with save_avatar. \
+                When the user wants MinuteMind to look different (colours, font, corners, \
+                density, terminal font, "make it look like ..."), call get_theme_rules, start \
+                from get_theme, check the picture from preview_theme and save it with save_theme.
                 """,
             capabilities: .init(tools: .init(listChanged: false))
         )
@@ -281,6 +285,19 @@ final class MinuteMindMCPServer {
             }
         }
 
+        if MCPThemeTools.names.contains(name) {
+            do {
+                let object = (try? JSONSerialization.jsonObject(with: Data(argumentsJSON.utf8))) as? [String: Any] ?? [:]
+                let output = try MCPThemeTools().execute(toolName: name, arguments: object)
+                let picture = output.png.map {
+                    [Tool.Content.image(data: $0.base64EncodedString(), mimeType: "image/png", annotations: nil, _meta: nil)]
+                } ?? []
+                return .init(content: [Self.text(output.text)] + picture, isError: false)
+            } catch {
+                return .init(content: [Self.text(error.localizedDescription)], isError: true)
+            }
+        }
+
         if MCPMeetingTools.names.contains(name) {
             do {
                 let object = (try? JSONSerialization.jsonObject(with: Data(argumentsJSON.utf8))) as? [String: Any] ?? [:]
@@ -316,7 +333,8 @@ final class MinuteMindMCPServer {
     static func exposedToolNames() -> [String] {
         (AgentToolRegistry.shared.allDefinitions() + MCPMeetingTools.definitions + MCPJobTools.definitions
             + MCPSharedProjectTools.definitions + MCPHelpTools.definitions + MCPAppControlTools.definitions
-            + MCPDiagnosticsTools.definitions + MCPUpdateTools.definitions + MCPAvatarTools.definitions)
+            + MCPDiagnosticsTools.definitions + MCPUpdateTools.definitions + MCPAvatarTools.definitions
+            + MCPThemeTools.definitions)
             .compactMap { ($0["function"] as? [String: Any])?["name"] as? String }
             .filter { !excludedAgentTools.contains($0) }
     }
@@ -325,7 +343,8 @@ final class MinuteMindMCPServer {
         let agentDefinitions = AgentToolRegistry.shared.allDefinitions()
         return (agentDefinitions + MCPMeetingTools.definitions + MCPJobTools.definitions
             + MCPSharedProjectTools.definitions + MCPHelpTools.definitions + MCPAppControlTools.definitions
-            + MCPDiagnosticsTools.definitions + MCPUpdateTools.definitions + MCPAvatarTools.definitions)
+            + MCPDiagnosticsTools.definitions + MCPUpdateTools.definitions + MCPAvatarTools.definitions
+            + MCPThemeTools.definitions)
             .compactMap(Self.tool(from:))
             .filter { !Self.excludedAgentTools.contains($0.name) }
             .sorted { $0.name < $1.name }
