@@ -496,7 +496,13 @@ final class CompanionController {
                 })
             }
         }
-        panels.forEach { $0.orderFront(nil) }
+        // Stacked right above the window, each above the one before. orderFront would raise the
+        // whole window group and push Settings and other windows of the app behind it.
+        var below = window.windowNumber
+        for panel in panels {
+            panel.order(.above, relativeTo: below)
+            below = panel.windowNumber
+        }
         setOrigin(CompanionPlacement.dockedOrigin(in: window.frame))
     }
 
