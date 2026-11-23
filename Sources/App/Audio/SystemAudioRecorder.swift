@@ -1,3 +1,14 @@
+// Purpose: SystemAudioRecorder, records what the Mac plays (the other participants of a call)
+//          into a 16 kHz mono .caf through ScreenCaptureKit, and keeps the current level for
+//          silence detection.
+// Dependencies: ScreenCaptureKit (SCStream audio), AVFoundation (AVAssetWriter)
+// Used by: Sources/App/ViewModels/AppViewModel.swift (startRecording, stopRecording)
+// Notes: The stream needs 0.2 to 2 s before its first buffer arrives, so this file starts later
+//        than the microphone file. `firstSampleUptime` records when, so the two channels can be
+//        put on one timeline (ChannelAlignment). ScreenCaptureKit stamps buffers on the host
+//        clock, the clock ProcessInfo.systemUptime reads; a stamp far from the arrival time is
+//        distrusted and the arrival time is used instead.
+
 import AVFoundation
 import Foundation
 @preconcurrency import ScreenCaptureKit
@@ -16,6 +27,31 @@ final class SystemAudioRecorder: NSObject {
     /// Written on the sample queue, read from the main actor, hence the lock.
     private var levelLock = os_unfair_lock()
     private var _currentLevel: Float = 0
+    private var _firstSampleUptime: TimeInterval?
+
+    /// When the file's first sample was captured (system uptime); nil until the first buffer of
+    /// the current recording. Stays readable after `stopRecording()`.
+    var firstSampleUptime: TimeInterval? {
+        os_unfair_lock_lock(&levelLock)
+        defer { os_unfair_lock_unlock(&levelLock) }
+        return _firstSampleUptime
+    }
+
+    private func forgetFirstSample() {
+        os_unfair_lock_lock(&levelLock)
+        _firstSampleUptime = nil
+        os_unfair_lock_unlock(&levelLock)
+    }
+
+    private func noteFirstSample(_ sampleBuffer: CMSampleBuffer) {
+        let arrival = ProcessInfo.processInfo.systemUptime
+        let stamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds
+        let captured = stamp.isFinite && abs(arrival - stamp) < 5
+            ? stamp : arrival - CMSampleBufferGetDuration(sampleBuffer).seconds
+        os_unfair_lock_lock(&levelLock)
+        if _firstSampleUptime == nil, captured.isFinite { _firstSampleUptime = captured }
+        os_unfair_lock_unlock(&levelLock)
+    }
 
     /// RMS level (0 to 1) of what the other side is saying. Used with the mic level for silence
     /// detection, so listening quietly is not mistaken for the meeting being over.
@@ -75,6 +111,7 @@ final class SystemAudioRecorder: NSObject {
         self.stream = stream
         hasStartedSession = false
         hasReportedWriterFailure = false
+        forgetFirstSample()
 
         try await stream.startCapture()
     }
@@ -155,6 +192,7 @@ extension SystemAudioRecorder: SCStreamOutput {
             writer.startWriting()
             writer.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
             hasStartedSession = true
+            noteFirstSample(sampleBuffer)
             if input.isReadyForMoreMediaData {
                 input.append(sampleBuffer)
             }
@@ -162,6 +200,7 @@ extension SystemAudioRecorder: SCStreamOutput {
             if !hasStartedSession {
                 writer.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
                 hasStartedSession = true
+                noteFirstSample(sampleBuffer)
             }
             if input.isReadyForMoreMediaData {
                 input.append(sampleBuffer)

@@ -1770,8 +1770,12 @@ final class AppViewModel {
         maxRecordingTimer?.cancel()
         maxRecordingTimer = nil
 
+        // Read before stopping: the microphone recorder forgets its start when it stops.
+        let microphoneStart = micRecorder.firstSampleUptime
         micRecorder.stopRecording()
         await systemRecorder.stopRecording()
+        session.systemAudioOffsetSeconds = ChannelAlignment.offset(
+            microphoneStart: microphoneStart, systemStart: systemRecorder.firstSampleUptime)
 
         session.status = .recorded
         session.duration = Date().timeIntervalSince(session.createdAt)
@@ -2787,6 +2791,22 @@ final class AppViewModel {
             includeMicrophone: automationSettings.diarizeMicrophone)
     }
 
+    /// Seconds the system channel starts after the microphone channel: measured while recording,
+    /// else estimated from the two files' lengths (recordings made before it was measured).
+    private func systemAudioOffset(for session: RecordingSession, micURL: URL?, systemURL: URL?) async
+        -> TimeInterval
+    {
+        if let measured = session.systemAudioOffsetSeconds { return measured }
+        func duration(_ url: URL?) async -> TimeInterval? {
+            guard let url, FileManager.default.fileExists(atPath: url.path),
+                let duration = try? await AVURLAsset(url: url).load(.duration)
+            else { return nil }
+            return duration.seconds.isFinite ? duration.seconds : nil
+        }
+        return ChannelAlignment.estimatedOffset(
+            microphoneDuration: await duration(micURL), systemDuration: await duration(systemURL))
+    }
+
     /// Returns a cleaned temp copy of `url` for transcription (high-pass + normalize + gentle
     /// gate), plus the temp URL to delete afterwards. Falls back to the original when
     /// preprocessing is disabled or fails.
@@ -2864,6 +2884,7 @@ final class AppViewModel {
                 systemURL: sysProc,
                 localeIdentifier: isAutoDetect ? nil : session.languageCode,
                 autoDetectLanguage: isAutoDetect,
+                systemAudioOffset: await systemAudioOffset(for: session, micURL: micURL, systemURL: systemURL),
                 contextualStrings: context.terms,
                 diarization: diarization,
                 onProgress: { [weak self] current, total in
@@ -2981,6 +3002,7 @@ final class AppViewModel {
                 microphoneURL: micProc,
                 systemURL: sysProc,
                 language: languageCode,
+                systemAudioOffset: await systemAudioOffset(for: session, micURL: micURL, systemURL: systemURL),
                 diarization: activeDiarization
             )
 

@@ -271,11 +271,13 @@ final class ParakeetTranscriptionService: @unchecked Sendable {
     /// Transcribes audio using the on-device Parakeet model.
     /// Throws `modelNotInstalled` if `downloadModel()` has not been called successfully.
     /// `language` is currently ignored: Parakeet is multilingual and auto-detects.
+    /// `systemAudioOffset`: seconds the system file starts after the microphone file.
     func transcribe(
         microphoneURL: URL?,
         systemURL: URL?,
         language: String? = nil,
         prompt: String? = nil,
+        systemAudioOffset: TimeInterval = 0,
         diarization: DiarizationOptions? = nil
     ) async throws -> LabeledTranscript {
         guard isModelInstalled else { throw ServiceError.modelNotInstalled }
@@ -296,6 +298,7 @@ final class ParakeetTranscriptionService: @unchecked Sendable {
                     manager: manager,
                     microphoneURL: micExists ? microphoneURL : nil,
                     systemURL: sysExists ? systemURL : nil,
+                    systemAudioOffset: systemAudioOffset,
                     diarization: diarization)
                 {
                     return labeled
@@ -366,98 +369,97 @@ final class ParakeetTranscriptionService: @unchecked Sendable {
 
     /// Transcribes each channel separately and assembles a speaker-labeled transcript:
     /// the microphone becomes "You", the mixed remote channel is diarized into "Speaker 1/2/…".
+    /// The system channel is moved onto the microphone's timeline by `systemAudioOffset`, and
+    /// microphone passages that only repeat the loudspeaker are dropped (EchoSuppression).
     /// Returns nil when Parakeet reported no word timings (caller falls back to plain text).
     private func transcribeWithSpeakers(
         manager: AsrManager,
         microphoneURL: URL?,
         systemURL: URL?,
+        systemAudioOffset: TimeInterval,
         diarization: DiarizationOptions
     ) async throws -> LabeledTranscript? {
-        var utterances: [TranscriptUtterance] = []
+        var micWords: [TimedWord] = []
+        // In the system file's own time; shifted only where the channels meet.
+        var systemWords: [TimedWord] = []
+        if let micURL = microphoneURL {
+            guard let words = try await timedWords(manager: manager, url: micURL) else { return nil }
+            micWords = words
+        }
+        if let sysURL = systemURL {
+            guard let words = try await timedWords(manager: manager, url: sysURL) else { return nil }
+            systemWords = words
+        }
+
+        if !micWords.isEmpty, !systemWords.isEmpty {
+            let aligned = systemWords.map {
+                TimedWord(text: $0.text, start: $0.start + systemAudioOffset, end: $0.end + systemAudioOffset)
+            }
+            let (kept, removed) = EchoSuppression.removingEcho(microphone: micWords, system: aligned)
+            if removed > 0 {
+                NSLog(
+                    "ParakeetTranscriptionService: dropped %d of %d microphone words as loudspeaker echo",
+                    removed, micWords.count)
+            }
+            micWords = kept
+        }
+
         var samples: [SpeakerSample] = []
         // Shared numbering so mic "Speaker 1" and system "Speaker 1" are never the same number.
         var labeler = SpeakerLabeler()
 
-        if let micURL = microphoneURL {
-            guard let words = try await timedWords(manager: manager, url: micURL) else { return nil }
-            var micUtterances = TranscriptFormatting.groupIntoUtterances(
-                words, speaker: TranscriptFormatting.localSpeaker, language: "auto")
-
-            if diarization.includeMicrophone {
-                let result = try await diarization.diarizer.diarize(
-                    fileURL: micURL, expectedSpeakers: nil)
-                let distinct = Set(result.turns.map(\.speaker)).count
-                NSLog(
-                    "ParakeetTranscriptionService: microphone %d words, %d turns, %d speakers",
-                    words.count, result.turns.count, distinct)
-
-                // Only split the mic when more than one person actually spoke into it; a single
-                // cluster means the solo case, where "You" is the correct and more useful label.
-                if distinct > 1 {
-                    micUtterances = Self.applyLabels(
-                        to: micUtterances, result: result, channel: "mic",
-                        labeler: &labeler, fallback: TranscriptFormatting.localSpeaker)
-                }
-            } else {
-                NSLog("ParakeetTranscriptionService: microphone %d words", words.count)
-            }
-            samples += SpeakerSampling.samples(
-                from: micUtterances, channel: .microphone,
-                embeddings: labeler.embeddingByLabel)
-            utterances += micUtterances
-        }
-
-        if let sysURL = systemURL {
-            guard let words = try await timedWords(manager: manager, url: sysURL) else { return nil }
-
-            // Diarize the remote channel, then label each utterance by the turn it overlaps most.
-            let systemUtterances = TranscriptFormatting.groupIntoUtterances(
-                words, speaker: "Other", language: "auto")
-            let result = try await diarization.diarizer.diarize(
-                fileURL: sysURL, expectedSpeakers: nil)
+        var micUtterances = TranscriptFormatting.groupIntoUtterances(
+            micWords, speaker: TranscriptFormatting.localSpeaker, language: "auto")
+        if let micURL = microphoneURL, !micWords.isEmpty, diarization.includeMicrophone {
+            let result = try await diarization.diarizer.diarize(fileURL: micURL, expectedSpeakers: nil)
+            let distinct = Set(result.turns.map(\.speaker)).count
             NSLog(
-                "ParakeetTranscriptionService: system %d words, %d speaker turns",
-                words.count, result.turns.count)
+                "ParakeetTranscriptionService: microphone %d words, %d turns, %d speakers",
+                micWords.count, result.turns.count, distinct)
 
-            let labeled =
-                result.turns.isEmpty
-                ? systemUtterances
-                : Self.applyLabels(
-                    to: systemUtterances, result: result, channel: "system",
-                    labeler: &labeler, fallback: "Other")
-            samples += SpeakerSampling.samples(
-                from: labeled, channel: .system, embeddings: labeler.embeddingByLabel)
-            utterances += labeled
+            // Only split the mic when more than one person actually spoke into it; a single
+            // cluster means the solo case, where "You" is the correct and more useful label.
+            if distinct > 1 {
+                micUtterances = labeler.utterances(
+                    from: micWords, result: result, channel: "mic",
+                    fallbackLabel: TranscriptFormatting.localSpeaker, language: "auto")
+            }
+        } else {
+            NSLog("ParakeetTranscriptionService: microphone %d words", micWords.count)
         }
+        samples += SpeakerSampling.samples(
+            from: micUtterances, channel: .microphone, embeddings: labeler.embeddingByLabel)
 
+        var systemUtterances = TranscriptFormatting.groupIntoUtterances(
+            systemWords, speaker: "Other", language: "auto")
+        if let sysURL = systemURL, !systemWords.isEmpty {
+            let result = try await diarization.diarizer.diarize(fileURL: sysURL, expectedSpeakers: nil)
+            NSLog(
+                "ParakeetTranscriptionService: system %d words, %d speaker turns, offset %.2f s",
+                systemWords.count, result.turns.count, systemAudioOffset)
+            if !result.turns.isEmpty {
+                systemUtterances = labeler.utterances(
+                    from: systemWords, result: result, channel: "system",
+                    fallbackLabel: "Other", language: "auto")
+            }
+        }
+        // Samples point into the system file, so they are taken before the shift.
+        samples += SpeakerSampling.samples(
+            from: systemUtterances, channel: .system, embeddings: labeler.embeddingByLabel)
+
+        let utterances = micUtterances + systemUtterances.map { utterance in
+            var shifted = utterance
+            shifted.start += systemAudioOffset
+            return shifted
+        }
         guard !utterances.isEmpty else { return nil }
         return LabeledTranscript(
             text: TranscriptFormatting.assemble(utterances, showLanguage: false),
             speakers: samples)
     }
 
-    /// Replaces each utterance's speaker with the diarized label for the turn it overlaps.
-    private static func applyLabels(
-        to utterances: [TranscriptUtterance],
-        result: DiarizationResult,
-        channel: String,
-        labeler: inout SpeakerLabeler,
-        fallback: String
-    ) -> [TranscriptUtterance] {
-        let labels = labeler.labels(
-            forUtteranceRanges: utterances.map { (start: $0.start, duration: $0.duration) },
-            result: result,
-            channel: channel,
-            fallbackLabel: fallback)
-        return zip(utterances, labels).map { utterance, label in
-            var labeled = utterance
-            labeled.speaker = label
-            return labeled
-        }
-    }
-
-    /// Transcribes a single file and returns word-level timings, or nil when the model reported
-    /// no token timings (some short/edge-case inputs).
+    /// Transcribes a single file and returns word-level timings: empty for a channel without
+    /// speech, nil when the model returned text but no token timings (some edge-case inputs).
     private func timedWords(manager: AsrManager, url: URL) async throws -> [TimedWord]? {
         var decoderState = TdtDecoderState.make()
         let result = try await manager.transcribe(url, decoderState: &decoderState)
@@ -466,7 +468,7 @@ final class ParakeetTranscriptionService: @unchecked Sendable {
 
         guard let tokenTimings = result.tokenTimings, !tokenTimings.isEmpty else {
             NSLog("ParakeetTranscriptionService: no token timings for %@", url.lastPathComponent)
-            return nil
+            return result.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? [] : nil
         }
         // FluidAudio groups SentencePiece sub-word tokens into words for us.
         return buildWordTimings(from: tokenTimings).map {

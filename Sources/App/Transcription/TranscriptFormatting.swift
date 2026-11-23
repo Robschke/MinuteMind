@@ -73,8 +73,12 @@ enum TranscriptFormatting {
         return utterances
     }
 
+    /// A turn that starts less than this before the previous speaker finished is ordinary
+    /// turn-taking (word timings and the channel offset are only that exact), not crosstalk.
+    static let overlapTolerance: TimeInterval = 0.5
+
     /// Merges both streams into one chronological list, prefixing "[overlapping] " when a different
-    /// speaker starts before the previous speaker finished.
+    /// speaker starts more than `overlapTolerance` before the previous speaker finished.
     static func interleave(
         mic micUtterances: [TranscriptUtterance],
         system systemUtterances: [TranscriptUtterance]
@@ -88,7 +92,7 @@ enum TranscriptFormatting {
 
         for (index, utterance) in all.enumerated() {
             var entry = utterance
-            if index > 0, entry.start < lastEnd, entry.speaker != lastSpeaker {
+            if index > 0, entry.start < lastEnd - overlapTolerance, entry.speaker != lastSpeaker {
                 entry.text = "[overlapping] " + entry.text
             }
             result.append(entry)

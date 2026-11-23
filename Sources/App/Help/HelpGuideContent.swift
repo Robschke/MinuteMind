@@ -189,6 +189,8 @@ enum HelpGuideContent {
         - **Dictionary:** terms MinuteMind should always spell right, plus how they get misheard (see Dictionary).
         - **Correct names from calendar & project** (Settings > Automation > Pipeline): fixes near-miss spellings of participant names, the project and the meeting title.
         - **Clean audio before transcription** (same place): filters rumble, evens out quiet recordings and softens background noise.
+        - **Loudspeaker echo:** when your microphone also hears the other participants through the loudspeaker, their sentences would appear twice. With "Identify speakers" on, Parakeet drops the copy the microphone heard and keeps the one from the call audio.
+        - **Who spoke when:** your microphone and the call audio are lined up in time, so turns appear in the order they were spoken. "[overlapping]" marks a turn that started while the previous speaker was still talking.
         - **Speakers:** see Speakers and Voices.
 
         You can edit a transcript yourself on the recording; a hand edit is kept.
