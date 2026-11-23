@@ -43,12 +43,12 @@ struct DictionarySettingsView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: .space(16)) {
+            VStack(alignment: .leading, spacing: .space(4)) {
                 Text("Dictionary")
-                    .font(.title3.weight(.semibold))
+                    .font(.themed(.title3).weight(.semibold))
                 Text("Names, abbreviations and jargon MinuteMind should always spell right. Add the forms speech recognition gets wrong, and new transcripts, the live transcript and quick dictation use the right spelling. Claude also uses the dictionary when it cleans up a transcript.")
-                    .font(.callout)
+                    .font(.themed(.callout))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -58,10 +58,10 @@ struct DictionarySettingsView: View {
             if !store.entries.isEmpty {
                 HStack {
                     Text(countText)
-                        .font(.subheadline.weight(.medium))
+                        .font(.themed(.subheadline).weight(.medium))
                         .foregroundStyle(.secondary)
                     Spacer()
-                    HStack(spacing: 4) {
+                    HStack(spacing: .space(4)) {
                         Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                         TextField("Search", text: $search)
                             .textFieldStyle(.plain)
@@ -72,9 +72,9 @@ struct DictionarySettingsView: View {
                                 .accessibilityLabel("Clear search")
                         }
                     }
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, .space(8))
                     .frame(width: 220, height: 24)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.06)))
+                    .background(RoundedRectangle(cornerRadius: .corner(6)).fill(Color.primary.opacity(0.06)))
                 }
             }
 
@@ -102,23 +102,23 @@ struct DictionarySettingsView: View {
                 .listStyle(.inset)
             }
         }
-        .padding(24)
+        .padding(.space(24))
         .overlay(alignment: .bottom) { undoToast }
     }
 
     private var addRow: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .bottom, spacing: 8) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Correct spelling").font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: .space(6)) {
+            HStack(alignment: .bottom, spacing: .space(8)) {
+                VStack(alignment: .leading, spacing: .space(3)) {
+                    Text("Correct spelling").font(.themed(.caption)).foregroundStyle(.secondary)
                     TextField("Auth0", text: $newTerm)
                         .textFieldStyle(.roundedBorder)
                         .focused($termFocused)
                         .onSubmit(add)
                 }
                 .frame(width: 220)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Heard as (optional, separate with commas)").font(.caption).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: .space(3)) {
+                    Text("Heard as (optional, separate with commas)").font(.themed(.caption)).foregroundStyle(.secondary)
                     TextField("aus SEO, auth zero", text: $newVariants)
                         .textFieldStyle(.roundedBorder)
                         .onSubmit(add)
@@ -128,21 +128,21 @@ struct DictionarySettingsView: View {
             }
             if let warning = Self.riskWarning(newVariants, store: store) {
                 Label(warning, systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
+                    .font(.themed(.caption))
+                    .foregroundStyle(DesignSystem.Colors.warning)
             }
         }
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: .space(8)) {
             Image(systemName: "character.book.closed")
-                .font(.system(size: 32))
+                .font(.themed(size: 32))
                 .foregroundStyle(.tertiary)
             Text("Teach MinuteMind your words")
-                .font(.system(size: 15, weight: .medium))
+                .font(.themed(size: 15, weight: .medium))
             Text("For example \u{201C}Auth0\u{201D} heard as \u{201C}aus SEO\u{201D}, or a colleague's name that keeps coming out wrong.")
-                .font(.callout)
+                .font(.themed(.callout))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
@@ -152,7 +152,7 @@ struct DictionarySettingsView: View {
     @ViewBuilder
     private var undoToast: some View {
         if let deleted {
-            HStack(spacing: 12) {
+            HStack(spacing: .space(12)) {
                 Text("Deleted \u{201C}\(deleted.term)\u{201D}")
                 Button("Undo") {
                     store.restore(deleted)
@@ -160,11 +160,11 @@ struct DictionarySettingsView: View {
                 }
                 .keyboardShortcut("z", modifiers: .command)
             }
-            .font(.callout)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            .font(.themed(.callout))
+            .padding(.horizontal, .space(14))
+            .padding(.vertical, .space(8))
             .background(.regularMaterial, in: Capsule())
-            .padding(.bottom, 12)
+            .padding(.bottom, .space(12))
         }
     }
 
@@ -223,12 +223,12 @@ private struct DictionaryRow: View {
         Group {
             if isEditing { editor } else { display }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, .space(4))
     }
 
     private var editor: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: .space(4)) {
+            HStack(spacing: .space(8)) {
                 TextField("Correct spelling", text: $term)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 200)
@@ -243,11 +243,11 @@ private struct DictionaryRow: View {
                     .disabled(term.trimmingCharacters(in: .whitespaces).isEmpty)
             }
             if let error {
-                Text(error).font(.caption).foregroundStyle(.red)
+                Text(error).font(.themed(.caption)).foregroundStyle(DesignSystem.Colors.error)
             } else if let warning = DictionarySettingsView.riskWarning(variants, store: viewModel.vocabulary, excluding: entry.id) {
                 Label(warning, systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
+                    .font(.themed(.caption))
+                    .foregroundStyle(DesignSystem.Colors.warning)
             }
         }
         .onExitCommand(perform: onCancel)
@@ -259,29 +259,29 @@ private struct DictionaryRow: View {
     }
 
     private var display: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: .space(10)) {
             Text(entry.term)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.themed(size: 13, weight: .semibold))
                 .frame(width: 200, alignment: .leading)
                 .lineLimit(1)
                 .help(entry.term)
             if entry.variants.isEmpty {
                 Text("Recognition hint only")
-                    .font(.system(size: 12))
+                    .font(.themed(size: 12))
                     .foregroundStyle(.secondary)
             } else {
-                HStack(spacing: 4) {
+                HStack(spacing: .space(4)) {
                     ForEach(entry.variants.prefix(4), id: \.self) { variant in
                         Text(variant)
-                            .font(.system(size: 11))
+                            .font(.themed(size: 11))
                             .lineLimit(1)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
+                            .padding(.horizontal, .space(6))
+                            .padding(.vertical, .space(2))
                             .background(Capsule().fill(Color.primary.opacity(0.07)))
                     }
                     if entry.variants.count > 4 {
                         Text("+\(entry.variants.count - 4) more")
-                            .font(.system(size: 11))
+                            .font(.themed(size: 11))
                             .foregroundStyle(.secondary)
                     }
                 }

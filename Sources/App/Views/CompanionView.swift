@@ -248,19 +248,19 @@ struct CompanionNameplate: View {
     let sidekick: CompanionSidekick
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 1) {
+        VStack(alignment: .leading, spacing: .space(1)) {
             Text(sidekick.name)
-                .font(.system(size: 11, weight: .semibold))
+                .font(.themed(size: 11, weight: .semibold))
                 .lineLimit(1)
             Text("\(sidekick.spokenStatus.prefix(1).uppercased() + sidekick.spokenStatus.dropFirst()) \u{00B7} click to bring forward")
-                .font(.system(size: 10))
+                .font(.themed(size: 10))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
-        .padding(.horizontal, 9)
-        .padding(.vertical, 6)
+        .padding(.horizontal, .space(9))
+        .padding(.vertical, .space(6))
         .modifier(PixelPanelBackground())
-        .padding(4)
+        .padding(.space(4))
         .fixedSize()
     }
 }
@@ -279,7 +279,7 @@ struct StarredProjectMark: View {
                 CreatureView(pose: .init(mood: .idle, time: 0.05, look: nil, avatar: avatar, animated: false), unit: 1, bodyColor: bodyColor)
             } else {
                 Image(systemName: "star.fill")
-                    .font(.system(size: 10))
+                    .font(.themed(size: 10))
                     .foregroundStyle(.yellow)
                     .frame(width: CreatureCanvas.unitsWide, height: CreatureCanvas.unitsWide)
             }

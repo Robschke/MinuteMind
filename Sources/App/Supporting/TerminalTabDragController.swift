@@ -216,10 +216,10 @@ private struct TabGhostView: View {
     var body: some View {
         VStack(spacing: 0) {
             Text(title)
-                .font(.system(size: 11, weight: .medium))
+                .font(.themed(size: 11, weight: .medium))
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 8)
+                .padding(.horizontal, .space(8))
                 .frame(height: 22)
                 .background(.bar)
             Group {
@@ -232,7 +232,7 @@ private struct TabGhostView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .clipped()
         }
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.primary.opacity(0.15)))
+        .clipShape(RoundedRectangle(cornerRadius: .corner(8)))
+        .overlay(RoundedRectangle(cornerRadius: .corner(8)).strokeBorder(Color.primary.opacity(0.15)))
     }
 }

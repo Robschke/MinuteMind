@@ -68,7 +68,7 @@ struct SharedProjectMark: View {
 
     var body: some View {
         Image(systemName: "person.2.fill")
-            .font(.system(size: 10))
+            .font(.themed(size: 10))
             .foregroundStyle(DesignSystem.Colors.textSecondary)
             .overlay(alignment: .topTrailing) {
                 if status.hasProblem {
@@ -94,7 +94,7 @@ struct WorkspaceSharedSyncStatus: View {
 
     var body: some View {
         let status = viewModel.sharedSync.status(for: projectID)
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             TimelineView(.periodic(from: .now, by: 30)) { context in
                 Text(SharedSyncText.label(for: status, now: context.date))
                     .lineLimit(1)
@@ -132,10 +132,10 @@ struct SharedHeldBackList: View {
     @State private var allowed: Set<String> = []
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: .space(10)) {
             Text("Over 50 MB, kept on this Mac")
-                .font(.system(size: 13, weight: .semibold))
-            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+                .font(.themed(size: 13, weight: .semibold))
+            Grid(alignment: .leading, horizontalSpacing: .space(12), verticalSpacing: .space(8)) {
                 ForEach(files) { file in
                     GridRow {
                         Text(file.path)
@@ -167,7 +167,7 @@ struct SharedHeldBackList: View {
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
         }
         .font(DesignSystem.Typography.footnote)
-        .padding(14)
+        .padding(.space(14))
         .frame(minWidth: 320)
     }
 }

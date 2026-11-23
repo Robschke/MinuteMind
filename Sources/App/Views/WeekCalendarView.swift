@@ -89,8 +89,8 @@ struct WeekCalendarView: View {
             .buttonStyle(.plain)
             .foregroundStyle(DesignSystem.Colors.textSecondary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, .space(12))
+        .padding(.vertical, .space(8))
     }
 
     // MARK: - Day Column Headers
@@ -100,21 +100,21 @@ struct WeekCalendarView: View {
             Color.clear.frame(width: timeColumnWidth, height: 1)
             ForEach(weekDays, id: \.self) { day in
                 let isToday = Calendar.current.isDateInToday(day)
-                VStack(spacing: 2) {
+                VStack(spacing: .space(2)) {
                     Text(dayAbbreviation(day))
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.themed(size: 11, weight: .medium))
                         .foregroundStyle(isToday ? Color.accentColor : DesignSystem.Colors.textSecondary)
                     ZStack {
                         if isToday {
                             Circle().fill(Color.accentColor).frame(width: 26, height: 26)
                         }
                         Text("\(Calendar.current.component(.day, from: day))")
-                            .font(.system(size: 15, weight: isToday ? .semibold : .regular))
+                            .font(.themed(size: 15, weight: isToday ? .semibold : .regular))
                             .foregroundStyle(isToday ? .white : DesignSystem.Colors.textPrimary)
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
+                .padding(.vertical, .space(6))
             }
         }
     }
@@ -124,33 +124,33 @@ struct WeekCalendarView: View {
     private var allDayRow: some View {
         HStack(spacing: 0) {
             Text("all-day")
-                .font(.system(size: 10))
+                .font(.themed(size: 10))
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
                 .frame(width: timeColumnWidth, alignment: .trailing)
-                .padding(.trailing, 6)
+                .padding(.trailing, .space(6))
             ForEach(weekDays, id: \.self) { day in
                 let dayEvents = allDayEvents.filter {
                     Calendar.current.isDate($0.startDate, inSameDayAs: day)
                 }
-                VStack(spacing: 2) {
+                VStack(spacing: .space(2)) {
                     ForEach(dayEvents) { event in
                         Button { onEventTap(event) } label: {
                             Text(event.title)
-                                .font(.system(size: 11))
+                                .font(.themed(size: 11))
                                 .foregroundStyle(.white)
                                 .lineLimit(1)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 2)
+                                .padding(.horizontal, .space(4))
+                                .padding(.vertical, .space(2))
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(RoundedRectangle(cornerRadius: 3).fill(Color.accentColor))
+                                .background(RoundedRectangle(cornerRadius: .corner(3)).fill(Color.accentColor))
                         }
                         .buttonStyle(.plain)
                     }
-                    if dayEvents.isEmpty { Color.clear.frame(height: 20) }
+                    if dayEvents.isEmpty { Color.clear.frame(height: .row(20)) }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.horizontal, 2)
-                .padding(.vertical, 3)
+                .padding(.horizontal, .space(2))
+                .padding(.vertical, .space(3))
             }
         }
     }
@@ -165,13 +165,13 @@ struct WeekCalendarView: View {
                     ForEach(Array(weekDays.enumerated()), id: \.offset) { idx, day in
                         // Left border for each column
                         Rectangle()
-                            .fill(Color.gray.opacity(0.12))
+                            .fill(DesignSystem.Colors.textTertiary.opacity(0.12))
                             .frame(width: 0.5, height: gridHeight)
                         dayColumn(for: day)
                     }
                     // Right border
                     Rectangle()
-                        .fill(Color.gray.opacity(0.12))
+                        .fill(DesignSystem.Colors.textTertiary.opacity(0.12))
                         .frame(width: 0.5, height: gridHeight)
                 }
                 .frame(maxWidth: .infinity)
@@ -198,7 +198,7 @@ struct WeekCalendarView: View {
             // Hour labels — positioned just above each hour line
             ForEach(startHour..<endHour, id: \.self) { hour in
                 Text(hourLabel(hour))
-                    .font(.system(size: 10))
+                    .font(.themed(size: 10))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
                     .frame(width: timeColumnWidth - 6, alignment: .trailing)
                     .offset(x: 0, y: CGFloat(hour - startHour) * hourHeight - 7)
@@ -266,17 +266,17 @@ struct WeekCalendarView: View {
         VStack(spacing: 0) {
             ForEach(startHour..<endHour, id: \.self) { _ in
                 Rectangle()
-                    .fill(Color.gray.opacity(0.13))
+                    .fill(DesignSystem.Colors.textTertiary.opacity(0.13))
                     .frame(height: 0.5)
                 Color.clear.frame(height: hourHeight / 2 - 0.5)
                 Rectangle()
-                    .fill(Color.gray.opacity(0.07))
+                    .fill(DesignSystem.Colors.textTertiary.opacity(0.07))
                     .frame(height: 0.5)
                 Color.clear.frame(height: hourHeight / 2 - 0.5)
             }
             // Final hour line
             Rectangle()
-                .fill(Color.gray.opacity(0.13))
+                .fill(DesignSystem.Colors.textTertiary.opacity(0.13))
                 .frame(height: 0.5)
         }
         .frame(maxWidth: .infinity)
@@ -316,24 +316,24 @@ struct WeekCalendarView: View {
 
         return Button { onEventTap(event) } label: {
             HStack(spacing: 0) {
-                RoundedRectangle(cornerRadius: 1.5)
+                RoundedRectangle(cornerRadius: .corner(1.5))
                     .fill(accent)
                     .frame(width: 3)
 
-                VStack(alignment: .leading, spacing: 1) {
-                    HStack(spacing: 3) {
+                VStack(alignment: .leading, spacing: .space(1)) {
+                    HStack(spacing: .space(3)) {
                         // The project's creature tells which project a block belongs to.
                         if let project {
                             ProjectAvatarView(projectID: project.id, pixelSize: 1)
                         }
                         Text(event.title)
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.themed(size: 11, weight: .semibold))
                             .foregroundStyle(accent)
                             .lineLimit(blockH > 40 ? 2 : 1)
 
                         if isAutoRecord {
                             Image(systemName: "record.circle.fill")
-                                .font(.system(size: 8))
+                                .font(.themed(size: 8))
                                 .foregroundStyle(.red)
                                 .help("Will be recorded automatically")
                         }
@@ -342,30 +342,30 @@ struct WeekCalendarView: View {
 
                     if blockH > 32 {
                         Text(timeRangeLabel(for: event))
-                            .font(.system(size: 10))
+                            .font(.themed(size: 10))
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                     }
                 }
-                .padding(.leading, 5)
-                .padding(.trailing, 4)
-                .padding(.vertical, 3)
+                .padding(.leading, .space(5))
+                .padding(.trailing, .space(4))
+                .padding(.vertical, .space(3))
 
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity)
             .frame(height: blockH, alignment: .topLeading)
             .background(
-                RoundedRectangle(cornerRadius: 5)
+                RoundedRectangle(cornerRadius: .corner(5))
                     .fill(accent.opacity(0.10))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 5)
+                RoundedRectangle(cornerRadius: .corner(5))
                     .strokeBorder(accent.opacity(0.25), lineWidth: 0.5)
             )
             .opacity(event.participantStatus == .declined ? 0.45 : 1)
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 2)
+        .padding(.horizontal, .space(2))
         .help(event.title)
     }
 

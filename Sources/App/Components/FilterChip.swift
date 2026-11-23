@@ -8,20 +8,20 @@ struct FilterChip: View {
     @State private var isHovering = false
 
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: .space(5)) {
             Text(label)
-                .font(.system(size: 12, weight: .medium))
+                .font(.themed(size: 12, weight: .medium))
                 .lineLimit(1)
 
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 12))
+                    .font(.themed(size: 12))
             }
             .buttonStyle(.plain)
             .opacity(isHovering ? 1.0 : 0.7)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, .space(12))
+        .padding(.vertical, .space(6))
         .background(
             ZStack {
                 Capsule()

@@ -64,18 +64,18 @@ struct AudioWaveformView: View {
         let progress = playbackProgress
         let sampleCount = waveformData.samples.count
 
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: .space(8)) {
             // Waveform visualization
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     // Background
                     if !compact {
-                        RoundedRectangle(cornerRadius: 6)
+                        RoundedRectangle(cornerRadius: .corner(6))
                             .fill(Color(nsColor: .controlBackgroundColor))
                     }
 
                     // Waveform bars
-                    HStack(spacing: 1) {
+                    HStack(spacing: .space(1)) {
                         ForEach(Array(waveformData.samples.enumerated()), id: \.offset) { index, amplitude in
                             let position = Double(index) / Double(sampleCount)
                             WaveformBar(
@@ -90,7 +90,7 @@ struct AudioWaveformView: View {
                             )
                         }
                     }
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, .space(4))
                     
                     // Crop overlay (dimmed regions)
                     if showingCropControls {
@@ -195,7 +195,7 @@ struct AudioWaveformView: View {
             if showingCropControls {
                 HStack {
                     Text("Selection: \(formatTime(cropStart * waveformData.duration)) - \(formatTime(cropEnd * waveformData.duration))")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                     
                     Spacer()
@@ -215,7 +215,7 @@ struct AudioWaveformView: View {
                     .controlSize(.small)
                     .disabled(cropStart >= cropEnd - 0.01)
                 }
-                .padding(.top, 4)
+                .padding(.top, .space(4))
             }
             
             // Crop Audio button (placed below waveform); owners with a crop menu entry skip it.
@@ -230,10 +230,10 @@ struct AudioWaveformView: View {
                         }
                     }
                     .buttonStyle(.borderless)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundColor(.accentColor)
                 }
-                .padding(.top, 4)
+                .padding(.top, .space(4))
             } else {
                 HStack {
                     Spacer()
@@ -246,15 +246,15 @@ struct AudioWaveformView: View {
                         }
                     }
                     .buttonStyle(.borderless)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundColor(.accentColor)
                 }
-                .padding(.top, 4)
+                .padding(.top, .space(4))
             }
         }
         .padding(compact ? 0 : 12)
         .background(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: .corner(8))
                 .fill(Color(nsColor: .controlBackgroundColor).opacity(compact ? 0 : 0.5))
         )
         .help(compact && !showingCropControls ? "Click to jump to that point" : "")
@@ -278,16 +278,16 @@ struct AudioWaveformView: View {
         let time = normalizedPosition * waveformData.duration
         let timestamp = recordingDate.addingTimeInterval(time)
         
-        VStack(spacing: 2) {
+        VStack(spacing: .space(2)) {
             Text(formatTimestamp(timestamp))
-                .font(.caption2)
+                .font(.themed(.caption2))
             Text("Position: \(formatTime(time))")
-                .font(.caption2)
+                .font(.themed(.caption2))
                 .foregroundStyle(.secondary)
         }
-        .padding(6)
+        .padding(.space(6))
         .background(
-            RoundedRectangle(cornerRadius: 4)
+            RoundedRectangle(cornerRadius: .corner(4))
                 .fill(Color(nsColor: .controlBackgroundColor))
                 .shadow(radius: 4)
         )
@@ -324,7 +324,7 @@ private struct WaveformBar: View {
     var body: some View {
         VStack {
             Spacer()
-            RoundedRectangle(cornerRadius: 1)
+            RoundedRectangle(cornerRadius: .corner(1))
                 .fill(barColor)
                 .frame(height: boostedHeight)
             Spacer()
@@ -341,7 +341,7 @@ private struct WaveformBar: View {
     
     private var barColor: Color {
         if showingCropControls && !isInCropRegion {
-            return Color.gray.opacity(0.3)
+            return DesignSystem.Colors.textTertiary.opacity(0.3)
         }
 
         // Compact strip: played part in the accent colour, speech secondary, silence faint.
@@ -352,9 +352,9 @@ private struct WaveformBar: View {
         
         // Playback visualization - played portions show in green
         if isPlayed && isPlaying {
-            return Color.green.opacity(1.0)  // Full intensity green during active playback
+            return DesignSystem.Colors.success.opacity(1.0)  // Full intensity green during active playback
         } else if isPlayed {
-            return Color.green.opacity(0.7)  // More visible green when paused
+            return DesignSystem.Colors.success.opacity(0.7)  // More visible green when paused
         }
         
         // Speech detection - high opacity blue for visibility
@@ -363,7 +363,7 @@ private struct WaveformBar: View {
         }
         
         // Silence - low opacity gray
-        return Color.gray.opacity(0.4)
+        return DesignSystem.Colors.textTertiary.opacity(0.4)
     }
 }
 
@@ -373,11 +373,11 @@ private struct CropHandle: View {
     
     var body: some View {
         VStack {
-            RoundedRectangle(cornerRadius: 4)
+            RoundedRectangle(cornerRadius: .corner(4))
                 .fill(isHovering ? Color.accentColor : Color.white)
                 .frame(width: 12, height: 44)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 4)
+                    RoundedRectangle(cornerRadius: .corner(4))
                         .strokeBorder(Color.accentColor, lineWidth: 2)
                 )
                 .shadow(radius: 4)

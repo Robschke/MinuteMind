@@ -109,7 +109,7 @@ struct WorkspaceFileTreeView: View {
                 .overlay {
                     if hasLoaded && tree.isEmpty {
                         Text("Files you and Claude create appear here.")
-                            .font(.callout)
+                            .font(.themed(.callout))
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                             .padding()
@@ -156,7 +156,7 @@ struct WorkspaceFileTreeView: View {
     @ViewBuilder
     private var bottomBar: some View {
         if let notice {
-            HStack(alignment: .top, spacing: 6) {
+            HStack(alignment: .top, spacing: .space(6)) {
                 Image(systemName: "info.circle")
                     .foregroundStyle(.secondary)
                 Text(notice)
@@ -170,16 +170,16 @@ struct WorkspaceFileTreeView: View {
                 .buttonStyle(.borderless)
                 .help("Dismiss")
             }
-            .font(.system(size: 11))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .font(.themed(size: 11))
+            .padding(.horizontal, .space(12))
+            .padding(.vertical, .space(8))
             .background(.background.secondary)
         } else if !editorHintSeen {
             Text("Click a file to open it. Double-click opens it in its app.")
-                .font(.system(size: 11))
+                .font(.themed(size: 11))
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, .space(12))
+                .padding(.vertical, .space(8))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(.background.secondary)
         }

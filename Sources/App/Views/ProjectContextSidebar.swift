@@ -75,7 +75,7 @@ struct ProjectContextSidebar: View {
                 Spacer(minLength: 0)
             }
 
-            HStack(spacing: 2) {
+            HStack(spacing: .space(2)) {
                 SidebarSettingsRow()
                 if sidebarControl.isFullScreen {
                     SidebarHideButton(action: sidebarControl.hideSidebar)
@@ -119,14 +119,14 @@ struct ProjectContextSidebar: View {
         } label: {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
                 ProjectAvatarView(projectID: projectID, pixelSize: 2)
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: .space(1)) {
                     Text(project.name)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.themed(size: 14, weight: .semibold))
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
                         .lineLimit(1)
-                    HStack(spacing: 2) {
+                    HStack(spacing: .space(2)) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 9, weight: .semibold))
+                            .font(.themed(size: 9, weight: .semibold))
                         Text("Home")
                     }
                     .font(DesignSystem.Typography.caption1)
@@ -135,7 +135,7 @@ struct ProjectContextSidebar: View {
                 Spacer(minLength: 0)
                 // Plain tertiary text, no outline: a quiet reminder, not a control.
                 Text("\u{2303}\u{21E5}")
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(.themed(size: 10.5, weight: .medium))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
                     .help("Hold \u{2303} and press Tab to switch projects")
             }
@@ -160,7 +160,7 @@ struct ProjectContextSidebar: View {
         } label: {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
                 Image(systemName: section.icon)
-                    .font(.system(size: 14))
+                    .font(.themed(size: 14))
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
                     .frame(width: 18)
                 Text(section.rawValue)

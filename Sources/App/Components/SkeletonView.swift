@@ -53,25 +53,25 @@ struct TranscriptCardSkeleton: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Dimensions.spacingM) {
             // Header
-            HStack(spacing: 12) {
-                SkeletonView(width: 200, height: 18, cornerRadius: 6)
+            HStack(spacing: .space(12)) {
+                SkeletonView(width: 200, height: 18, cornerRadius: .corner(6))
                 Spacer()
-                SkeletonView(width: 70, height: 24, cornerRadius: 12)
+                SkeletonView(width: 70, height: 24, cornerRadius: .corner(12))
             }
             
             // Date and language
-            SkeletonView(width: 150, height: 12, cornerRadius: 4)
+            SkeletonView(width: 150, height: 12, cornerRadius: .corner(4))
             
             // Transcript preview
-            VStack(alignment: .leading, spacing: 6) {
-                SkeletonView(height: 14, cornerRadius: 4)
-                SkeletonView(width: 300, height: 14, cornerRadius: 4)
-                SkeletonView(width: 250, height: 14, cornerRadius: 4)
+            VStack(alignment: .leading, spacing: .space(6)) {
+                SkeletonView(height: 14, cornerRadius: .corner(4))
+                SkeletonView(width: 300, height: 14, cornerRadius: .corner(4))
+                SkeletonView(width: 250, height: 14, cornerRadius: .corner(4))
             }
             
             // Buttons
-            HStack(spacing: 8) {
-                SkeletonView(width: 100, height: 28, cornerRadius: 6)
+            HStack(spacing: .space(8)) {
+                SkeletonView(width: 100, height: 28, cornerRadius: .corner(6))
                 Spacer()
             }
         }

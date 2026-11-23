@@ -92,7 +92,7 @@ struct TranscriptDetailView: View {
             if playback.hasAudio {
                 SessionAudioPlayerView(playback: playback)
                     .padding(.horizontal)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, .space(10))
                 Divider()
             }
 
@@ -125,20 +125,20 @@ struct TranscriptDetailView: View {
     // MARK: - Header
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: .space(8)) {
             HStack(alignment: .firstTextBaseline) {
                 Text(liveSession.title)
-                    .font(.headline)
+                    .font(.themed(.headline))
                     .lineLimit(2)
                 Spacer()
                 Text(metaDescription)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize()
             }
 
             if !speakers.isEmpty && !isEditing {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     ForEach(speakers, id: \.self) { speaker in
                         speakerChip(speaker)
                     }
@@ -161,14 +161,14 @@ struct TranscriptDetailView: View {
             }
 
             if !isEditing {
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
                     TextField("Search this transcript", text: $search)
                         .textFieldStyle(.plain)
                     if !search.isEmpty {
                         Text("\(visibleLines.count) of \(lines.count)")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                         Button {
                             search = ""
@@ -179,9 +179,9 @@ struct TranscriptDetailView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 7))
+                .padding(.horizontal, .space(8))
+                .padding(.vertical, .space(5))
+                .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: .corner(7)))
             }
         }
         .padding()
@@ -207,15 +207,15 @@ struct TranscriptDetailView: View {
         let isNameable = nameableLabels.contains(speaker)
         let isHovered = isNameable && hoveredChip == speaker
 
-        let chip = HStack(spacing: 3) {
+        let chip = HStack(spacing: .space(3)) {
             Text(speaker)
             if isHovered {
                 Image(systemName: "pencil")
             }
         }
-        .font(.caption2.weight(.medium))
-        .padding(.horizontal, 7)
-        .padding(.vertical, 3)
+        .font(.themed(.caption2).weight(.medium))
+        .padding(.horizontal, .space(7))
+        .padding(.vertical, .space(3))
         .background(color(for: speaker).opacity(isHovered ? 0.28 : 0.15), in: Capsule())
         .foregroundStyle(color(for: speaker))
 
@@ -265,9 +265,9 @@ struct TranscriptDetailView: View {
             if lines.isEmpty {
                 emptyState
             } else if visibleLines.isEmpty {
-                VStack(spacing: 6) {
+                VStack(spacing: .space(6)) {
                     Text("No lines match “\(search)”.")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     Button("Clear search") { search = "" }
                         .controlSize(.small)
                 }
@@ -279,7 +279,7 @@ struct TranscriptDetailView: View {
                             lineRow(line)
                         }
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, .space(8))
                     .textSelection(.enabled)
                 }
             }
@@ -292,36 +292,36 @@ struct TranscriptDetailView: View {
         let isHovered = hoveredLineID == line.id
         let canJump = canJump(to: line)
 
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: .space(10)) {
             // The timestamp doubles as the jump affordance: on hover it turns into a play glyph, so
             // the row reads as clickable without adding a button to every line.
             ZStack(alignment: .leading) {
                 Text(line.timestamp ?? "")
-                    .font(.caption.monospacedDigit())
+                    .font(.themed(.caption).monospacedDigit())
                     .foregroundStyle(isCurrent ? Color.accentColor : .secondary)
                     .opacity(isHovered && canJump ? 0 : 1)
 
                 if isHovered && canJump {
                     Image(systemName: "play.circle.fill")
-                        .font(.system(size: 15))
+                        .font(.themed(size: 15))
                         .foregroundStyle(Color.accentColor)
                 }
             }
             .frame(width: 52, alignment: .leading)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 if let speaker = line.speaker {
-                    HStack(spacing: 5) {
+                    HStack(spacing: .space(5)) {
                         Text(speaker)
-                            .font(.caption.weight(.semibold))
+                            .font(.themed(.caption).weight(.semibold))
                             .foregroundStyle(color(for: speaker))
                         if let flag = line.languageFlag {
-                            Text(flag).font(.caption2)
+                            Text(flag).font(.themed(.caption2))
                         }
                     }
                 }
                 Text(line.text)
-                    .font(.body)
+                    .font(.themed(.body))
                     .foregroundStyle(line.isSpoken ? .primary : .secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -329,7 +329,7 @@ struct TranscriptDetailView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal)
-        .padding(.vertical, 7)
+        .padding(.vertical, .space(7))
         .background(rowBackground(isCurrent: isCurrent, isHovered: isHovered && canJump))
         // Hit-test the whole row, not just its text, so anywhere in the line jumps the audio.
         .contentShape(Rectangle())
@@ -376,14 +376,14 @@ struct TranscriptDetailView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: .space(8)) {
             Image(systemName: "text.alignleft")
-                .font(.largeTitle)
+                .font(.themed(.largeTitle))
                 .foregroundStyle(.secondary)
             Text("This recording has no transcript yet.")
-                .font(.subheadline)
+                .font(.themed(.subheadline))
             Text("Use the Transcribe button on the recording to create one.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -393,23 +393,23 @@ struct TranscriptDetailView: View {
     // MARK: - Editing
 
     private var editor: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: .space(6)) {
             Text("Keep each line's “[MM:SS] Speaker:” prefix — speaker naming, AI polish and the export rely on it.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
-                .padding(.top, 8)
+                .padding(.top, .space(8))
 
             TextEditor(text: $draft)
-                .font(.system(.body, design: .monospaced))
-                .padding(.horizontal, 8)
+                .font(.themed(.body, design: .monospaced))
+                .padding(.horizontal, .space(8))
         }
     }
 
     // MARK: - Footer
 
     private var footer: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: .space(10)) {
             if isEditing {
                 Button("Cancel") {
                     draft = transcriptText

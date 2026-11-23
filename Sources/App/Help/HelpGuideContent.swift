@@ -313,7 +313,7 @@ enum HelpGuideContent {
         id: "companion",
         title: "Desktop Companion",
         icon: "face.smiling",
-        summary: "The pixel creature: clicks, menu, project creatures, Claude session notices, its look and avatars designed by Claude.",
+        summary: "The companion creature: clicks, menu, project creatures, Claude session notices, its look, its size and avatars designed by Claude in any style.",
         body: """
         The companion is a small pixel creature, docked by default in the bottom right corner of the MinuteMind window. Drag it out to let it float anywhere; drop it near the corner (or use Dock to MinuteMind Window in its menu) to dock it again.
 
@@ -337,16 +337,17 @@ enum HelpGuideContent {
 
         ## Appearance
 
-        Settings > Appearance > Companion: show or hide it, the creature (blob, duck, dog, puppy, pug, several cats, lime, plus your own avatars, see below), size, colour, "come to the pointer when I shake the mouse" with a Sensitivity slider below it (Gentle: two short flips are enough, Hard: five wide ones), and "Show the companion in screen shares" (off by default, so others do not see it).
+        Settings > Appearance > Companion: show or hide it, the creature (blob, duck, dog, puppy, pug, several cats, lime, plus your own avatars, see below), size (a slider from small to large in half steps), colour, "come to the pointer when I shake the mouse" with a Sensitivity slider below it (Gentle: two short flips are enough, Hard: five wide ones), and "Show the companion in screen shares" (off by default, so others do not see it).
 
         ## Your own avatars
 
-        Claude can design new avatars for you. In a Claude session that has the MinuteMind tools (any workspace, or the Claude window behind the companion), describe what you want, for example: "Design a new MinuteMind avatar: a red fox with a white tail tip." Claude draws it, checks a picture of it in every mood (idle, blinking, working, waiting, celebrating, error, sleeping, recording, running, thumb up) and saves it. It then appears among the avatars in Settings > Appearance and in a project's companion chooser, where you pick it like any other.
+        Claude can design new avatars for you, in any style: pixel art like the built-in ones, or anything else you describe (smooth and round, a pencil or ink drawing, watercolour, text art, a glowing orb). In a Claude session that has the MinuteMind tools (any workspace, or the Claude window behind the companion), describe what you want, for example: "Design a new MinuteMind avatar: a red fox with a white tail tip, drawn like a quick ink sketch." Claude draws it, checks a picture of it in every mood (idle, blinking, working, waiting, celebrating, error, sleeping, recording, running, thumb up) and saves it. It then appears among the avatars in Settings > Appearance and in a project's companion chooser, where you pick it like any other.
 
         - **Change an avatar:** ask Claude, for example "Give my fox avatar bigger ears" or "Make the built-in duck white". The avatar keeps its place; projects and the companion wearing it show the new drawing at once. A changed built-in keeps its name and its special trait (the Cool Cat's sunglasses, the Sweet Cat's heart, the Lime without arms).
         - **Delete an avatar:** right click it in either picker (Settings > Appearance, or the companion chooser of a project) and choose Delete avatar; Claude can do it too. This works for the built-in ones as well. Projects and the companion that wear it keep their choice and show the Blob until you pick another one; the confirmation names them.
         - **Restore built-in avatars** (Settings > Appearance, under the avatars; shown only while a built-in is deleted or changed) brings the built-in ones back as they shipped. Avatars you added stay.
-        - **Every avatar does everything:** the moods are drawn over the body by MinuteMind, so a new avatar types, waves, sleeps and wears headphones like the built-in ones. Own avatars have no special traits.
+        - **Every avatar does everything:** a pixel avatar gets its moods drawn over the body by MinuteMind. An avatar in another style either draws its moods itself (it can wave, type or sleep in its own style) or gets simple shapes from MinuteMind for the ones it leaves out (closed eyes, a laptop, a waving hand, headphones), so it types, waves, sleeps and wears headphones like the built-in ones. Avatars of different styles can stand side by side. Own avatars have none of the built-ins' special traits.
+        - **The cards beside the companion** (notices, the chat card, the recording and meeting cards) follow the theme: its card and border colours, corners, font and spacing. They take the pixel look only while a pixel avatar is in front and the theme uses square corners.
         - Avatars are stored on this Mac in `~/Library/Application Support/MinuteMind/Avatars/`, one file each. In a Shared Project, members who do not have a project's avatar see the Blob.
         """
     )
@@ -404,6 +405,8 @@ enum HelpGuideContent {
         ## Cockpit
 
         Cockpit in the Home sidebar is for working with agents across projects. Its sidebar lists every project with a running Claude session and that project's sessions below it, each with the project's creature showing its state; the page shows the chosen project's Claude tabs and splits, without files or jobs. Click a session to work in it, click a project to see its tabs, and click the arrow beside a project to fold it.
+
+        A creature jumps while its session needs you: until you answer a session that waits for you, and until you open a session that has finished. A folded project's creature jumps when one of its sessions does. With Reduce Motion on, nothing jumps.
 
         - **+ on a project** (shown when the pointer is over it): starts another Claude session there; right click for Sonnet.
         - **+ at the top:** starts a session in a project that has none yet, or creates a new project with New Project... and starts one in it. You stay in the cockpit.
@@ -561,17 +564,20 @@ enum HelpGuideContent {
         id: "appearance",
         title: "Appearance and Themes",
         icon: "paintpalette",
-        summary: "Themes, custom colours and saved profiles, light and dark mode, the sidebar's project order.",
+        summary: "Themes, custom colours and saved profiles, themes Claude designs (colours, fonts, corners, density, terminal font), light and dark mode, the sidebar's project order.",
         body: """
         Settings > Appearance:
 
         - **Theme:** Studio (standard macOS look, the default), Ember (warm paper and terracotta), Midnight (deep navy and cyan), Voltage (electric violet and lime), or Custom.
         - **Custom:** start from a built-in theme and set accent, background, card and border colours for light and dark. Save custom colours as named profiles; they appear next to the built-in themes and can be renamed or deleted.
+        - **Themes by Claude:** ask any Claude with MinuteMind's tools (a workspace session, the voice assistant, Claude Desktop) for a look, for example "make MinuteMind look like a terminal, dark, Menlo, square corners, compact". Claude can set every colour, the app's font and text size, how round corners are, how dense the layout is, and the terminal and editor font. It saves the theme as a file in the Themes folder and switches to it; it then appears as a card next to the other themes. Ask Claude again to change it. Right click its card to show the file in Finder or move it to the Trash.
         - **Mode:** System, Light or Dark.
         - **Sidebar:** the order of the projects in the sidebar, Manual order or Recently used (see Projects).
         - **Companion:** see Desktop Companion.
 
-        The workspace terminal and Claude follow the theme's colours.
+        The workspace terminal and Claude follow the theme's colours, and a theme by Claude can also set their font and size.
+
+        \(ThemeFileGuide.markdown)
         """
     )
 

@@ -173,8 +173,8 @@ struct ProjectDetailView: View {
             VStack(spacing: 0) {
                 if !isWorkspace {
                     projectHeader
-                        .padding([.horizontal, .top], 24)
-                        .padding(.bottom, 12)
+                        .padding([.horizontal, .top], .space(24))
+                        .padding(.bottom, .space(12))
                     Divider()
                 }
 
@@ -182,11 +182,11 @@ struct ProjectDetailView: View {
                     switch selectedTab {
                     case .overview:
                         ScrollView {
-                            VStack(alignment: .leading, spacing: 24) {
+                            VStack(alignment: .leading, spacing: .space(24)) {
                                 tasksSection
                                 recordingsSection
                             }
-                            .padding(24)
+                            .padding(.space(24))
                         }
                     case .workspaces:
                         // The terminal lives in AppViewModel.workspaceTerminals, so this view can be
@@ -225,11 +225,11 @@ struct ProjectDetailView: View {
     // MARK: - Header
 
     private var projectHeader: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: .space(12)) {
             ProjectAvatarView(projectID: project.id, pixelSize: 2)
 
             Text(project.name)
-                .font(.title.bold())
+                .font(.themed(.title).bold())
 
             Spacer()
 
@@ -267,11 +267,11 @@ struct ProjectDetailView: View {
     // MARK: - Tasks Section
 
     private var tasksSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .space(12)) {
             // Header with sort and filter
             HStack {
                 Text("Tasks")
-                    .font(.title3.weight(.semibold))
+                    .font(.themed(.title3).weight(.semibold))
 
                 Spacer()
 
@@ -382,13 +382,13 @@ struct ProjectDetailView: View {
                 .menuStyle(.borderlessButton)
 
                 Text("\(sortedIncompleteTasks.count) open")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
 
             // Active filters indicator
             if filterOption != .all || filterPriority != nil || filterAssignee != nil {
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     if filterOption != .all {
                         FilterChip(label: filterOption.rawValue) {
                             filterOption = .all
@@ -408,7 +408,7 @@ struct ProjectDetailView: View {
             }
 
             // Add new task
-            HStack(spacing: 8) {
+            HStack(spacing: .space(8)) {
                 Image(systemName: "plus.circle")
                     .foregroundStyle(.secondary)
                 TextField("Add a new task...", text: $newTaskTitle)
@@ -420,25 +420,25 @@ struct ProjectDetailView: View {
                         }
                     }
             }
-            .padding(10)
+            .padding(.space(10))
             .background(Color(nsColor: .controlBackgroundColor))
-            .cornerRadius(8)
+            .cornerRadius(.corner(8))
 
             // Incomplete tasks
             if sortedIncompleteTasks.isEmpty && sortedCompletedTasks.isEmpty {
                 if filterOption != .all || filterPriority != nil || filterAssignee != nil {
                     Text("No tasks match the current filters.")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                         .foregroundStyle(.secondary)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, .space(8))
                 } else {
                     Text("No tasks yet. Add your first task above!")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                         .foregroundStyle(.secondary)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, .space(8))
                 }
             } else {
-                VStack(spacing: 4) {
+                VStack(spacing: .space(4)) {
                     ForEach(sortedIncompleteTasks) { task in
                         TaskRowView(
                             task: task,
@@ -465,7 +465,7 @@ struct ProjectDetailView: View {
                 // Completed tasks (collapsible)
                 if !sortedCompletedTasks.isEmpty {
                     DisclosureGroup {
-                        VStack(spacing: 4) {
+                        VStack(spacing: .space(4)) {
                             ForEach(sortedCompletedTasks) { task in
                                 TaskRowView(
                                     task: task,
@@ -491,16 +491,16 @@ struct ProjectDetailView: View {
                         }
                     } label: {
                         Text("\(sortedCompletedTasks.count) completed")
-                            .font(.subheadline)
+                            .font(.themed(.subheadline))
                             .foregroundStyle(.secondary)
                     }
-                    .padding(.top, 8)
+                    .padding(.top, .space(8))
                 }
             }
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: .corner(12))
                 .fill(Color(nsColor: .windowBackgroundColor))
                 .shadow(radius: 1, y: 1)
         )
@@ -509,21 +509,21 @@ struct ProjectDetailView: View {
     // MARK: - Recordings Section
 
     private var recordingsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .space(12)) {
             HStack {
                 Text("Recordings")
-                    .font(.title3.weight(.semibold))
+                    .font(.themed(.title3).weight(.semibold))
                 Spacer()
                 
                 // Search box
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
-                        .font(.system(size: 13))
+                        .font(.themed(size: 13))
 
                     TextField("Search recordings...", text: $recordingsSearchQuery)
                         .textFieldStyle(.plain)
-                        .font(.body)
+                        .font(.themed(.body))
                         .frame(maxWidth: 220)
 
                     if !recordingsSearchQuery.isEmpty {
@@ -532,59 +532,59 @@ struct ProjectDetailView: View {
                         } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .foregroundStyle(.secondary)
-                                .font(.system(size: 14))
+                                .font(.themed(size: 14))
                         }
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .padding(.horizontal, .space(12))
+                .padding(.vertical, .space(6))
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: .corner(8))
                         .fill(Color(nsColor: .windowBackgroundColor))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: .corner(8))
                         .stroke(Color.secondary.opacity(0.2), lineWidth: 0.5)
                 )
                 
                 Text("\(filteredSessions.count) of \(projectSessions.count)")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
 
             if projectSessions.isEmpty {
-                VStack(spacing: 8) {
+                VStack(spacing: .space(8)) {
                     Image(systemName: "waveform")
-                        .font(.largeTitle)
+                        .font(.themed(.largeTitle))
                         .foregroundStyle(.tertiary)
                     Text("No recordings in this project")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                         .foregroundStyle(.secondary)
                     Text("Assign recordings to this project from the All Transcripts view")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.tertiary)
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 32)
+                .padding(.vertical, .space(32))
             } else if filteredSessions.isEmpty {
-                VStack(spacing: 8) {
+                VStack(spacing: .space(8)) {
                     Image(systemName: "magnifyingglass")
-                        .font(.largeTitle)
+                        .font(.themed(.largeTitle))
                         .foregroundStyle(.tertiary)
                     Text("No results found")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                         .foregroundStyle(.secondary)
                     Text("No recordings match \"\(recordingsSearchQuery)\"")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.tertiary)
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 32)
+                .padding(.vertical, .space(32))
             } else {
-                LazyVStack(spacing: 12) {
+                LazyVStack(spacing: .space(12)) {
                     ForEach(filteredSessions) { session in
                         recordingCard(for: session)
                     }
@@ -593,7 +593,7 @@ struct ProjectDetailView: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: .corner(12))
                 .fill(Color(nsColor: .windowBackgroundColor))
                 .shadow(radius: 1, y: 1)
         )
@@ -736,7 +736,7 @@ struct TaskEditSheet: View {
                 Spacer()
 
                 Text("Edit Task")
-                    .font(.headline)
+                    .font(.themed(.headline))
 
                 Spacer()
 
@@ -798,7 +798,7 @@ struct TaskEditSheet: View {
 
                             if let total = totalEstimatedMinutes {
                                 Text(formatDuration(total))
-                                    .font(.caption)
+                                    .font(.themed(.caption))
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -815,11 +815,11 @@ struct TaskEditSheet: View {
                     } label: {
                         HStack {
                             Image(systemName: "calendar.badge.clock")
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(DesignSystem.Colors.accent)
                             VStack(alignment: .leading) {
                                 Text("Schedule Time in Calendar")
                                 Text("AI will suggest optimal time blocks")
-                                    .font(.caption)
+                                    .font(.themed(.caption))
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
@@ -833,9 +833,9 @@ struct TaskEditSheet: View {
                     if !task.calendarBlockerIDs.isEmpty {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
+                                .foregroundStyle(DesignSystem.Colors.success)
                             Text("\(task.calendarBlockerIDs.count) time block(s) scheduled")
-                                .font(.caption)
+                                .font(.themed(.caption))
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -843,16 +843,16 @@ struct TaskEditSheet: View {
                     if !canScheduleTime {
                         if !hasDueDate {
                             Text("Set a due date to schedule time blocks")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
+                                .font(.themed(.caption))
+                                .foregroundStyle(DesignSystem.Colors.warning)
                         } else if totalEstimatedMinutes == nil {
                             Text("Set an estimated duration to schedule time blocks")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
+                                .font(.themed(.caption))
+                                .foregroundStyle(DesignSystem.Colors.warning)
                         } else if !viewModel.isAIAvailable {
                             Text("Install Claude Code to use AI scheduling")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
+                                .font(.themed(.caption))
+                                .foregroundStyle(DesignSystem.Colors.warning)
                         }
                     }
                 } header: {
@@ -907,7 +907,7 @@ struct TaskEditSheet: View {
                             VStack(alignment: .leading) {
                                 Text("Sync to Apple Reminders")
                                 Text("Get notifications on all your devices")
-                                    .font(.caption)
+                                    .font(.themed(.caption))
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -941,9 +941,9 @@ struct TaskEditSheet: View {
                     if task.reminderID != nil {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
+                                .foregroundStyle(DesignSystem.Colors.success)
                             Text("Synced to Reminders")
-                                .font(.caption)
+                                .font(.themed(.caption))
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -1019,7 +1019,7 @@ private struct TimeBlockerSheet: View {
                 Spacer()
 
                 Text("Schedule Time Blocks")
-                    .font(.headline)
+                    .font(.themed(.headline))
 
                 Spacer()
 
@@ -1034,7 +1034,7 @@ private struct TimeBlockerSheet: View {
             Divider()
 
             // Timing preferences section
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(8)) {
                 Button {
                     withAnimation {
                         showPreferences.toggle()
@@ -1046,7 +1046,7 @@ private struct TimeBlockerSheet: View {
                         Spacer()
                         Image(systemName: showPreferences ? "chevron.up" : "chevron.down")
                     }
-                    .font(.subheadline)
+                    .font(.themed(.subheadline))
                     .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
@@ -1054,9 +1054,9 @@ private struct TimeBlockerSheet: View {
                 if showPreferences {
                     TextEditor(text: $timingPreferences)
                         .frame(height: 60)
-                        .font(.callout)
+                        .font(.themed(.callout))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 6)
+                            RoundedRectangle(cornerRadius: .corner(6))
                                 .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
                         )
                         .overlay(alignment: .topLeading) {
@@ -1064,10 +1064,10 @@ private struct TimeBlockerSheet: View {
                                 Text(
                                     "e.g., 'Prefer mornings', 'No meetings on Fridays', 'Deep work after lunch'"
                                 )
-                                .font(.callout)
+                                .font(.themed(.callout))
                                 .foregroundStyle(.tertiary)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, .space(4))
+                                .padding(.vertical, .space(8))
                                 .allowsHitTesting(false)
                             }
                         }
@@ -1080,12 +1080,12 @@ private struct TimeBlockerSheet: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.vertical, 8)
+            .padding(.vertical, .space(8))
 
             Divider()
 
             if isLoading {
-                VStack(spacing: 16) {
+                VStack(spacing: .space(16)) {
                     ProgressView()
                         .scaleEffect(1.5)
                     Text("AI is analyzing your calendar...")
@@ -1093,10 +1093,10 @@ private struct TimeBlockerSheet: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = errorMessage {
-                VStack(spacing: 16) {
+                VStack(spacing: .space(16)) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.orange)
+                        .font(.themed(size: 40))
+                        .foregroundStyle(DesignSystem.Colors.warning)
                     Text(error)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.secondary)
@@ -1108,9 +1108,9 @@ private struct TimeBlockerSheet: View {
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if proposedBlocks.isEmpty && !isLoading {
-                VStack(spacing: 16) {
+                VStack(spacing: .space(16)) {
                     Image(systemName: "calendar.badge.plus")
-                        .font(.system(size: 40))
+                        .font(.themed(size: 40))
                         .foregroundStyle(.secondary)
                     Text("Click below to get AI suggestions")
                         .foregroundStyle(.secondary)
@@ -1122,7 +1122,7 @@ private struct TimeBlockerSheet: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: .space(16)) {
                         // Explanation
                         if let explanation = explanation {
                             GroupBox {
@@ -1130,7 +1130,7 @@ private struct TimeBlockerSheet: View {
                                     Image(systemName: "lightbulb.fill")
                                         .foregroundStyle(.yellow)
                                     Text(explanation)
-                                        .font(.callout)
+                                        .font(.themed(.callout))
                                         .foregroundStyle(.secondary)
                                 }
                             }
@@ -1145,14 +1145,14 @@ private struct TimeBlockerSheet: View {
                                 .fontWeight(.medium)
                             if totalMinutes < estimatedMinutes {
                                 Text("(\(estimatedMinutes - totalMinutes)m short)")
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(DesignSystem.Colors.warning)
                             } else if totalMinutes > estimatedMinutes {
                                 Text("(+\(totalMinutes - estimatedMinutes)m buffer)")
-                                    .foregroundStyle(.green)
+                                    .foregroundStyle(DesignSystem.Colors.success)
                             }
                         }
-                        .font(.subheadline)
-                        .padding(.horizontal, 4)
+                        .font(.themed(.subheadline))
+                        .padding(.horizontal, .space(4))
 
                         // Time blocks
                         ForEach($proposedBlocks) { $block in
@@ -1178,7 +1178,7 @@ private struct TimeBlockerSheet: View {
                         } label: {
                             Label("Add Time Block", systemImage: "plus.circle")
                         }
-                        .padding(.top, 8)
+                        .padding(.top, .space(8))
                     }
                     .padding()
                 }
@@ -1261,10 +1261,10 @@ private struct TimeBlockCard: View {
 
     var body: some View {
         GroupBox {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(8)) {
                 HStack {
                     Image(systemName: "calendar")
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(DesignSystem.Colors.accent)
 
                     if isEditing {
                         TextField("Title", text: $block.title)
@@ -1295,7 +1295,7 @@ private struct TimeBlockCard: View {
                         onDelete()
                     } label: {
                         Image(systemName: "trash")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(DesignSystem.Colors.error)
                     }
                     .buttonStyle(.plain)
                 }
@@ -1315,15 +1315,15 @@ private struct TimeBlockCard: View {
                             .foregroundStyle(.secondary)
                         Text(dateFormatter.string(from: block.endDate))
                     }
-                    .font(.subheadline)
+                    .font(.themed(.subheadline))
                     .foregroundStyle(.secondary)
                 }
 
                 HStack {
                     Image(systemName: "clock")
-                        .font(.caption)
+                        .font(.themed(.caption))
                     Text("\(block.durationMinutes) minutes")
-                        .font(.caption)
+                        .font(.themed(.caption))
                 }
                 .foregroundStyle(.secondary)
             }
@@ -1377,49 +1377,49 @@ private struct TaskRowView: View {
     var body: some View {
         VStack(spacing: 0) {
             if showsReviewBanner {
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 10))
+                        .font(.themed(size: 10))
                     Text("Auto-extracted — review this task")
-                        .font(.caption)
+                        .font(.themed(.caption))
 
                     Spacer()
 
                     Button { onAcceptReview?() } label: {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                     }
                     .buttonStyle(.plain)
                     .help("Accept task")
 
                     Button { onEdit() } label: {
                         Image(systemName: "pencil.circle.fill")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                     }
                     .buttonStyle(.plain)
                     .help("Edit task")
 
                     Button { onDelete() } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 14))
+                            .font(.themed(size: 14))
                     }
                     .buttonStyle(.plain)
                     .help("Dismiss task")
                 }
-                .foregroundStyle(.blue)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(Color.blue.opacity(0.06))
+                .foregroundStyle(DesignSystem.Colors.accent)
+                .padding(.horizontal, .space(10))
+                .padding(.vertical, .space(5))
+                .background(DesignSystem.Colors.accent.opacity(0.06))
             }
 
-        HStack(spacing: 10) {
+        HStack(spacing: .space(10)) {
             Button(action: onToggle) {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                     .foregroundStyle(task.isCompleted ? .green : .secondary)
             }
             .buttonStyle(.plain)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 if isEditingTitle {
                     InlineTaskTitleField(
                         title: task.title, font: .systemFont(ofSize: NSFont.systemFontSize),
@@ -1431,16 +1431,16 @@ private struct TaskRowView: View {
                 }
 
                 // Metadata row
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     if let assignee = task.assignee, !assignee.isEmpty {
                         Label(assignee, systemImage: "person")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                     }
 
                     if let dueText = dueDateText {
                         Label(dueText, systemImage: task.hasDueTime ? "clock" : "calendar")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(isOverdue ? .red : (isDueSoon ? .orange : .secondary))
                     }
 
@@ -1458,12 +1458,12 @@ private struct TaskRowView: View {
                             viewModel.updateTaskPriority(task, priority: nil)
                         }
                     } label: {
-                        HStack(spacing: 2) {
+                        HStack(spacing: .space(2)) {
                             Circle()
                                 .fill(task.priority.map { Color(hex: $0.color) } ?? Color.secondary.opacity(0.4))
                                 .frame(width: 6, height: 6)
                             Text(task.priority?.displayName ?? "No Priority")
-                                .font(.caption)
+                                .font(.themed(.caption))
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -1472,26 +1472,26 @@ private struct TaskRowView: View {
 
                     if task.reminderEnabled {
                         Image(systemName: "bell.badge.fill")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
+                            .font(.themed(.caption))
+                            .foregroundStyle(DesignSystem.Colors.warning)
                     }
 
                     if !task.calendarBlockerIDs.isEmpty {
-                        HStack(spacing: 2) {
+                        HStack(spacing: .space(2)) {
                             Image(systemName: "calendar.badge.clock")
-                                .font(.caption)
+                                .font(.themed(.caption))
                             Text("\(task.calendarBlockerIDs.count)")
-                                .font(.caption2)
+                                .font(.themed(.caption2))
                         }
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(DesignSystem.Colors.accent)
                     }
 
                     if let duration = task.estimatedDurationMinutes {
-                        HStack(spacing: 2) {
+                        HStack(spacing: .space(2)) {
                             Image(systemName: "hourglass")
-                                .font(.caption)
+                                .font(.themed(.caption))
                             Text(formatDurationShort(duration))
-                                .font(.caption)
+                                .font(.themed(.caption))
                         }
                         .foregroundStyle(.secondary)
                     }
@@ -1509,7 +1509,7 @@ private struct TaskRowView: View {
                         systemName: task.calendarBlockerIDs.isEmpty
                             ? "calendar.badge.plus" : "calendar.badge.clock"
                     )
-                    .foregroundStyle(task.calendarBlockerIDs.isEmpty ? Color.secondary : Color.blue)
+                    .foregroundStyle(task.calendarBlockerIDs.isEmpty ? Color.secondary : DesignSystem.Colors.accent)
                 }
                 .buttonStyle(.plain)
                 .help(
@@ -1538,20 +1538,20 @@ private struct TaskRowView: View {
 
                 Button(action: onDelete) {
                     Image(systemName: "trash")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(DesignSystem.Colors.error)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 10)
+        .padding(.vertical, .space(6))
+        .padding(.horizontal, .space(10))
         } // end outer VStack
         .background(isHovering ? Color(nsColor: .controlBackgroundColor) : Color.clear)
-        .cornerRadius(6)
+        .cornerRadius(.corner(6))
         .overlay(
             showsReviewBanner
-                ? RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                ? RoundedRectangle(cornerRadius: .corner(6))
+                    .stroke(DesignSystem.Colors.accent.opacity(0.3), lineWidth: 1)
                 : nil
         )
         .contentShape(Rectangle())
@@ -1665,7 +1665,7 @@ private struct QuickScheduleSheet: View {
                 Spacer()
 
                 Text("Schedule Time")
-                    .font(.headline)
+                    .font(.themed(.headline))
 
                 Spacer()
 
@@ -1734,10 +1734,10 @@ private struct QuickScheduleSheet: View {
                                 Text(
                                     "e.g., 'Morning person', 'No meetings on Fridays', 'Prefer 2-hour blocks'"
                                 )
-                                .font(.callout)
+                                .font(.themed(.callout))
                                 .foregroundStyle(.tertiary)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, .space(4))
+                                .padding(.vertical, .space(8))
                                 .allowsHitTesting(false)
                             }
                         }
@@ -1750,7 +1750,7 @@ private struct QuickScheduleSheet: View {
                 if let error = errorMessage {
                     Section {
                         Text(error)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(DesignSystem.Colors.error)
                     }
                 }
 
@@ -1758,18 +1758,18 @@ private struct QuickScheduleSheet: View {
                     Section {
                         if !hasDueDate {
                             Label("Set a due date", systemImage: "exclamationmark.triangle")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(DesignSystem.Colors.warning)
                         }
                         if totalMinutes <= 0 {
                             Label("Set a duration", systemImage: "exclamationmark.triangle")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(DesignSystem.Colors.warning)
                         }
                         if !viewModel.isAIAvailable {
                             Label(
                                 "Install Claude Code to use AI scheduling",
                                 systemImage: "exclamationmark.triangle"
                             )
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(DesignSystem.Colors.warning)
                         }
                     }
                 }
@@ -1779,7 +1779,7 @@ private struct QuickScheduleSheet: View {
                     Section {
                         HStack {
                             Image(systemName: "calendar.badge.clock")
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(DesignSystem.Colors.accent)
                             Text("\(task.calendarBlockerIDs.count) time block(s) already scheduled")
                             Spacer()
                             Button("Remove All", role: .destructive) {
@@ -1882,7 +1882,7 @@ private struct TimeBlockerSheetWithPreferences: View {
                 Spacer()
 
                 Text("AI Suggestions")
-                    .font(.headline)
+                    .font(.themed(.headline))
 
                 Spacer()
 
@@ -1897,7 +1897,7 @@ private struct TimeBlockerSheetWithPreferences: View {
             Divider()
 
             if isLoading {
-                VStack(spacing: 16) {
+                VStack(spacing: .space(16)) {
                     ProgressView()
                         .scaleEffect(1.5)
                     Text("AI is analyzing your calendar...")
@@ -1906,12 +1906,12 @@ private struct TimeBlockerSheetWithPreferences: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = errorMessage {
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: .space(16)) {
                         Image(systemName: "exclamationmark.triangle")
-                            .font(.system(size: 40))
-                            .foregroundStyle(.orange)
+                            .font(.themed(size: 40))
+                            .foregroundStyle(DesignSystem.Colors.warning)
                         Text("Error")
-                            .font(.headline)
+                            .font(.themed(.headline))
                         Text(error)
                             .multilineTextAlignment(.center)
                             .foregroundStyle(.secondary)
@@ -1921,12 +1921,12 @@ private struct TimeBlockerSheetWithPreferences: View {
                             .padding(.vertical)
 
                         Text("Adjust preferences and try again:")
-                            .font(.subheadline)
+                            .font(.themed(.subheadline))
 
                         TextEditor(text: $localTimingPreferences)
                             .frame(height: 60)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 6)
+                                RoundedRectangle(cornerRadius: .corner(6))
                                     .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
                             )
                             .padding(.horizontal)
@@ -1940,7 +1940,7 @@ private struct TimeBlockerSheetWithPreferences: View {
                 }
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: .space(16)) {
                         // Explanation
                         if let explanation = explanation {
                             GroupBox {
@@ -1948,7 +1948,7 @@ private struct TimeBlockerSheetWithPreferences: View {
                                     Image(systemName: "lightbulb.fill")
                                         .foregroundStyle(.yellow)
                                     Text(explanation)
-                                        .font(.callout)
+                                        .font(.themed(.callout))
                                         .foregroundStyle(.secondary)
                                 }
                             }
@@ -1963,14 +1963,14 @@ private struct TimeBlockerSheetWithPreferences: View {
                                 .fontWeight(.medium)
                             if totalMinutes < estimatedMinutes {
                                 Text("(\(estimatedMinutes - totalMinutes)m short)")
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(DesignSystem.Colors.warning)
                             } else if totalMinutes > estimatedMinutes {
                                 Text("(+\(totalMinutes - estimatedMinutes)m buffer)")
-                                    .foregroundStyle(.green)
+                                    .foregroundStyle(DesignSystem.Colors.success)
                             }
                         }
-                        .font(.subheadline)
-                        .padding(.horizontal, 4)
+                        .font(.themed(.subheadline))
+                        .padding(.horizontal, .space(4))
 
                         // Time blocks
                         ForEach($proposedBlocks) { $block in
@@ -1996,7 +1996,7 @@ private struct TimeBlockerSheetWithPreferences: View {
                         } label: {
                             Label("Add Time Block", systemImage: "plus.circle")
                         }
-                        .padding(.top, 8)
+                        .padding(.top, .space(8))
                     }
                     .padding()
                 }
@@ -2180,7 +2180,7 @@ private struct ProjectRecordingCard: View {
     // preview, then the playback strip and the actions. Shared parts live in
     // RecordingCardParts.swift and SessionPlaybackStrip.swift.
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .space(12)) {
             RecordingCardHeader(session: session, isRenaming: $isRenaming, rename: renameAction) {
                 EmptyView()
             }
@@ -2190,11 +2190,11 @@ private struct ProjectRecordingCard: View {
             if !hasTranscript {
                 if let error = session.lastErrorMessage {
                     Text("Transcription failed: \(error)")
-                        .font(.callout)
-                        .foregroundStyle(.red)
+                        .font(.themed(.callout))
+                        .foregroundStyle(DesignSystem.Colors.error)
                 } else {
                     Text(statusPlaceholder)
-                        .font(.callout)
+                        .font(.themed(.callout))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -2211,13 +2211,13 @@ private struct ProjectRecordingCard: View {
             transcriptActions
             extractedItemsSection
         }
-        .padding(16)
+        .padding(.space(16))
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: .corner(12))
                 .fill(DesignSystem.Colors.card)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: .corner(12))
                 .strokeBorder(DesignSystem.Colors.border, lineWidth: 0.5)
         )
         // Configured on the card, not on the strip: the strip only exists once the player has
@@ -2268,10 +2268,10 @@ private struct ProjectRecordingCard: View {
 
         return Group {
             if !sessionTasks.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: .space(8)) {
                     HStack {
                         Text("Extracted Items")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                         Spacer()
                         if !pendingTasks.isEmpty {
@@ -2307,12 +2307,12 @@ private struct ProjectRecordingCard: View {
                                 )
                             }
                         }
-                        .font(.caption)
+                        .font(.themed(.caption))
                     }
 
                     // Knowledge base entries
                 }
-                .padding(.top, 4)
+                .padding(.top, .space(4))
             }
         }
     }
@@ -2325,18 +2325,18 @@ private struct ExtractedTaskRow: View {
     let onReject: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Image(systemName: isPending ? "circle" : "checkmark.circle.fill")
                 .foregroundStyle(isPending ? .orange : .green)
-                .font(.caption)
+                .font(.themed(.caption))
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: .space(1)) {
                 Text(task.title)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .lineLimit(2)
                 if let assignee = task.assignee, !assignee.isEmpty {
                     Text(assignee)
-                        .font(.caption2)
+                        .font(.themed(.caption2))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -2345,11 +2345,11 @@ private struct ExtractedTaskRow: View {
 
             if let priority = task.priority {
                 Text(priority.displayName)
-                    .font(.caption2)
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
+                    .font(.themed(.caption2))
+                    .padding(.horizontal, .space(4))
+                    .padding(.vertical, .space(1))
                     .background(Color(hex: priority.color).opacity(0.2))
-                    .cornerRadius(3)
+                    .cornerRadius(.corner(3))
             }
 
             if isPending {
@@ -2372,11 +2372,11 @@ private struct ExtractedTaskRow: View {
                 .help("Reject task")
             }
         }
-        .padding(.vertical, 3)
-        .padding(.horizontal, 6)
+        .padding(.vertical, .space(3))
+        .padding(.horizontal, .space(6))
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(isPending ? Color.orange.opacity(0.08) : Color.clear)
+            RoundedRectangle(cornerRadius: .corner(6))
+                .fill(isPending ? DesignSystem.Colors.warning.opacity(0.08) : Color.clear)
         )
     }
 }

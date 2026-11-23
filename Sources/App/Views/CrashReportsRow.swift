@@ -12,11 +12,11 @@ struct CrashReportsRow: View {
     @State private var isReportShown = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: .space(4)) {
             Toggle("Send crash reports automatically", isOn: $reporter.isEnabled)
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: .space(8)) {
                 Text(CrashReportsRow.contents)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
@@ -25,10 +25,10 @@ struct CrashReportsRow: View {
                     .disabled(latestReport == nil)
                     .help(latestReport == nil ? "No crash in the last 14 days." : "Shows exactly what is sent.")
             }
-            .padding(.leading, 20)
+            .padding(.leading, .space(20))
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
+        .padding(.horizontal, .space(20))
+        .padding(.top, .space(16))
         .task { latestReport = await Task.detached { CrashReporter.latestReportText() }.value }
         .sheet(isPresented: $isReportShown) {
             CrashReportSheet(text: latestReport ?? "")
@@ -44,28 +44,28 @@ private struct CrashReportSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .space(12)) {
             Text("Last Crash Report")
-                .font(.headline)
+                .font(.themed(.headline))
             Text("This is exactly what is sent. Nothing else leaves your Mac.")
-                .font(.callout)
+                .font(.themed(.callout))
                 .foregroundStyle(.secondary)
             ScrollView {
                 Text(text)
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.themed(size: 11, design: .monospaced))
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(8)
+                    .padding(.space(8))
             }
             .background(.quaternary.opacity(0.5))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .clipShape(RoundedRectangle(cornerRadius: .corner(6)))
             HStack {
                 Spacer()
                 Button("Close") { dismiss() }
                     .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(20)
+        .padding(.space(20))
         .frame(width: 560, height: 480)
     }
 }

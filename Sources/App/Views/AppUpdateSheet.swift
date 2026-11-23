@@ -16,12 +16,12 @@ struct AppUpdateSheet: View {
     @State private var notesHeight: CGFloat = 120
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: .space(14)) {
+            VStack(alignment: .leading, spacing: .space(4)) {
                 Text("MinuteMind \(release.version) is available")
-                    .font(.title3.weight(.semibold))
+                    .font(.themed(.title3).weight(.semibold))
                 Text("You have \(AppUpdateService.installedVersion). MinuteMind quits, updates and opens again in about a minute.")
-                    .font(.callout)
+                    .font(.themed(.callout))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -29,7 +29,7 @@ struct AppUpdateSheet: View {
             Divider()
 
             Text("What's new")
-                .font(.headline)
+                .font(.themed(.headline))
             ScrollView {
                 Group {
                     if notes.isEmpty {
@@ -51,8 +51,8 @@ struct AppUpdateSheet: View {
 
             if let error = checker.updateError {
                 Text(error)
-                    .font(.callout)
-                    .foregroundStyle(.red)
+                    .font(.themed(.callout))
+                    .foregroundStyle(DesignSystem.Colors.error)
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -61,7 +61,7 @@ struct AppUpdateSheet: View {
                 if checker.isUpdating {
                     ProgressView().controlSize(.small)
                     Text("Updating\u{2026}")
-                        .font(.callout)
+                        .font(.themed(.callout))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -73,7 +73,7 @@ struct AppUpdateSheet: View {
                     .disabled(checker.isUpdating)
             }
         }
-        .padding(24)
+        .padding(.space(24))
         .frame(width: 480)
         .interactiveDismissDisabled(checker.isUpdating)
     }

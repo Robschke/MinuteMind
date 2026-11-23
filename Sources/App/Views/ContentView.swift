@@ -94,18 +94,18 @@ struct ContentView: View {
                 TodoBriefSheetView(isPresented: $viewModel.showTodoBriefSheet, brief: brief)
                     .environment(viewModel)
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: .space(12)) {
                     Image(systemName: "exclamationmark.circle")
-                        .font(.largeTitle).foregroundStyle(.secondary)
+                        .font(.themed(.largeTitle)).foregroundStyle(.secondary)
                     Text("Brief no longer available")
-                        .font(.headline)
+                        .font(.themed(.headline))
                     Text("The task brief has expired. It will regenerate at the next scheduled reminder time.")
-                        .font(.subheadline).foregroundStyle(.secondary)
+                        .font(.themed(.subheadline)).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                     Button("Close") { viewModel.showTodoBriefSheet = false }
-                        .padding(.top, 4)
+                        .padding(.top, .space(4))
                 }
-                .padding(32)
+                .padding(.space(32))
                 .frame(width: 360)
             }
         }

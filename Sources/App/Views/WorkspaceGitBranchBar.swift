@@ -92,7 +92,7 @@ struct WorkspaceGitBranchBar: View {
                     .layoutPriority(1)
                 if project.isShared {
                     WorkspaceSharedSyncStatus(projectID: project.id)
-                        .padding(.trailing, 12)
+                        .padding(.trailing, .space(12))
                     Spacer(minLength: 0)
                 }
             }
@@ -144,7 +144,7 @@ struct WorkspaceGitBranchBar: View {
     /// Shown instead of the branch while git is missing. Turns back into the branch by itself
     /// once the tools are installed (the poll keeps checking).
     private var gitMissingRow: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: .space(5)) {
             Image(systemName: "exclamationmark.triangle")
             Text("git is not installed")
                 .lineLimit(1)
@@ -152,16 +152,16 @@ struct WorkspaceGitBranchBar: View {
             Button("Install\u{2026}") { GitAvailability.installDeveloperTools() }
                 .controlSize(.mini)
         }
-        .font(.system(size: 11))
-        .foregroundStyle(Color.orange)
-        .padding(.horizontal, 12)
-        .frame(height: 26)
+        .font(.themed(size: 11))
+        .foregroundStyle(DesignSystem.Colors.warning)
+        .padding(.horizontal, .space(12))
+        .frame(height: .row(26))
         .frame(maxWidth: .infinity, alignment: .leading)
         .help("Without git this workspace keeps no history and Shared Projects cannot sync. Install opens Apple's installer for the Command Line Tools, which include git.")
     }
 
     private var label: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: .space(5)) {
             Image(systemName: "arrow.triangle.branch")
             Text(title)
                 .lineLimit(1)
@@ -170,15 +170,15 @@ struct WorkspaceGitBranchBar: View {
                 ProgressView().controlSize(.mini)
             } else if state?.operation == nil, state != nil {
                 Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 8, weight: .semibold))
+                    .font(.themed(size: 8, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
             if !project.isShared { Spacer(minLength: 0) }
         }
-        .font(.system(size: 11))
-        .foregroundStyle(isOffMain ? Color.orange : Color.secondary)
-        .padding(.horizontal, 12)
-        .frame(height: 26)
+        .font(.themed(size: 11))
+        .foregroundStyle(isOffMain ? DesignSystem.Colors.warning : Color.secondary)
+        .padding(.horizontal, .space(12))
+        .frame(height: .row(26))
         .frame(maxWidth: project.isShared ? nil : .infinity, alignment: .leading)
         .contentShape(Rectangle())
     }
@@ -428,22 +428,22 @@ private struct WorkspaceBranchPicker: View {
             if isCreating { creationForm } else { branchList }
         }
         .frame(width: 280)
-        .padding(.vertical, 8)
+        .padding(.vertical, .space(8))
     }
 
     private var branchList: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: .space(2)) {
             Text("Switch Branch")
-                .font(.system(size: 11, weight: .semibold))
+                .font(.themed(size: 11, weight: .semibold))
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 12)
-                .padding(.bottom, 4)
+                .padding(.horizontal, .space(12))
+                .padding(.bottom, .space(4))
             if state.branches.count > 8 {
                 TextField("Filter", text: $filter)
                     .textFieldStyle(.roundedBorder)
                     .controlSize(.small)
-                    .padding(.horizontal, 10)
-                    .padding(.bottom, 4)
+                    .padding(.horizontal, .space(10))
+                    .padding(.bottom, .space(4))
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
@@ -454,7 +454,7 @@ private struct WorkspaceBranchPicker: View {
             }
             .frame(maxHeight: 260)
             .fixedSize(horizontal: false, vertical: true)
-            Divider().padding(.vertical, 4)
+            Divider().padding(.vertical, .space(4))
             rowButton(key: "+new", systemImage: "plus", title: "New Branch…", isCurrent: false) {
                 isCreating = true
             }
@@ -472,9 +472,9 @@ private struct WorkspaceBranchPicker: View {
     private func rowButton(key: String, systemImage: String?, title: String, isCurrent: Bool,
                            action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 6) {
+            HStack(spacing: .space(6)) {
                 Image(systemName: systemImage ?? "checkmark")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.themed(size: 10, weight: .semibold))
                     .opacity(systemImage == nil ? 0 : 1)
                     .frame(width: 12)
                 Text(title)
@@ -482,22 +482,22 @@ private struct WorkspaceBranchPicker: View {
                     .truncationMode(.middle)
                 Spacer(minLength: 0)
             }
-            .font(.system(size: 12, weight: isCurrent ? .semibold : .regular))
-            .padding(.horizontal, 8)
-            .frame(height: 24)
-            .background(RoundedRectangle(cornerRadius: 5)
+            .font(.themed(size: 12, weight: isCurrent ? .semibold : .regular))
+            .padding(.horizontal, .space(8))
+            .frame(height: .row(24))
+            .background(RoundedRectangle(cornerRadius: .corner(5))
                 .fill(hovered == key && !isCurrent ? Color.accentColor.opacity(0.18) : Color.clear))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 4)
+        .padding(.horizontal, .space(4))
         .onHover { inside in hovered = inside ? key : (hovered == key ? nil : hovered) }
     }
 
     private var creationForm: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: .space(8)) {
             Text("New Branch")
-                .font(.system(size: 13, weight: .semibold))
+                .font(.themed(size: 13, weight: .semibold))
             TextField("feature-name", text: $newName)
                 .textFieldStyle(.roundedBorder)
                 .focused($nameFocused)
@@ -509,13 +509,13 @@ private struct WorkspaceBranchPicker: View {
                 }
             if let problem, !newName.isEmpty {
                 Text(problem)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.red)
+                    .font(.themed(size: 11))
+                    .foregroundStyle(DesignSystem.Colors.error)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text(state.branchName.map { "Starts from \($0). Your uncommitted changes come along." }
                      ?? "Starts from the current commit. Your uncommitted changes come along.")
-                    .font(.system(size: 11))
+                    .font(.themed(size: 11))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -532,7 +532,7 @@ private struct WorkspaceBranchPicker: View {
             }
             .controlSize(.small)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, .space(12))
         .onAppear {
             check()
             // The field exists only now; focusing it together with isCreating did nothing.

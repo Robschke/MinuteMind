@@ -29,16 +29,19 @@
 //        - Natural colours (yellow duck, tan dog, orange puppy, fawn pug, orange cats, yellow
 //          Sweet Cat, green lime); the blob takes the theme accent. An own colour from Settings
 //          recolours the body only, never the feature colour.
-//        - `kind` says which renderer draws the avatar (CreatureRenderer); `pixel` is the only
-//          one. The grids are built once per avatar, since frames are sampled many times a second.
+//        - `kind` says which renderer draws the avatar (CreatureRenderer): `pixel` (the grids
+//          below) or `svg` (drawings in any style, `art`, SVGAvatarArt). The grids are built once
+//          per avatar, since frames are sampled many times a second.
 
 import Foundation
 
 struct MascotAvatar: Identifiable, Hashable, Sendable, CustomStringConvertible {
     /// How an avatar is drawn.
-    enum Kind: String, Sendable {
+    enum Kind: String, Sendable, CaseIterable {
         /// A 12 x 13 grid of inks, the moods painted over it (AssistantMascotPose).
         case pixel
+        /// Drawings in any style (SVGAvatarArt), animated and propped by SVGCreatureRenderer.
+        case svg
     }
 
     /// What projects and settings store.
@@ -63,6 +66,10 @@ struct MascotAvatar: Identifiable, Hashable, Sendable, CustomStringConvertible {
     let wearsShades: Bool
     /// Idle with half closed eyes and now and then a heart beside the head.
     let isContent: Bool
+    /// The drawings of an avatar of kind svg; nil for pixel avatars.
+    let art: SVGAvatarArt?
+    /// The hash of `art`, taken once: SVGAvatarImageCache keys its bitmaps with it on every draw.
+    let artHash: Int
 
     let body: MascotGrid
     /// Breathing out: everything above the face sinks one row (row 4 drops out).
@@ -83,6 +90,8 @@ struct MascotAvatar: Identifiable, Hashable, Sendable, CustomStringConvertible {
         self.nubs = hasArms ? [(0, 8), (11, 8)] : []
         self.wearsShades = wearsShades
         self.isContent = isContent
+        self.art = nil
+        self.artHash = 0
         let body = MascotGrid(rows: rows)
         var squashed = body
         for y in stride(from: 4, through: 1, by: -1) {
@@ -93,6 +102,25 @@ struct MascotAvatar: Identifiable, Hashable, Sendable, CustomStringConvertible {
         self.squashed = squashed
     }
 
+    /// An avatar of kind svg. The pixel fields hold the Blob's, which nothing draws; they keep
+    /// code that reads them (colours, the validator's face zones) working for every kind.
+    init(id: String, name: String, art: SVGAvatarArt, naturalBody: UInt32?) {
+        self.id = id
+        self.name = name
+        self.kind = .svg
+        self.rows = MascotAvatar.blob.rows
+        self.naturalBody = naturalBody
+        self.featureColor = 0x000000
+        self.neutralMouth = []
+        self.nubs = []
+        self.wearsShades = false
+        self.isContent = false
+        self.art = art
+        self.artHash = art.hashValue
+        self.body = MascotAvatar.blob.body
+        self.squashed = MascotAvatar.blob.squashed
+    }
+
     var description: String { id }
 
     /// Two avatars are the same when they are drawn the same; the grids follow from the rows.
@@ -100,7 +128,7 @@ struct MascotAvatar: Identifiable, Hashable, Sendable, CustomStringConvertible {
         a.id == b.id && a.name == b.name && a.kind == b.kind && a.rows == b.rows
             && a.naturalBody == b.naturalBody && a.featureColor == b.featureColor
             && a.neutralMouth.elementsEqual(b.neutralMouth, by: ==) && a.nubs.elementsEqual(b.nubs, by: ==)
-            && a.wearsShades == b.wearsShades && a.isContent == b.isContent
+            && a.wearsShades == b.wearsShades && a.isContent == b.isContent && a.art == b.art
     }
 
     func hash(into hasher: inout Hasher) { hasher.combine(id) }

@@ -3,7 +3,8 @@
 //          colours, bound to the open document's text.
 // Dependencies: Sources/App/Supporting/SyntaxHighlighter.swift (colour runs, size cap),
 //               Sources/App/Supporting/ThemeStore.swift + Sources/App/Config/AppTheme.swift
-//               (editor colours, theme change notification), AppKit (TextKit 1)
+//               (editor colours, theme change notification), Sources/App/Components/ThemeFonts.swift
+//               (the theme's terminal font), AppKit (TextKit 1)
 // Used by: Sources/App/Views/WorkspaceEditorPane.swift, Tests/WorkspaceFileKindTests.swift (gutter)
 // Notes: Decisions (2026-10-13):
 //        - TextKit 1, built by hand (NSTextView(usingTextLayoutManager: false)), because the
@@ -67,7 +68,7 @@ struct WorkspaceCodeEditor: NSViewRepresentable {
         textView.isAutomaticTextReplacementEnabled = false
         textView.isAutomaticSpellingCorrectionEnabled = false
         textView.isContinuousSpellCheckingEnabled = false
-        textView.font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
+        textView.font = ThemeFonts.terminalFont(style: ThemeStore.shared.theme.style)
         textView.textContainerInset = NSSize(width: 6, height: 12)
         scrollView.documentView = textView
 
@@ -183,6 +184,13 @@ struct WorkspaceCodeEditor: NSViewRepresentable {
             textView.backgroundColor = theme.card.nsColor
             scrollView?.backgroundColor = theme.card.nsColor
             textView.insertionPointColor = theme.accent.nsColor
+            // The theme's terminal font, as in the Claude terminals.
+            let font = ThemeFonts.terminalFont(style: theme.style)
+            if textView.font != font {
+                textView.font = font
+                textView.typingAttributes[.font] = font
+                ruler?.textDidChange()
+            }
             // Sets the colour of all text; highlighting is applied again right after.
             textView.textColor = theme.textPrimary.nsColor
             textView.typingAttributes[.foregroundColor] = theme.textPrimary.nsColor

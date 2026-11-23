@@ -35,13 +35,13 @@ struct WorkboardView: View {
     var body: some View {
         VStack(spacing: 0) {
             ProjectTimelineHeader(project: project)
-                .padding(.horizontal, 24)
-                .padding(.top, 16)
-                .padding(.bottom, 8)
+                .padding(.horizontal, .space(24))
+                .padding(.top, .space(16))
+                .padding(.bottom, .space(8))
 
             epicFilterBar
-                .padding(.horizontal, 24)
-                .padding(.bottom, 12)
+                .padding(.horizontal, .space(24))
+                .padding(.bottom, .space(12))
 
             Divider()
 
@@ -70,9 +70,9 @@ struct WorkboardView: View {
     // MARK: - Epic Filter Bar
 
     private var epicFilterBar: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     FilterChipButton(
                         label: "All",
                         isSelected: selectedEpicID == nil,
@@ -139,7 +139,7 @@ struct WorkboardView: View {
             // Column header
             HStack {
                 Image(systemName: status.icon)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
                 Text(status.displayName)
                     .font(DesignSystem.Typography.caption2)
@@ -151,18 +151,18 @@ struct WorkboardView: View {
                 Text("\(columnTasks.count)")
                     .font(DesignSystem.Typography.caption2)
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, .space(6))
+                    .padding(.vertical, .space(2))
                     .background(DesignSystem.Colors.border, in: Capsule())
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, .space(12))
+            .padding(.vertical, .space(10))
 
             Divider()
 
             // Cards
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVStack(spacing: .space(8)) {
                     if columnTasks.isEmpty {
                         columnEmptyState(for: status)
                     } else {
@@ -227,13 +227,13 @@ struct WorkboardView: View {
                                     .font(DesignSystem.Typography.caption1)
                                     .foregroundStyle(DesignSystem.Colors.textTertiary)
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 6)
+                                    .padding(.vertical, .space(6))
                             }
                             .buttonStyle(.plain)
                         }
                     }
                 }
-                .padding(8)
+                .padding(.space(8))
             }
             .dropDestination(for: String.self) { items, _ in
                 guard let taskIDString = items.first,
@@ -256,7 +256,7 @@ struct WorkboardView: View {
                     .font(DesignSystem.Typography.caption1)
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, .space(8))
             }
             .buttonStyle(.plain)
         }
@@ -271,9 +271,9 @@ struct WorkboardView: View {
     // MARK: - Empty States
 
     private func columnEmptyState(for status: TaskStatus) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: .space(6)) {
             Image(systemName: emptyStateIcon(for: status))
-                .font(.title3)
+                .font(.themed(.title3))
                 .foregroundStyle(DesignSystem.Colors.textTertiary.opacity(0.5))
             Text(emptyStateMessage(for: status))
                 .font(DesignSystem.Typography.caption2)
@@ -281,7 +281,7 @@ struct WorkboardView: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
+        .padding(.vertical, .space(24))
     }
 
     private func emptyStateIcon(for status: TaskStatus) -> String {
@@ -321,7 +321,7 @@ struct WorkboardView: View {
     // MARK: - AI Summary
 
     private var aiSummaryPopover: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .space(12)) {
             HStack {
                 Label("Board Summary", systemImage: "sparkles")
                     .font(DesignSystem.Typography.headline)
@@ -346,7 +346,7 @@ struct WorkboardView: View {
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
             }
         }
-        .padding(16)
+        .padding(.space(16))
         .frame(width: 360)
     }
 
@@ -414,7 +414,7 @@ private struct FilterChipButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 4) {
+            HStack(spacing: .space(4)) {
                 Circle()
                     .fill(color)
                     .frame(width: 8, height: 8)
@@ -422,8 +422,8 @@ private struct FilterChipButton: View {
                     .font(DesignSystem.Typography.caption1)
                     .lineLimit(1)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, .space(10))
+            .padding(.vertical, .space(5))
             .background(
                 isSelected
                     ? color.opacity(0.15)

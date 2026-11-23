@@ -40,7 +40,7 @@ struct SidebarHideButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "sidebar.left")
-                .font(.system(size: 14))
+                .font(.themed(size: 14))
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
                 .frame(width: 30, height: 30)
                 .background(
@@ -64,14 +64,14 @@ struct SidebarShowCornerButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "sidebar.left")
-                .font(.system(size: 12))
+                .font(.themed(size: 12))
                 .foregroundStyle(isHovered ? DesignSystem.Colors.textPrimary : DesignSystem.Colors.textSecondary)
                 .frame(width: 26, height: 26)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }
-        .padding(.leading, 4)
+        .padding(.leading, .space(4))
         .help("Show Sidebar (\u{2303}\u{2318}S)")
         .accessibilityLabel("Show Sidebar")
     }

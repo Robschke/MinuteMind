@@ -78,7 +78,8 @@ struct MeetingPillView: View {
             // bottom of the larger panel instead of floating in its middle and then dropping.
             // Beside the companion the content hugs the edge facing the creature instead.
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: contentAlignment)
-            .environment(\.pillPixelStyle, model.companionMode)
+            .environment(\.pillPixelStyle, model.usesPixelFinish)
+            .environment(\.pillThemedCard, model.companionMode && !model.usesPixelFinish)
             .animation(reduceMotion ? .easeInOut(duration: 0.15) : .spring(duration: 0.35, bounce: 0.15), value: model.displayKind)
             .animation(.spring(duration: 0.3, bounce: 0.1), value: model.showsRecordingControls)
             .animation(reduceMotion ? nil : .spring(duration: 0.3, bounce: 0.1), value: model.idleExpanded)
@@ -162,20 +163,20 @@ struct MeetingPillView: View {
     /// The Claude sessions that need the user, in a small card under another card, and the
     /// companion's tool row when `tools` is set.
     private func withAttentionRows(_ content: some View, show: Bool = true, tools: ToolRow? = nil) -> some View {
-        VStack(alignment: model.opensLeft ? .trailing : .leading, spacing: 6) {
+        VStack(alignment: model.opensLeft ? .trailing : .leading, spacing: .space(6)) {
             content
             if let tools {
-                HStack(spacing: 6) { toolButtons(openApp: tools == .withOpenApp) }
-                    .padding(8)
-                    .glass(cornerRadius: 14)
+                HStack(spacing: .space(6)) { toolButtons(openApp: tools == .withOpenApp) }
+                    .padding(.space(8))
+                    .glass(cornerRadius: .corner(14))
                     .onHover { model.hoverCurrentCard($0) }
             }
             if show, !model.attentionRows.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     ForEach(model.attentionRows.prefix(4)) { row in sessionRow(row) }
                 }
-                .padding(10)
-                .glass(cornerRadius: 14)
+                .padding(.space(10))
+                .glass(cornerRadius: .corner(14))
                 .onHover { model.isHovering = $0 }
             }
         }
@@ -183,15 +184,15 @@ struct MeetingPillView: View {
 
     /// Shown once, the first time the companion appears.
     private var coachCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: .space(6)) {
             Text("Hi, I\u{2019}m your MinuteMind companion")
-                .font(.system(size: 13, weight: .semibold))
-            VStack(alignment: .leading, spacing: 3) {
+                .font(.themed(size: 13, weight: .semibold))
+            VStack(alignment: .leading, spacing: .space(3)) {
                 Text("Drag me anywhere. Click for options.")
                 Text("Double click brings your Claude windows here.")
                 Text("Right click for more, including Hide.")
             }
-            .font(.system(size: 11))
+            .font(.themed(size: 11))
             .foregroundStyle(PillStyle.secondaryText)
             HStack {
                 Spacer()
@@ -199,8 +200,8 @@ struct MeetingPillView: View {
             }
         }
         .frame(width: 250, alignment: .leading)
-        .padding(12)
-        .glass(cornerRadius: 14)
+        .padding(.space(12))
+        .glass(cornerRadius: .corner(14))
         .onHover { model.isHovering = $0 }
     }
 
@@ -242,20 +243,20 @@ struct MeetingPillView: View {
     private var idleBar: some View {
         Group {
             if model.idleExpanded {
-                HStack(spacing: 10) {
+                HStack(spacing: .space(10)) {
                     if let hint = model.dictationHint {
-                        HStack(spacing: 6) {
+                        HStack(spacing: .space(6)) {
                             Image(systemName: "mic")
-                                .font(.system(size: 11, weight: .medium))
+                                .font(.themed(size: 11, weight: .medium))
                                 .accessibilityHidden(true)
                             Text(hint)
-                                .font(.system(size: 12))
+                                .font(.themed(size: 12))
                         }
                         .foregroundStyle(PillStyle.secondaryText)
                     }
                     Button(action: model.recordNow) {
-                        HStack(spacing: 5) {
-                            Image(systemName: "record.circle").font(.system(size: 11, weight: .semibold))
+                        HStack(spacing: .space(5)) {
+                            Image(systemName: "record.circle").font(.themed(size: 11, weight: .semibold))
                             Text("Record")
                         }
                     }
@@ -263,9 +264,9 @@ struct MeetingPillView: View {
                     .help("Record a meeting now")
                 }
                 .padding(.leading, model.dictationHint == nil ? 4 : 12)
-                .padding(.trailing, 4)
-                .frame(height: 32)
-                .glass(cornerRadius: 16)
+                .padding(.trailing, .space(4))
+                .frame(height: .row(32))
+                .glass(cornerRadius: .corner(16))
                 .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .bottom)))
             } else {
                 // A solid hairline bar reads on any background, unlike glass at this size; the
@@ -291,41 +292,41 @@ struct MeetingPillView: View {
     /// The voice assistant's result: an answer to copy or insert, what it did, a question to
     /// answer (typed, or dictated with the fn key), or what went wrong.
     private func assistantCard(_ card: AssistantCard) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 8) {
+        VStack(alignment: .leading, spacing: .space(8)) {
+            HStack(alignment: .top, spacing: .space(8)) {
                 switch card {
                 case .done: sessionIcon(.done)
                 case .failed: sessionIcon(.error)
                 case .answer, .ask: ClaudeMark(working: false)
                 }
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: .space(3)) {
                     switch card {
                     case .answer(let text):
                         ScrollView {
-                            Text(text).font(.system(size: 12)).textSelection(.enabled)
+                            Text(text).font(.themed(size: 12)).textSelection(.enabled)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .frame(maxHeight: 160)
                     case .done(let summary, let details):
-                        Text(summary).font(.system(size: 13, weight: .semibold))
+                        Text(summary).font(.themed(size: 13, weight: .semibold))
                         if !details.isEmpty {
-                            Text(details).font(.system(size: 11)).foregroundStyle(PillStyle.secondaryText).lineLimit(5)
+                            Text(details).font(.themed(size: 11)).foregroundStyle(PillStyle.secondaryText).lineLimit(5)
                         }
                     case .ask(let question):
-                        Text(question).font(.system(size: 13, weight: .semibold))
+                        Text(question).font(.themed(size: 13, weight: .semibold))
                             .fixedSize(horizontal: false, vertical: true)
                         TextField("Your answer", text: $model.askDraft)
                             .textFieldStyle(.roundedBorder)
                             .onSubmit(model.assistantSend)
                         Text("Type, or hold fn and speak")
-                            .font(.system(size: 11)).foregroundStyle(PillStyle.secondaryText)
+                            .font(.themed(size: 11)).foregroundStyle(PillStyle.secondaryText)
                     case .failed(let message):
-                        Text(message).font(.system(size: 12)).foregroundStyle(PillStyle.secondaryText).lineLimit(4)
+                        Text(message).font(.themed(size: 12)).foregroundStyle(PillStyle.secondaryText).lineLimit(4)
                     }
                 }
                 .frame(width: 280, alignment: .leading)
             }
-            HStack(spacing: 6) {
+            HStack(spacing: .space(6)) {
                 Spacer(minLength: 0)
                 switch card {
                 case .answer:
@@ -341,8 +342,8 @@ struct MeetingPillView: View {
                 }
             }
         }
-        .padding(12)
-        .glass(cornerRadius: 14)
+        .padding(.space(12))
+        .glass(cornerRadius: .corner(14))
         .onHover { model.isHovering = $0 }
         .accessibilityElement(children: .contain)
     }
@@ -353,25 +354,25 @@ struct MeetingPillView: View {
     /// taken. Once taken it shrinks to one confirming row. Fixed height while scrolling, so the
     /// panel does not jump with every step.
     private func projectWheelCard(_ card: ProjectWheelCard) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: .space(6)) {
             if card.committed, let item = card.wheel.selected {
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Image(systemName: model.companionMode ? "checkmark.square.fill" : "checkmark.circle.fill")
-                        .font(.system(size: 14))
+                        .font(.themed(size: 14))
                         .foregroundStyle(PillStyle.secondaryText)
                         .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 1) {
+                    VStack(alignment: .leading, spacing: .space(1)) {
                         Text(item.isLater ? "Later" : item.projectID == nil ? "No project" : "Filed to \(item.name)")
-                            .font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                            .font(.themed(size: 13, weight: .semibold)).lineLimit(1)
                         Text(Self.wheelConfirmation(item))
-                            .font(.system(size: 11)).foregroundStyle(PillStyle.secondaryText)
+                            .font(.themed(size: 11)).foregroundStyle(PillStyle.secondaryText)
                     }
                 }
                 .frame(width: 200, alignment: .leading)
             } else {
                 Text("Project for this recording")
-                    .font(.system(size: 11)).foregroundStyle(PillStyle.secondaryText)
-                VStack(alignment: .leading, spacing: 2) {
+                    .font(.themed(size: 11)).foregroundStyle(PillStyle.secondaryText)
+                VStack(alignment: .leading, spacing: .space(2)) {
                     ForEach(-2...2, id: \.self) { offset in
                         wheelRow(card.wheel, offset: offset)
                     }
@@ -392,13 +393,13 @@ struct MeetingPillView: View {
                 }
                 if !card.hint.isEmpty {
                     Text(card.hint)
-                        .font(.system(size: 11)).foregroundStyle(PillStyle.secondaryText)
+                        .font(.themed(size: 11)).foregroundStyle(PillStyle.secondaryText)
                 }
             }
         }
-        .padding(12)
+        .padding(.space(12))
         .frame(width: 224, alignment: .leading)
-        .glass(cornerRadius: 14)
+        .glass(cornerRadius: .corner(14))
         .onHover { model.isHovering = $0 }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(card.committed
@@ -419,20 +420,20 @@ struct MeetingPillView: View {
         Button {
             model.projectWheelPick(index)
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: .space(8)) {
                 projectMark(item)
                 Text(item?.name ?? "")
-                    .font(.system(size: offset == 0 ? 13 : 12, weight: offset == 0 ? .semibold : .regular))
+                    .font(.themed(size: offset == 0 ? 13 : 12, weight: offset == 0 ? .semibold : .regular))
                     .lineLimit(1)
                 if let item, item.isStarred {
                     StarredProjectMark(avatar: item.markAvatar, bodyColor: item.markColor)
                 }
                 Spacer(minLength: 0)
                 if index == wheel.startIndex {
-                    Text("current").font(.system(size: 11)).foregroundStyle(PillStyle.secondaryText)
+                    Text("current").font(.themed(size: 11)).foregroundStyle(PillStyle.secondaryText)
                 }
             }
-            .padding(.horizontal, 6)
+            .padding(.horizontal, .space(6))
             .frame(height: offset == 0 ? 24 : 18)
             .background(
                 RoundedRectangle(cornerRadius: pixel ? 0 : 6).fill(Color.primary.opacity(offset == 0 ? 0.08 : 0)))
@@ -456,11 +457,11 @@ struct MeetingPillView: View {
 
     /// The companion's hover card: what the idle bar offered, plus Claude.
     private var companionCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: .space(8)) {
+            HStack(spacing: .space(6)) {
                 Button(action: model.recordNow) {
-                    HStack(spacing: 5) {
-                        Image(systemName: "record.circle").font(.system(size: 11, weight: .semibold))
+                    HStack(spacing: .space(5)) {
+                        Image(systemName: "record.circle").font(.themed(size: 11, weight: .semibold))
                         Text("Record")
                     }
                 }
@@ -469,11 +470,11 @@ struct MeetingPillView: View {
                 toolButtons(openApp: true)
             }
             if let hint = model.dictationHint {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     Image(systemName: "mic")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.themed(size: 11, weight: .medium))
                         .accessibilityHidden(true)
-                    Text(hint).font(.system(size: 12))
+                    Text(hint).font(.themed(size: 12))
                 }
                 .foregroundStyle(PillStyle.secondaryText)
             }
@@ -484,8 +485,8 @@ struct MeetingPillView: View {
                 }
             }
         }
-        .padding(10)
-        .glass(cornerRadius: 14)
+        .padding(.space(10))
+        .glass(cornerRadius: .corner(14))
         .onHover { model.hoverIdle($0) }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("MinuteMind")
@@ -496,8 +497,8 @@ struct MeetingPillView: View {
     @ViewBuilder
     private func toolButtons(openApp: Bool) -> some View {
         Button(action: model.openClaude) {
-            HStack(spacing: 5) {
-                Image(systemName: "sparkle").font(.system(size: 11, weight: .semibold))
+            HStack(spacing: .space(5)) {
+                Image(systemName: "sparkle").font(.themed(size: 11, weight: .semibold))
                 Text("Claude")
             }
         }
@@ -528,15 +529,15 @@ struct MeetingPillView: View {
     /// The companion card's Clipboard list: a click on a row copies it again, Insert (on hover)
     /// pastes it where the user is typing. Newest first, one line each, scrolls past eight rows.
     private var clipboardCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: .space(6)) {
+            HStack(spacing: .space(6)) {
                 // The whole title leads back, a bigger target than a lone chevron.
                 Button {
                     model.showsClipboard = false
                 } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "chevron.left").font(.system(size: 11, weight: .semibold))
-                        Text("Clipboard").font(.system(size: 13, weight: .semibold))
+                    HStack(spacing: .space(5)) {
+                        Image(systemName: "chevron.left").font(.themed(size: 11, weight: .semibold))
+                        Text("Clipboard").font(.themed(size: 13, weight: .semibold))
                     }
                     .contentShape(Rectangle())
                 }
@@ -546,19 +547,19 @@ struct MeetingPillView: View {
                 Spacer(minLength: 0)
                 if !model.clipboardItems.isEmpty {
                     Text("Click to copy")
-                        .font(.system(size: 11))
+                        .font(.themed(size: 11))
                         .foregroundStyle(PillStyle.secondaryText)
                 }
             }
             if model.clipboardItems.isEmpty {
                 Text("Text and screenshots you copy show up here. Kept until MinuteMind quits.")
                     .fixedSize(horizontal: false, vertical: true)
-                    .font(.system(size: 12))
+                    .font(.themed(size: 12))
                     .foregroundStyle(PillStyle.secondaryText)
-                    .padding(.vertical, 4)
+                    .padding(.vertical, .space(4))
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: .space(2)) {
                         ForEach(model.clipboardItems) { item in
                             ClipboardRow(
                                 item: item,
@@ -574,8 +575,8 @@ struct MeetingPillView: View {
             }
         }
         .frame(width: 280, alignment: .leading)
-        .padding(10)
-        .glass(cornerRadius: 14)
+        .padding(.space(10))
+        .glass(cornerRadius: .corner(14))
         .onHover { model.hoverCurrentCard($0) }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Clipboard")
@@ -584,16 +585,16 @@ struct MeetingPillView: View {
     /// A session that needs the user; a click on its text opens its chat card (when it asks
     /// something the card can show), Show goes to the session.
     private func sessionRow(_ row: CompanionSessionRow) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Button {
                 if row.request != nil { model.openSessionChat(row) } else { model.showSession(row.id) }
             } label: {
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     sessionIcon(row.kind)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(row.headline).font(.system(size: 12, weight: .medium)).lineLimit(1)
+                    VStack(alignment: .leading, spacing: .space(1)) {
+                        Text(row.headline).font(.themed(size: 12, weight: .medium)).lineLimit(1)
                         Text("\(row.project) \u{00B7} \(row.session)")
-                            .font(.system(size: 11))
+                            .font(.themed(size: 11))
                             .foregroundStyle(PillStyle.secondaryText)
                             .lineLimit(1)
                     }
@@ -617,9 +618,9 @@ struct MeetingPillView: View {
             CompanionChatCard(model: model, row: row, request: request)
         } else {
             sessionRow(row)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .glass(cornerRadius: 14)
+                .padding(.horizontal, .space(12))
+                .padding(.vertical, .space(8))
+                .glass(cornerRadius: .corner(14))
                 .onHover { model.isHovering = $0 }
         }
     }
@@ -633,7 +634,7 @@ struct MeetingPillView: View {
         }
         return Image(systemName: symbol)
             .symbolRenderingMode(.hierarchical)
-            .font(.system(size: 15))
+            .font(.themed(size: 15))
             .foregroundStyle(color)
             .frame(width: 18)
             .accessibilityHidden(true)
@@ -647,7 +648,7 @@ struct MeetingPillView: View {
     /// across them (connecting, not silence); words spoken then are lost, so the user learns to
     /// speak once it lights up. A microphone still silent after 3 s is the one case in words.
     private func dictationCapsule(_ dictation: MeetingPillModel.Dictation) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: .space(10)) {
             if model.recordingStartedAt != nil {
                 // Still and dimmed: the meeting keeps recording, but this capsule is dictation.
                 RecordingDot(still: true)
@@ -667,11 +668,11 @@ struct MeetingPillView: View {
             case .done(let copied):
                 if copied {
                     Image(systemName: "doc.on.clipboard")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.themed(size: 12, weight: .semibold))
                         .foregroundStyle(PillStyle.secondaryText)
                         .accessibilityHidden(true)
                     Text("Copied to clipboard")
-                        .font(.system(size: 12))
+                        .font(.themed(size: 12))
                         .foregroundStyle(PillStyle.secondaryText)
                 } else {
                     DictationWave(levels: model.dictationLevels)
@@ -682,7 +683,7 @@ struct MeetingPillView: View {
                 if model.assistantHasSelection {
                     // The selected text goes along as context.
                     Image(systemName: "text.quote")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.themed(size: 11, weight: .semibold))
                         .foregroundStyle(PillStyle.secondaryText)
                         .help("Your selected text goes to Claude too")
                         .accessibilityLabel("With selected text")
@@ -693,7 +694,7 @@ struct MeetingPillView: View {
                     .buttonStyle(PillButtonStyle(.neutral))
                     .help("Continue in a Claude chat with what you said so far")
                 Button(action: model.cancelClaudeTask) {
-                    Image(systemName: "xmark").font(.system(size: 10, weight: .semibold))
+                    Image(systemName: "xmark").font(.themed(size: 10, weight: .semibold))
                 }
                 .buttonStyle(PillButtonStyle(.neutral))
                 .help("Cancel")
@@ -701,28 +702,28 @@ struct MeetingPillView: View {
             case .claudeWorking:
                 ClaudeMark(working: true)
                 Text("Claude is on it\u{2026}")
-                    .font(.system(size: 12))
+                    .font(.themed(size: 12))
                     .foregroundStyle(PillStyle.secondaryText)
             case .claudeCopied:
                 ClaudeMark(working: false)
                 Text("Copied \u{00B7} \u{2318}V to paste")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.themed(size: 12, weight: .medium))
             case .claudeFailed(let message):
                 Image(systemName: "exclamationmark.circle")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.orange)
+                    .font(.themed(size: 12, weight: .semibold))
+                    .foregroundStyle(DesignSystem.Colors.warning)
                     .accessibilityHidden(true)
                 Text(message)
-                    .font(.system(size: 12))
+                    .font(.themed(size: 12))
                     .foregroundStyle(PillStyle.secondaryText)
                     .lineLimit(1)
                     .frame(maxWidth: 320, alignment: .leading)
             }
         }
-        .padding(.leading, 12)
+        .padding(.leading, .space(12))
         .padding(.trailing, dictation == .claudeListening ? 4 : 12)
-        .frame(height: 32)
-        .glass(cornerRadius: 16)
+        .frame(height: .row(32))
+        .glass(cornerRadius: .corner(16))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(dictationAccessibilityLabel(dictation))
     }
@@ -731,7 +732,7 @@ struct MeetingPillView: View {
     private var micStalledNote: some View {
         if model.dictationMicStalled && !model.dictationMicLive {
             Text("Microphone not ready")
-                .font(.system(size: 12))
+                .font(.themed(size: 12))
                 .foregroundStyle(PillStyle.secondaryText)
                 .lineLimit(1)
         }
@@ -748,27 +749,27 @@ struct MeetingPillView: View {
     }
 
     private func detectedCard(_ meeting: PillMeeting) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: .space(10)) {
             appIcon(meeting.appBundleID)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Text(PillMeeting.displayTitle(meeting.title))
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.themed(size: 13, weight: .semibold))
                     .lineLimit(1)
                 Text(meeting.subtitle)
-                    .font(.system(size: 11))
+                    .font(.themed(size: 11))
                     .foregroundStyle(PillStyle.secondaryText)
                     .lineLimit(1)
             }
             .frame(maxWidth: PillStyle.titleWidth, alignment: .leading)
             Spacer(minLength: 16)
-            HStack(spacing: 6) {
+            HStack(spacing: .space(6)) {
                 Button("Not Now", action: model.ignore).buttonStyle(PillButtonStyle(.neutral))
                 Button("Record") { model.record(meeting) }.buttonStyle(PillButtonStyle(.capture))
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .glass(cornerRadius: 16)
+        .padding(.horizontal, .space(12))
+        .padding(.vertical, .space(10))
+        .glass(cornerRadius: .corner(16))
         .onHover { model.isHovering = $0 }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Meeting detected: \(meeting.title)")
@@ -778,24 +779,24 @@ struct MeetingPillView: View {
         Button {
             model.record(meeting)
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: .space(6)) {
                 Image(systemName: "record.circle")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.themed(size: 15, weight: .medium))
                     .foregroundStyle(PillStyle.secondaryText)
                 if model.dotExpanded {
                     Text("Record \(PillMeeting.displayTitle(meeting.title))")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.themed(size: 12, weight: .medium))
                         .lineLimit(1)
                         .frame(maxWidth: 200)
                         .transition(.opacity)
                 }
             }
-            .frame(height: 28)
+            .frame(height: .row(28))
             .padding(.horizontal, model.dotExpanded ? 10 : 6.5)
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .glass(cornerRadius: 14)
+        .glass(cornerRadius: .corner(14))
         .onHover { hovering in model.hoverDot(hovering) }
         .contextMenu {
             Button("Record") { model.record(meeting) }
@@ -806,51 +807,51 @@ struct MeetingPillView: View {
     }
 
     private func consentCard(_ meeting: PillMeeting) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: .space(10)) {
             Image(systemName: "person.2.wave.2")
-                .font(.system(size: 17))
+                .font(.themed(size: 17))
                 .foregroundStyle(PillStyle.secondaryText)
                 .frame(width: 28)
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Text("Tell everyone before you record")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.themed(size: 13, weight: .semibold))
                 Text("In many places recording a call requires everyone's consent. You'll only see this once.")
-                    .font(.system(size: 11))
+                    .font(.themed(size: 11))
                     .foregroundStyle(PillStyle.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(width: 250, alignment: .leading)
             Spacer(minLength: 16)
-            HStack(spacing: 6) {
+            HStack(spacing: .space(6)) {
                 Button("Not Now", action: model.ignore).buttonStyle(PillButtonStyle(.neutral))
                 Button("Record") { model.confirmConsent(meeting) }.buttonStyle(PillButtonStyle(.capture))
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .glass(cornerRadius: 16)
+        .padding(.horizontal, .space(12))
+        .padding(.vertical, .space(10))
+        .glass(cornerRadius: .corner(16))
         .onHover { model.isHovering = $0 }
     }
 
     private var recordingCapsule: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: .space(10)) {
             RecordingDot()
             LevelBars(level: model.level)
             TimelineView(.periodic(from: .now, by: 1)) { _ in
                 Text(Self.format(model.elapsed))
-                    .font(.system(size: 12, weight: .medium, design: model.companionMode ? .monospaced : .default).monospacedDigit())
+                    .font(.themed(size: 12, weight: .medium, design: model.companionMode ? .monospaced : .default).monospacedDigit())
             }
             // Quick recordings stop with the dictation key; the controls replace the hint on hover.
             if let hint = model.recordingStopHint, !model.showsRecordingControls {
                 Text(hint)
-                    .font(.system(size: 11))
+                    .font(.themed(size: 11))
                     .foregroundStyle(PillStyle.secondaryText)
                     .accessibilityHidden(true)
             }
             if model.showsRecordingControls, model.companionMode, model.showsWheelHint {
                 Text("Scroll over me to pick the project")
-                    .font(.system(size: 11))
+                    .font(.themed(size: 11))
                     .foregroundStyle(PillStyle.secondaryText)
             }
             if model.showsRecordingControls {
@@ -861,17 +862,17 @@ struct MeetingPillView: View {
                 .buttonStyle(PillButtonStyle(.neutral))
                 .accessibilityLabel("Open MinuteMind")
                 Button(action: model.stop) {
-                    HStack(spacing: 5) {
-                        Image(systemName: "stop.fill").font(.system(size: 9))
+                    HStack(spacing: .space(5)) {
+                        Image(systemName: "stop.fill").font(.themed(size: 9))
                         Text("Stop")
                     }
                 }
                 .buttonStyle(PillButtonStyle(.capture))
             }
         }
-        .padding(.horizontal, 12)
-        .frame(height: 32)
-        .glass(cornerRadius: 16)
+        .padding(.horizontal, .space(12))
+        .frame(height: .row(32))
+        .glass(cornerRadius: .corner(16))
         .onHover { model.hoverRecording($0) }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Recording, \(Self.spoken(model.elapsed))\(model.recordingStopHint.map { ", press \($0)" } ?? "")")
@@ -880,30 +881,30 @@ struct MeetingPillView: View {
     }
 
     private func confirmStopCard(_ signal: MeetingPillModel.EndSignal) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: .space(10)) {
             RecordingDot()
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Text("Meeting over?")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.themed(size: 13, weight: .semibold))
                 Text("\(Self.endSignalText(signal)) \u{00B7} still recording")
-                    .font(.system(size: 11).monospacedDigit())
+                    .font(.themed(size: 11).monospacedDigit())
                     .foregroundStyle(PillStyle.secondaryText)
             }
             Spacer(minLength: 16)
-            HStack(spacing: 6) {
+            HStack(spacing: .space(6)) {
                 Button("Keep Recording", action: model.keepRecording).buttonStyle(PillButtonStyle(.neutral))
                 Button(action: model.stop) {
-                    HStack(spacing: 5) {
-                        Image(systemName: "stop.fill").font(.system(size: 9))
+                    HStack(spacing: .space(5)) {
+                        Image(systemName: "stop.fill").font(.themed(size: 9))
                         Text("Stop")
                     }
                 }
                 .buttonStyle(PillButtonStyle(.capture))
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .glass(cornerRadius: 16)
+        .padding(.horizontal, .space(12))
+        .padding(.vertical, .space(10))
+        .glass(cornerRadius: .corner(16))
         .onHover { model.isHovering = $0 }
     }
 
@@ -915,38 +916,38 @@ struct MeetingPillView: View {
     /// In a Shared Project it asks "Share with the Acme team?" with Publish and Keep private
     /// underneath (plus Change when it came filed already); see SharedPublishCard.swift.
     private func savedCard(sessionID: UUID, title: String, minutes: Int, next: MeetingPillModel.SavedNext) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: .space(8)) {
+            HStack(spacing: .space(10)) {
                 Image(systemName: model.companionMode ? "checkmark.square.fill" : "checkmark.circle.fill")
                     .symbolRenderingMode(.hierarchical)
-                    .font(.system(size: 16))
-                    .foregroundStyle(.green)
+                    .font(.themed(size: 16))
+                    .foregroundStyle(DesignSystem.Colors.success)
                     .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 4) {
+                VStack(alignment: .leading, spacing: .space(2)) {
+                    HStack(spacing: .space(4)) {
                         Text(PillMeeting.displayTitle(title))
                             .lineLimit(1)
                             .truncationMode(.tail)
                             .layoutPriority(0)
                         Text("saved").layoutPriority(1)
                     }
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.themed(size: 13, weight: .semibold))
                     Text("\(minutes) min \u{00B7} \(next.hint)")
-                        .font(.system(size: 11))
+                        .font(.themed(size: 11))
                         .foregroundStyle(PillStyle.secondaryText)
                         .lineLimit(1)
                         .truncationMode(.middle)
                     // Filed already: the question gets its own line under "Filed to X".
                     if case .publish(let project, true, _, _) = next {
                         Text(MeetingPillModel.SavedNext.publishQuestion(project))
-                            .font(.system(size: 11))
+                            .font(.themed(size: 11))
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }
                 }
                 .frame(maxWidth: PillStyle.titleWidth + 30, alignment: .leading)
                 Spacer(minLength: 16)
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     switch next {
                     case .chooseProject:
                         Button("Later") { model.later(sessionID) }
@@ -967,7 +968,7 @@ struct MeetingPillView: View {
                 }
             }
             if case .publish(let project, let alreadyFiled, _, _) = next {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     Button("Publish") { model.answerPublication(sessionID, .published) }
                         .buttonStyle(PillButtonStyle(.constructive))
                         .help("Share this recording with the \(project) team")
@@ -983,12 +984,12 @@ struct MeetingPillView: View {
                 }
             }
             if case .chooseProject(let quick, let all, _) = next {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     ForEach(quick) { item in
                         Button {
                             model.chooseProject(sessionID, item)
                         } label: {
-                            HStack(spacing: 6) {
+                            HStack(spacing: .space(6)) {
                                 projectMark(item)
                                 Text(item.name).lineLimit(1).truncationMode(.tail).frame(maxWidth: 96, alignment: .leading)
                             }
@@ -1003,10 +1004,10 @@ struct MeetingPillView: View {
                 }
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, .space(12))
+        .padding(.vertical, .space(10))
         .overlay(alignment: .bottom) { CountdownLine(progress: model.countdownProgress) }
-        .glass(cornerRadius: 16)
+        .glass(cornerRadius: .corner(16))
         .onHover { model.isHovering = $0 }
         .accessibilityElement(children: .contain)
     }
@@ -1032,9 +1033,9 @@ struct MeetingPillView: View {
         Button {
             model.openProjectWheel(sessionID)
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: .space(4)) {
                 Text(label)
-                Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold)).accessibilityHidden(true)
+                Image(systemName: "chevron.down").font(.themed(size: 9, weight: .semibold)).accessibilityHidden(true)
             }
         }
         .buttonStyle(PillButtonStyle(.neutral))
@@ -1051,7 +1052,7 @@ struct MeetingPillView: View {
                     .resizable()
             } else {
                 Image(systemName: "calendar")
-                    .font(.system(size: 18))
+                    .font(.themed(size: 18))
                     .foregroundStyle(PillStyle.secondaryText)
             }
         }
@@ -1113,12 +1114,12 @@ private struct ClipboardRow: View {
     @State private var copied = false
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: .space(6)) {
             Button {
                 copied = true
                 copy()
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     if case .image(let image) = item.content {
                         Image(nsImage: image.thumbnail)
                             .resizable()
@@ -1130,12 +1131,12 @@ private struct ClipboardRow: View {
                             .accessibilityHidden(true)
                     }
                     Text(item.title)
-                        .font(.system(size: 12))
+                        .font(.themed(size: 12))
                         .lineLimit(1)
                         .truncationMode(.tail)
                     Spacer(minLength: 0)
                 }
-                .padding(.leading, 6)
+                .padding(.leading, .space(6))
                 .frame(maxHeight: .infinity)
                 .contentShape(Rectangle())
             }
@@ -1145,15 +1146,15 @@ private struct ClipboardRow: View {
                 if copied {
                     Label("Copied", systemImage: "checkmark")
                         .labelStyle(.titleAndIcon)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.green)
+                        .font(.themed(size: 11, weight: .medium))
+                        .foregroundStyle(DesignSystem.Colors.success)
                 } else if hovering {
                     Button("Insert", action: insert)
                         .buttonStyle(PillButtonStyle(.neutral))
                         .help("Paste where you are typing")
                 } else {
                     Text(item.copiedAt, format: .relative(presentation: .numeric, unitsStyle: .narrow))
-                        .font(.system(size: 11))
+                        .font(.themed(size: 11))
                         .foregroundStyle(PillStyle.secondaryText)
                         .lineLimit(1)
                 }
@@ -1161,7 +1162,7 @@ private struct ClipboardRow: View {
             .frame(width: 64, alignment: .trailing)
             .animation(.easeInOut(duration: 0.12), value: hovering)
         }
-        .padding(.trailing, 2)
+        .padding(.trailing, .space(2))
         .frame(height: Self.height)
         .background(RoundedRectangle(cornerRadius: pixel ? 0 : 6).fill(Color.primary.opacity(hovering ? 0.08 : 0)))
         .onHover { hovering = $0 }
@@ -1233,9 +1234,9 @@ private struct LevelBars: View {
         let normalized = CGFloat(min(1, sqrt(max(0, level)) * 3))
         let isSilent = normalized < 0.08
         let dimmed = isSilent && (silentSince.map { Date().timeIntervalSince($0) > 2 } ?? false)
-        HStack(alignment: .center, spacing: 2) {
+        HStack(alignment: .center, spacing: .space(2)) {
             ForEach(weights.indices, id: \.self) { index in
-                RoundedRectangle(cornerRadius: 1)
+                RoundedRectangle(cornerRadius: .corner(1))
                     .fill(Color.primary.opacity(0.7))
                     .frame(width: 3, height: min(14, resting[index] + 9 * normalized * weights[index]))
             }
@@ -1255,7 +1256,7 @@ private struct ClaudeMark: View {
 
     var body: some View {
         Image(systemName: "sparkle")
-            .font(.system(size: 13, weight: .semibold))
+            .font(.themed(size: 13, weight: .semibold))
             .foregroundStyle(PillStyle.claude)
             .symbolEffect(.pulse, isActive: working)
             .frame(width: 14, height: 14)
@@ -1281,9 +1282,9 @@ private struct DictationWave: View {
 
     private var smoothWave: some View {
         TimelineView(.animation(paused: live || reduceMotion)) { context in
-            HStack(alignment: .center, spacing: 2) {
+            HStack(alignment: .center, spacing: .space(2)) {
                 ForEach(levels.indices, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 1)
+                    RoundedRectangle(cornerRadius: .corner(1))
                         .fill(Color.primary.opacity(live ? 0.75 : waitingOpacity(bar: index, at: context.date)))
                         .frame(width: 2, height: live ? max(3, 16 * CGFloat(min(1, sqrt(max(0, levels[index])) * 3))) : 3)
                 }
@@ -1357,11 +1358,11 @@ struct PillButtonStyle: ButtonStyle {
 
         var body: some View {
             configuration.label
-                .font(.system(size: 12, weight: .medium))
+                .font(.themed(size: 12, weight: .medium))
                 .lineLimit(1)
                 .fixedSize()
-                .padding(.horizontal, 12)
-                .frame(height: 24)
+                .padding(.horizontal, .space(12))
+                .frame(height: .row(24))
                 .background(Capsule().fill(fill))
                 .foregroundStyle(kind == .neutral ? Color.primary : Color.white)
                 .contentShape(Capsule())
@@ -1378,6 +1379,18 @@ struct PillButtonStyle: ButtonStyle {
                 return Color.accentColor.opacity(configuration.isPressed ? 0.8 : hovering ? 0.92 : 1)
             }
         }
+    }
+}
+
+private struct PillThemedCardKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// Cards beside the companion in the theme's look (the pixel finish is off).
+    var pillThemedCard: Bool {
+        get { self[PillThemedCardKey.self] }
+        set { self[PillThemedCardKey.self] = newValue }
     }
 }
 
@@ -1400,15 +1413,31 @@ private struct Glass: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.pillPixelStyle) private var pixel
+    @Environment(\.pillThemedCard) private var themed
 
     func body(content: Content) -> some View {
         if pixel {
             content
                 .clipShape(PixelPanelShape())
                 .modifier(PixelPanelBackground())
+        } else if themed {
+            themedCard(content)
         } else {
             glass(content)
         }
+    }
+
+    /// Beside the companion: the theme's card, border and corners, solid so it reads on any
+    /// wallpaper.
+    @ViewBuilder
+    private func themedCard(_ content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        let increased = contrast == .increased
+        content
+            .background(DesignSystem.Colors.card, in: shape)
+            .clipShape(shape)
+            .overlay { shape.strokeBorder(DesignSystem.Colors.border, lineWidth: increased ? 1.5 : 1) }
+            .shadow(color: .black.opacity(colorScheme == .dark ? 0.45 : 0.16), radius: quiet ? 3 : 10, y: quiet ? 1 : 4)
     }
 
     @ViewBuilder

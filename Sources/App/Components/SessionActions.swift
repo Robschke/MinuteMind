@@ -74,7 +74,7 @@ struct SessionActionBar: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             // The primary buttons depend on how far the session has got; the menu does not. It is
             // always present, because it holds Delete Session — and a recording you decided not to
             // transcribe is exactly the one you want to delete.
@@ -89,10 +89,10 @@ struct SessionActionBar: View {
                 // Nothing to offer while the microphone is open — transcribing needs a finished file.
                 EmptyView()
             } else if session.status == .transcribing {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     ProgressView().controlSize(.small)
                     Text("Transcribing…")
-                        .font(.callout)
+                        .font(.themed(.callout))
                         .foregroundStyle(.secondary)
                 }
             } else {
@@ -103,7 +103,7 @@ struct SessionActionBar: View {
 
             overflowMenu
         }
-        .padding(.top, 4)
+        .padding(.top, .space(4))
         .sheet(isPresented: $showSpeakerNaming) {
             SpeakerNamingSheet(session: session)
         }
@@ -147,7 +147,7 @@ struct SessionActionBar: View {
             hasMinutes ? handlers.openMinutes() : handlers.generateMinutes()
         } label: {
             if isGeneratingMinutes {
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     ProgressView().controlSize(.small)
                     Text("Processing\u{2026}")
                 }
@@ -351,7 +351,7 @@ struct SessionActionBar: View {
             .disabled(session.status.isActive)
         } label: {
             Image(systemName: "ellipsis.circle")
-                .font(.system(size: 16))
+                .font(.themed(size: 16))
         }
         .menuStyle(.borderlessButton)
         .fixedSize()

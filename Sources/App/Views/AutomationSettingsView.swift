@@ -40,7 +40,7 @@ struct AutomationSettingsView: View {
     var body: some View {
         @Bindable var appViewModel = appViewModel
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: .space(20)) {
                 startupSection
                 Divider()
                 autoRecordingSection
@@ -58,7 +58,7 @@ struct AutomationSettingsView: View {
                 remindersSyncSection
                 Spacer(minLength: 20)
             }
-            .padding(24)
+            .padding(.space(24))
         }
     }
 
@@ -67,18 +67,18 @@ struct AutomationSettingsView: View {
     private var startupSection: some View {
         let launch = LaunchAtLogin.shared
         return GroupBox(label: sectionLabel("Startup", systemImage: "power")) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: .space(6)) {
                 Toggle(
                     "Open MinuteMind at login",
                     isOn: Binding(get: { launch.isEnabled || launch.needsApproval }, set: { launch.setEnabled($0) })
                 )
                 Text("Jobs and meeting detection only run while the app is open.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                 if launch.needsApproval {
-                    HStack(spacing: 6) {
+                    HStack(spacing: .space(6)) {
                         Text("macOS waits for you to allow it in Login Items.")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(DesignSystem.Colors.warning)
                         Button("Open Login Items") { launch.openSystemSettings() }
                             .controlSize(.small)
@@ -86,11 +86,11 @@ struct AutomationSettingsView: View {
                 }
                 if let error = launch.lastError {
                     Text(error)
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(DesignSystem.Colors.error)
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
         .onAppear { launch.refresh() }
     }
@@ -100,7 +100,7 @@ struct AutomationSettingsView: View {
     private var autoRecordingSection: some View {
         @Bindable var appViewModel = appViewModel
         return GroupBox(label: sectionLabel("Auto-recording", systemImage: "record.circle")) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: .space(14)) {
                 Toggle(
                     "Start recording automatically at event time",
                     isOn: $settings.autoStartEnabled
@@ -108,9 +108,9 @@ struct AutomationSettingsView: View {
 
                 Divider()
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     Text("Ask \"Meeting over?\" after silence")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     Picker("Ask after silence", selection: $settings.autoStopSilenceThreshold) {
                         Text("15 s").tag(15.0)
                         Text("30 s").tag(30.0)
@@ -125,23 +125,23 @@ struct AutomationSettingsView: View {
                         isOn: $settings.manualRecordingSilenceEnabled
                     )
                     Text("Ask for manually started recordings too. Recordings only stop when you stop them.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                 }
 
                 Divider()
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     Toggle(
                         "Detect Microsoft Teams calls (best effort)",
                         isOn: $appViewModel.teamsCallDetectionEnabled
                     )
                     Text("Automatically starts recording when a call is active. When the call ends, the pill asks whether the meeting is over.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
@@ -149,10 +149,10 @@ struct AutomationSettingsView: View {
 
     private var liveDictationSection: some View {
         GroupBox(label: sectionLabel("Live Dictation", systemImage: "waveform")) {
-            VStack(alignment: .leading, spacing: 14) {
-                VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: .space(14)) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     Text("Default language")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     Picker("Default language", selection: $settings.liveDictationLanguage) {
                         Text("Auto-detect").tag("auto")
                         Text("English (US)").tag("en-US")
@@ -163,40 +163,40 @@ struct AutomationSettingsView: View {
                     .frame(maxWidth: 280, alignment: .leading)
 
                     Text("Default language for all transcriptions — both normal recordings and live dictation (Shift+Cmd+D). You can still switch language during dictation.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
     private var quickDictationSection: some View {
         GroupBox(label: sectionLabel("Quick Dictation", systemImage: "mic.badge.plus")) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: .space(12)) {
                 Text("Dictate into any app: press the shortcut, speak, and the text is inserted wherever your cursor is — no need to switch to MinuteMind.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
 
                 if appViewModel.parakeetModelInstalled {
                     Label(
                         "Using Parakeet on-device — same engine as recordings",
                         systemImage: "bolt.fill")
-                        .font(.caption)
-                        .foregroundStyle(.green)
+                        .font(.themed(.caption))
+                        .foregroundStyle(DesignSystem.Colors.success)
                 } else {
                     Label(
                         "Using Apple Speech. Install Parakeet below for noticeably better accuracy.",
                         systemImage: "info.circle")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
+                        .font(.themed(.caption))
+                        .foregroundStyle(DesignSystem.Colors.warning)
                 }
 
                 Toggle("Enable quick dictation", isOn: $settings.quickDictationEnabled)
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     Text("How to trigger it")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     Picker("How to trigger it", selection: $settings.quickDictationMode) {
                         Text("Hold fn (🌐), release to insert").tag("holdFn")
                         Text("Hold the right ⌥ key, release to insert").tag("holdRightOption")
@@ -207,10 +207,10 @@ struct AutomationSettingsView: View {
                     .disabled(!settings.quickDictationEnabled)
 
                     if settings.quickDictationMode == "holdFn" {
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: .space(6)) {
                             Text("For the fn key to be free, set “Press 🌐 key to” to “Do Nothing” in Keyboard settings. Otherwise macOS also switches input source, opens the emoji picker, or starts its own dictation.")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
+                                .font(.themed(.caption))
+                                .foregroundStyle(DesignSystem.Colors.warning)
                             Button("Open Keyboard Settings") {
                                 if let url = URL(
                                     string: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension"
@@ -223,9 +223,9 @@ struct AutomationSettingsView: View {
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     Text("Dictation language")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     Picker("Dictation language", selection: $settings.quickDictationLanguage) {
                         Text("Follow system language").tag("auto")
                         Text("German").tag("de-DE")
@@ -237,19 +237,19 @@ struct AutomationSettingsView: View {
                     .disabled(!settings.quickDictationEnabled)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: .space(4)) {
                     Toggle("Double tap to record", isOn: $settings.quickRecordingEnabled)
                         .disabled(!settings.quickDictationEnabled || settings.quickDictationMode == "toggle")
                     Text(settings.quickDictationMode == "toggle"
                         ? "Needs a hold key (fn or right \u{2325})."
                         : "Tap twice to record, once more to stop. Assign a project on the card to file it under recordings/ in its workspace. Recordings started with the mouse stop only with the mouse.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if settings.quickDictationMode == "holdFn" {
                         Text("If macOS dictation starts too, set its shortcut away from \u{201C}Press \u{1F310} twice\u{201D} (Keyboard settings, Dictation).")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
+                            .font(.themed(.caption))
+                            .foregroundStyle(DesignSystem.Colors.warning)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -262,7 +262,7 @@ struct AutomationSettingsView: View {
 
                 accessibilityStatusRow
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
@@ -272,17 +272,17 @@ struct AutomationSettingsView: View {
     private var accessibilityStatusRow: some View {
         if TextInsertionService.isTrusted {
             Label("Accessibility permission granted", systemImage: "checkmark.circle.fill")
-                .font(.caption)
-                .foregroundStyle(.green)
+                .font(.themed(.caption))
+                .foregroundStyle(DesignSystem.Colors.success)
         } else {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: .space(6)) {
                 Label("Accessibility permission required", systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
+                    .font(.themed(.caption))
+                    .foregroundStyle(DesignSystem.Colors.warning)
                 Text("macOS needs to allow MinuteMind to type into other apps. Without it, dictated text is copied to the clipboard instead.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Button("Request Permission…") {
                         TextInsertionService.requestPermission()
                     }
@@ -304,7 +304,7 @@ struct AutomationSettingsView: View {
     @ViewBuilder
     private var speakerDiarizationSection: some View {
         let store = appViewModel.speakerDiarizationModels
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: .space(6)) {
             Toggle("Identify speakers (Speaker 1, 2, …)", isOn: $settings.speakerDiarizationEnabled)
                 .onChange(of: settings.speakerDiarizationEnabled) { _, isOn in
                     // Enabling the feature should make it work — fetch the models it needs rather
@@ -313,10 +313,10 @@ struct AutomationSettingsView: View {
                     Task { await store.downloadModels() }
                 }
             Text("Splits the meeting audio into separate speakers using on-device CoreML models (Neural Engine), labeling them Speaker 1, Speaker 2, … Currently applies to Apple transcription on macOS 26. Download the models once below.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: .space(4)) {
                 Picker("Engine", selection: $settings.diarizationEngine) {
                     Text("Standard").tag("fluidAudio")
                     Text("Nemotron 3 (NVIDIA)").tag("nemotron3")
@@ -330,33 +330,33 @@ struct AutomationSettingsView: View {
                     Task { await store.downloadNemotronModels() }
                 }
                 Text("Nemotron 3 separates up to 8 speakers and is markedly more accurate in NVIDIA's and FluidAudio's benchmarks. It is new, so the standard engine stays the default. Speaker names you taught MinuteMind work with both.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if settings.diarizationEngine == "nemotron3" {
                     if store.isDownloadingNemotron {
-                        HStack(spacing: 8) {
+                        HStack(spacing: .space(8)) {
                             ProgressView().controlSize(.small)
                             Text(store.nemotronStatusMessage ?? "Downloading Nemotron 3\u{2026}")
-                                .font(.caption)
+                                .font(.themed(.caption))
                                 .foregroundStyle(.secondary)
                         }
                     } else if store.isNemotronInstalled {
                         Label("Nemotron 3 installed", systemImage: "checkmark.circle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.green)
+                            .font(.themed(.caption))
+                            .foregroundStyle(DesignSystem.Colors.success)
                     } else {
-                        HStack(spacing: 8) {
+                        HStack(spacing: .space(8)) {
                             Button("Download Nemotron 3 (about 190 MB)") {
                                 Task { await store.downloadNemotronModels() }
                             }
                             .controlSize(.small)
                             if let message = store.nemotronStatusMessage {
-                                Text(message).font(.caption).foregroundStyle(.red)
+                                Text(message).font(.themed(.caption)).foregroundStyle(DesignSystem.Colors.error)
                             }
                         }
                         Text("Until it is installed, the standard engine is used.")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -368,7 +368,7 @@ struct AutomationSettingsView: View {
             )
             .disabled(!settings.speakerDiarizationEnabled)
             Text("Turn on when several people share this Mac's microphone in the same room. Off, the microphone is always labeled \"You\". If only one person is detected, \"You\" is kept either way.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
 
             // A toggle that is on while the models are missing would silently do nothing, so the
@@ -378,20 +378,20 @@ struct AutomationSettingsView: View {
                     "Speaker identification is on, but its models are not installed yet — download them below, otherwise transcripts keep a single \"Other\" label.",
                     systemImage: "exclamationmark.triangle.fill"
                 )
-                .font(.caption)
-                .foregroundStyle(.orange)
+                .font(.themed(.caption))
+                .foregroundStyle(DesignSystem.Colors.warning)
             }
 
             if store.isInstalled {
                 Label("Speaker models installed", systemImage: "checkmark.circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.green)
+                    .font(.themed(.caption))
+                    .foregroundStyle(DesignSystem.Colors.success)
             } else if store.isDownloading {
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     ProgressView(value: store.downloadProgress)
                         .frame(maxWidth: 160)
                     Text(store.statusMessage ?? "Downloading…")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                 }
             } else {
@@ -401,13 +401,13 @@ struct AutomationSettingsView: View {
                 .controlSize(.small)
                 if let msg = store.statusMessage {
                     Text(msg)
-                        .font(.caption)
-                        .foregroundStyle(.red)
+                        .font(.themed(.caption))
+                        .foregroundStyle(DesignSystem.Colors.error)
                 }
             }
 
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, .space(4))
 
             VoiceLibrarySettingsView()
         }
@@ -421,42 +421,42 @@ struct AutomationSettingsView: View {
     @ViewBuilder
     private var parakeetModelSection: some View {
         GroupBox(label: sectionLabel("Parakeet (on-device · default)", systemImage: "bolt.fill")) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: .space(10)) {
                 Text("Runs on-device on the Apple Neural Engine: fast, private, 25 European languages including German. The default transcription model. Without it, recordings use Apple Speech.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
 
                 if appViewModel.isInstallingParakeet {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: .space(4)) {
                         ProgressView(value: appViewModel.parakeetDownloadProgress)
                             .progressViewStyle(.linear)
                         Text(parakeetProgressText)
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                     }
                 } else if appViewModel.parakeetModelInstalled {
-                    VStack(alignment: .leading, spacing: 8) {
-                        VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: .space(8)) {
+                        VStack(alignment: .leading, spacing: .space(2)) {
                             if case .available(.newModel) = appViewModel.parakeetUpdateState {
                                 Label(appViewModel.parakeetModelName ?? "Installed", systemImage: "arrow.down.circle")
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(.orange)
+                                    .font(.themed(.caption).weight(.medium))
+                                    .foregroundStyle(DesignSystem.Colors.warning)
                             } else {
                                 Label(appViewModel.parakeetModelName ?? "Installed", systemImage: "checkmark.circle.fill")
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(.green)
+                                    .font(.themed(.caption).weight(.medium))
+                                    .foregroundStyle(DesignSystem.Colors.success)
                             }
-                            HStack(spacing: 6) {
+                            HStack(spacing: .space(6)) {
                                 if appViewModel.parakeetUpdateState == .checking {
                                     ProgressView().controlSize(.mini)
                                 }
                                 Text(parakeetUpdateText)
-                                    .font(.caption)
+                                    .font(.themed(.caption))
                                     .foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
-                        HStack(spacing: 8) {
+                        HStack(spacing: .space(8)) {
                             Button("Delete Model…", role: .destructive) {
                                 isConfirmingParakeetDelete = true
                             }
@@ -492,9 +492,9 @@ struct AutomationSettingsView: View {
                         Text("Recordings will use Apple Speech until you install it again (about 600 MB).")
                     }
                 } else {
-                    HStack(spacing: 8) {
+                    HStack(spacing: .space(8)) {
                         Label("Not installed", systemImage: "exclamationmark.circle")
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundStyle(.secondary)
                         Spacer()
                         Button("Install (about 600 MB)") {
@@ -505,7 +505,7 @@ struct AutomationSettingsView: View {
                     }
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
@@ -542,20 +542,20 @@ struct AutomationSettingsView: View {
 
     private var pipelineSection: some View {
         GroupBox(label: sectionLabel("Pipeline", systemImage: "arrow.triangle.2.circlepath")) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: .space(14)) {
                 Toggle(
                     "Process meetings once they have a project",
                     isOn: $settings.processOnceAssigned
                 )
                 Text("Recordings are always transcribed. A meeting is processed when it has a project and every speaker has a name. Off: only when you click Process.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
 
                 Divider()
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     Text("Transcription engine")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     Picker("Transcription engine", selection: $settings.defaultTranscriptionModel) {
                         Text("Parakeet (on-device)").tag("parakeet")
                         Text("Apple Speech").tag("appleSpeech")
@@ -565,7 +565,7 @@ struct AutomationSettingsView: View {
                     .frame(maxWidth: 280, alignment: .leading)
 
                     Text("Used by the Transcribe button on every recording and by automatic transcription. There is no per-recording choice. This is the engine for all recordings.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
 
                     // The engine silently falls back to Apple Speech when its model is missing.
@@ -573,33 +573,33 @@ struct AutomationSettingsView: View {
                     // with what you picked".
                     if let note = appViewModel.transcriptionEngineFallbackNote {
                         Label(note, systemImage: "exclamationmark.triangle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
+                            .font(.themed(.caption))
+                            .foregroundStyle(DesignSystem.Colors.warning)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
 
                 Divider()
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     Toggle(
                         "Clean audio before transcription",
                         isOn: $settings.audioPreprocessingEnabled
                     )
                     Text("Applies a high-pass filter (removes low-frequency rumble/hum), normalizes quiet recordings to a consistent level, and gently attenuates background noise between speech. Improves accuracy on quiet or noisy meetings. Turn off if a recording sounds worse after processing.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                 }
 
                 Divider()
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     Toggle(
                         "Correct names from calendar & project",
                         isOn: $settings.properNounCorrectionEnabled
                     )
                     Text("After transcribing, fixes near-miss spellings of participant names, the project and the meeting title (e.g. \"Anna Schmitt\" → \"Anna Schmid\"). Only clear near-misses are changed — text that already matches is never touched.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                 }
 
@@ -609,17 +609,17 @@ struct AutomationSettingsView: View {
 
                 Divider()
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     Toggle(
                         "Auto-accept extracted tasks",
                         isOn: $settings.autoAcceptExtractedTasks
                     )
                     Text("When on, tasks extracted from meeting minutes are added directly to the project task list. When off, they appear on the recording card for review first. Can be overridden per project.")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
@@ -627,7 +627,7 @@ struct AutomationSettingsView: View {
 
     private var taskReviewRemindersSection: some View {
         GroupBox(label: sectionLabel("Task Review Reminders", systemImage: "bell")) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: .space(14)) {
 
                 if showPermissionDeniedBanner {
                     permissionDeniedBanner
@@ -637,24 +637,24 @@ struct AutomationSettingsView: View {
 
                 if times.isEmpty && !isAddingReminder {
                     Text("No reminders configured.")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(Array(times.enumerated()), id: \.offset) { index, components in
                         HStack {
                             Text(formattedTime(components))
-                                .font(.subheadline)
+                                .font(.themed(.subheadline))
                             Spacer()
                             Button(role: .destructive) {
                                 deleteReminder(at: index)
                             } label: {
                                 Image(systemName: "minus.circle.fill")
-                                    .foregroundStyle(.red)
+                                    .foregroundStyle(DesignSystem.Colors.error)
                             }
                             .buttonStyle(.borderless)
                             .help("Remove this reminder")
                         }
-                        .padding(.vertical, 2)
+                        .padding(.vertical, .space(2))
                         if index < times.count - 1 {
                             Divider()
                         }
@@ -672,12 +672,12 @@ struct AutomationSettingsView: View {
                     .buttonStyle(.borderless)
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
     private var addReminderInline: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: .space(10)) {
             DatePicker(
                 "Reminder time",
                 selection: $pendingReminderDate,
@@ -686,7 +686,7 @@ struct AutomationSettingsView: View {
             .labelsHidden()
             .datePickerStyle(.field)
 
-            HStack(spacing: 10) {
+            HStack(spacing: .space(10)) {
                 Button("Add") {
                     Task { await confirmAddReminder() }
                 }
@@ -698,21 +698,21 @@ struct AutomationSettingsView: View {
                 .buttonStyle(.borderless)
             }
         }
-        .padding(.top, 4)
+        .padding(.top, .space(4))
     }
 
     private var permissionDeniedBanner: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
+                .foregroundStyle(DesignSystem.Colors.warning)
             Text("Notification permission required. Enable in System Settings > Notifications.")
-                .font(.caption)
+                .font(.themed(.caption))
                 .foregroundStyle(.secondary)
         }
-        .padding(10)
+        .padding(.space(10))
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.orange.opacity(0.12))
+            RoundedRectangle(cornerRadius: .corner(8))
+                .fill(DesignSystem.Colors.warning.opacity(0.12))
         )
     }
 
@@ -720,16 +720,16 @@ struct AutomationSettingsView: View {
 
     private var remindersSyncSection: some View {
         GroupBox(label: sectionLabel("Reminders Sync", systemImage: "checklist")) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: .space(10)) {
                 Toggle(
                     "Sync tasks to Apple Reminders by default",
                     isOn: $settings.remindersSyncDefault
                 )
                 Text("New tasks will default to this setting. You can override per-task in the review UI.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
@@ -737,7 +737,7 @@ struct AutomationSettingsView: View {
 
     private func sectionLabel(_ title: String, systemImage: String) -> some View {
         Label(title, systemImage: systemImage)
-            .font(.headline)
+            .font(.themed(.headline))
     }
 
     private func formattedTime(_ components: DateComponents) -> String {

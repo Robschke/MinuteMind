@@ -64,10 +64,10 @@ extension Theme {
                             FontFamilyVariant(.monospaced)
                             FontSize(.em(0.86))
                         }
-                        .padding(8)
+                        .padding(.space(8))
                 }
                 .background(Color.primary.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .clipShape(RoundedRectangle(cornerRadius: .corner(6)))
                 .markdownMargin(top: .zero, bottom: .em(0.5))
             }
             .table { configuration in

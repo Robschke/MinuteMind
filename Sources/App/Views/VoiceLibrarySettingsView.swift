@@ -22,13 +22,13 @@ struct VoiceLibrarySettingsView: View {
     @State private var draftName: String = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: .space(6)) {
+            HStack(spacing: .space(6)) {
                 Text("Known voices")
-                    .font(.subheadline.weight(.medium))
+                    .font(.themed(.subheadline).weight(.medium))
                 if !voices.isEmpty {
                     Text("\(voices.count)")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -44,11 +44,11 @@ struct VoiceLibrarySettingsView: View {
 
             if voices.isEmpty {
                 Text("No voices learned yet. Name a speaker in a transcript's \"Name speakers\" sheet and that person is recognized in every later recording.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             } else {
                 Text("These people are named automatically when their voice is detected. Rename or forget one if it was ever matched to the wrong person.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
 
                 VStack(spacing: 0) {
@@ -57,8 +57,8 @@ struct VoiceLibrarySettingsView: View {
                         if voice.id != voices.last?.id { Divider() }
                     }
                 }
-                .padding(.vertical, 2)
-                .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 6))
+                .padding(.vertical, .space(2))
+                .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: .corner(6)))
             }
         }
         .onAppear(perform: reload)
@@ -66,7 +66,7 @@ struct VoiceLibrarySettingsView: View {
 
     @ViewBuilder
     private func row(_ voice: KnownVoice) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Image(systemName: "waveform.circle.fill")
                 .foregroundStyle(Color.accentColor)
 
@@ -79,11 +79,11 @@ struct VoiceLibrarySettingsView: View {
                 Button("Cancel") { editingID = nil }
                     .controlSize(.small)
             } else {
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: .space(1)) {
                     Text(voice.name)
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     Text(detail(for: voice))
-                        .font(.caption2)
+                        .font(.themed(.caption2))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -106,8 +106,8 @@ struct VoiceLibrarySettingsView: View {
                 .help("Forget this voice — transcripts keep the names they already have")
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
+        .padding(.horizontal, .space(8))
+        .padding(.vertical, .space(6))
     }
 
     /// How much evidence backs this voice — the honest signal for whether a match can be trusted.

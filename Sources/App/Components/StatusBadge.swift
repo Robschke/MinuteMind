@@ -8,7 +8,7 @@ struct StatusBadge: View {
     @State private var pulse = 1.0
 
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: .space(5)) {
             if isLive {
                 Circle()
                     .fill(statusColor)
@@ -18,11 +18,11 @@ struct StatusBadge: View {
             }
 
             Text(statusText.uppercased())
-                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .font(.themed(size: 10, weight: .bold, design: .rounded))
                 .tracking(0.5)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
+        .padding(.horizontal, .space(10))
+        .padding(.vertical, .space(5))
         .background(
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {

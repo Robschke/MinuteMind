@@ -64,7 +64,7 @@ struct TaskCommanderView: View {
         VStack(spacing: DesignSystem.Dimensions.spacingS) {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
                 Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 18))
+                    .font(.themed(size: 18))
                     .foregroundStyle(DesignSystem.Colors.accent)
 
                 TextField("New task...", text: $newTaskTitle)
@@ -81,11 +81,11 @@ struct TaskCommanderView: View {
                     }
                 } label: {
                     Image(systemName: showingDetails ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.themed(size: 11, weight: .medium))
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                         .frame(width: 24, height: 24)
                         .background(
-                            RoundedRectangle(cornerRadius: 6)
+                            RoundedRectangle(cornerRadius: .corner(6))
                                 .fill(DesignSystem.Colors.hoverOverlay)
                         )
                 }
@@ -96,7 +96,7 @@ struct TaskCommanderView: View {
             // Project picker row
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
                 Image(systemName: "folder")
-                    .font(.system(size: 12))
+                    .font(.themed(size: 12))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
                     .frame(width: 18)
 
@@ -131,17 +131,17 @@ struct TaskCommanderView: View {
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
                     .frame(width: 100, alignment: .leading)
 
-                HStack(spacing: 4) {
+                HStack(spacing: .space(4)) {
                     ForEach(TaskPriority.allCases, id: \.self) { p in
                         Button {
                             priority = p
                         } label: {
                             Text(p.displayName)
                                 .font(DesignSystem.Typography.caption1)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
+                                .padding(.horizontal, .space(8))
+                                .padding(.vertical, .space(4))
                                 .background(
-                                    RoundedRectangle(cornerRadius: 6)
+                                    RoundedRectangle(cornerRadius: .corner(6))
                                         .fill(priority == p
                                               ? Color(hex: p.color).opacity(0.2)
                                               : DesignSystem.Colors.hoverOverlay)
@@ -336,7 +336,7 @@ private struct TaskCommanderRow: View {
             // Completion toggle
             Button(action: onToggle) {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 16))
+                    .font(.themed(size: 16))
                     .foregroundStyle(task.isCompleted ? DesignSystem.Colors.success : DesignSystem.Colors.textTertiary)
             }
             .buttonStyle(.plain)
@@ -349,7 +349,7 @@ private struct TaskCommanderRow: View {
             }
 
             // Title
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: .space(1)) {
                 Text(task.title)
                     .font(DesignSystem.Typography.callout)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
@@ -357,7 +357,7 @@ private struct TaskCommanderRow: View {
 
                 HStack(spacing: DesignSystem.Dimensions.spacingXS) {
                     if let project {
-                        HStack(spacing: 3) {
+                        HStack(spacing: .space(3)) {
                             // The panel has no AppViewModel in its environment.
                             let look = AppViewModel.projectAvatar(of: project)
                             ProjectCreatureMark(avatar: look.avatar, color: look.color, pixelSize: 1)
@@ -365,8 +365,8 @@ private struct TaskCommanderRow: View {
                                 .font(DesignSystem.Typography.caption2)
                                 .foregroundStyle(DesignSystem.Colors.textSecondary)
                         }
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, .space(6))
+                        .padding(.vertical, .space(2))
                         .background(Capsule().fill(Color.primary.opacity(0.06)))
                     }
 
@@ -377,9 +377,9 @@ private struct TaskCommanderRow: View {
                     }
 
                     if let assignee = task.assignee, !assignee.isEmpty {
-                        HStack(spacing: 2) {
+                        HStack(spacing: .space(2)) {
                             Image(systemName: "person")
-                                .font(.system(size: 9))
+                                .font(.themed(size: 9))
                             Text(assignee)
                                 .lineLimit(1)
                         }

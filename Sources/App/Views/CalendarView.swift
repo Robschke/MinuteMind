@@ -113,8 +113,8 @@ struct CalendarView: View {
             .buttonStyle(.plain)
             .foregroundStyle(DesignSystem.Colors.textSecondary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, .space(12))
+        .padding(.vertical, .space(8))
     }
 
     private func autoRecordBinding(for event: CalendarEvent) -> Binding<Bool> {
@@ -130,7 +130,7 @@ struct CalendarView: View {
         VStack(spacing: DesignSystem.Dimensions.spacingL) {
             Spacer()
             Image(systemName: "lock.calendar")
-                .font(.system(size: 40))
+                .font(.themed(size: 40))
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
 
             VStack(spacing: DesignSystem.Dimensions.spacingS) {
@@ -163,7 +163,7 @@ struct CalendarView: View {
         VStack(spacing: DesignSystem.Dimensions.spacingM) {
             Spacer()
             Image(systemName: "calendar.badge.clock")
-                .font(.system(size: 40))
+                .font(.themed(size: 40))
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
             Text("No upcoming events")
                 .font(DesignSystem.Typography.callout)
@@ -238,12 +238,12 @@ private struct EventRowView: View {
                 .help("Record this meeting automatically")
 
             // A bar mirroring the week grid so the two views read the same way.
-            RoundedRectangle(cornerRadius: 1.5)
+            RoundedRectangle(cornerRadius: .corner(1.5))
                 .fill(accent)
                 .frame(width: 3, height: 26)
 
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: .space(2)) {
+                HStack(spacing: .space(4)) {
                     Text(event.title)
                         .font(DesignSystem.Typography.callout)
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
@@ -251,12 +251,12 @@ private struct EventRowView: View {
 
                     if autoRecord {
                         Image(systemName: "record.circle.fill")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.red)
+                            .font(.themed(size: 9))
+                            .foregroundStyle(DesignSystem.Colors.error)
                     }
                 }
 
-                HStack(spacing: 5) {
+                HStack(spacing: .space(5)) {
                     Text(timeRangeLabel(for: event))
                         .font(DesignSystem.Typography.caption1)
                         .foregroundStyle(DesignSystem.Colors.textSecondary)

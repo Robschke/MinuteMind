@@ -245,6 +245,13 @@ final class MeetingPillModel {
     // Desktop companion (CompanionController): the pill's content opens beside the creature.
     /// True while the companion shows; the idle bar is gone then and popups anchor to it.
     var companionMode = false
+    /// Kind of the creature in front of the companion (CompanionController keeps it current).
+    var frontAvatarKind: MascotAvatar.Kind = .pixel
+    /// Beside the companion the cards take the theme's look; the pixel finish only while the
+    /// creature in front is a pixel avatar and the theme's corners are square.
+    @MainActor var usesPixelFinish: Bool {
+        companionMode && frontAvatarKind == .pixel && ThemeStore.shared.theme.style.corners == .square
+    }
     /// The popup sits left of the creature (content aligns to its trailing edge).
     var opensLeft = true
     /// A short note beside the creature about a Claude session.

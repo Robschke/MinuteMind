@@ -25,13 +25,13 @@ struct AISettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: .space(20)) {
                 claudeSection
                 Divider()
                 promptsSection
                 Spacer(minLength: 20)
             }
-            .padding(24)
+            .padding(.space(24))
         }
         .onAppear { claudeInstalled = AIClient.isAvailable }
     }
@@ -40,20 +40,20 @@ struct AISettingsView: View {
 
     private var claudeSection: some View {
         GroupBox(label: sectionLabel("Claude", systemImage: "sparkles")) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: .space(12)) {
                 if claudeInstalled {
                     Label("Uses your installed Claude Code and your Claude subscription. No API key needed.",
                           systemImage: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(.green)
+                        .font(.themed(.caption))
+                        .foregroundStyle(DesignSystem.Colors.success)
                 } else {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: .space(8)) {
                         Label("Claude Code is not installed. Summaries, titles, todos and transcript correction need it.",
                               systemImage: "exclamationmark.triangle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
+                            .font(.themed(.caption))
+                            .foregroundStyle(DesignSystem.Colors.warning)
                             .fixedSize(horizontal: false, vertical: true)
-                        HStack(spacing: 8) {
+                        HStack(spacing: .space(8)) {
                             Button("Get Claude Code") {
                                 if let url = URL(string: "https://claude.com/code") { NSWorkspace.shared.open(url) }
                             }
@@ -66,9 +66,9 @@ struct AISettingsView: View {
 
                 Divider()
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: .space(6)) {
                     Text("Model")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     Picker("Model", selection: $settings.claudeModel) {
                         ForEach(AIClient.models, id: \.self) { model in
                             Text(model.capitalized).tag(model)
@@ -78,12 +78,12 @@ struct AISettingsView: View {
                     .labelsHidden()
                     .frame(maxWidth: 280)
                     Text("Haiku is fastest, Opus is most thorough, Sonnet is the balance (recommended). Used for summaries, titles, todos and project knowledge. Transcript correction always uses Sonnet. Claude mini tasks have their own model (Automation, Quick Dictation).")
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
@@ -91,14 +91,14 @@ struct AISettingsView: View {
 
     private var promptsSection: some View {
         GroupBox(label: sectionLabel("Summary Prompts", systemImage: "text.quote")) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: .space(12)) {
                 Text("Claude follows the prompt in use for every meeting summary.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
 
                 if viewModel.summaryPrompts.isEmpty {
                     Text("No prompts yet. Without one, the built-in prompt is used.")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(viewModel.summaryPrompts) { prompt in
@@ -113,23 +113,23 @@ struct AISettingsView: View {
 
                 newPromptForm
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
     private var newPromptForm: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: .space(8)) {
             Text("Add a prompt")
-                .font(.subheadline)
+                .font(.themed(.subheadline))
 
             TextField("Prompt title", text: $newPromptTitle)
                 .textFieldStyle(.roundedBorder)
 
             TextEditor(text: $newPromptContent)
                 .frame(minHeight: 100)
-                .font(.body)
+                .font(.themed(.body))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: .corner(6))
                         .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
                 )
 
@@ -149,7 +149,7 @@ struct AISettingsView: View {
 
     private func sectionLabel(_ title: String, systemImage: String) -> some View {
         Label(title, systemImage: systemImage)
-            .font(.headline)
+            .font(.themed(.headline))
     }
 }
 
@@ -162,18 +162,18 @@ private struct PromptRow: View {
     let onDelete: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: .space(8)) {
+            HStack(alignment: .top, spacing: .space(12)) {
+                VStack(alignment: .leading, spacing: .space(4)) {
                     Text(prompt.title)
-                        .font(.subheadline.bold())
+                        .font(.themed(.subheadline).bold())
                     Text(prompt.content)
-                        .font(.caption)
+                        .font(.themed(.caption))
                         .foregroundStyle(.secondary)
                         .lineLimit(3)
                 }
                 Spacer()
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Button(action: onSelect) {
                         Label(
                             prompt.isSelected ? "In use" : "Use",
@@ -193,6 +193,6 @@ private struct PromptRow: View {
             }
             Divider()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, .space(4))
     }
 }

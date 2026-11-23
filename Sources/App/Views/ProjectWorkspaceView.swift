@@ -86,7 +86,7 @@ struct ProjectWorkspaceView: View {
                             editorPane(document)
                         } else {
                             Text("Click a file to open it here.")
-                                .font(.callout)
+                                .font(.themed(.callout))
                                 .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
@@ -163,7 +163,7 @@ struct ProjectWorkspaceView: View {
     /// Shown where Claude was while its sessions are in windows, or after all were closed.
     private var poppedOutBar: some View {
         let windows = terminals.windows(rootedAt: project.id)
-        return HStack(spacing: 10) {
+        return HStack(spacing: .space(10)) {
             Image(systemName: windows.isEmpty ? "sparkle" : "macwindow.on.rectangle")
                 .foregroundStyle(.secondary)
             Text(windows.isEmpty ? "No Claude session" : windows.count == 1 ? "Claude is in its own window" : "Claude is in \(windows.count) windows")
@@ -184,10 +184,10 @@ struct ProjectWorkspaceView: View {
             } label: { Label("New Terminal", systemImage: "apple.terminal") }
             .disabled(!terminals.canAddSession(in: project.id, kind: .terminal))
         }
-        .font(.system(size: 12))
+        .font(.themed(size: 12))
         .controlSize(.small)
-        .padding(.horizontal, 12)
-        .frame(height: 32)
+        .padding(.horizontal, .space(12))
+        .frame(height: .row(32))
         .background(.background.secondary)
     }
 

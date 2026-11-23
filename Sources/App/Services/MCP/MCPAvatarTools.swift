@@ -58,25 +58,26 @@ struct MCPAvatarTools {
 
     private static let avatarProperty: [String: Any] = [
         "type": "object",
-        "description": "The avatar in the format get_avatar_rules describes: id, name, rows (13 strings of 12 characters), bodyColor, featureColor, neutralMouth.",
+        "description": "The avatar in the format get_avatar_rules describes. Pixel: id, name, kind \"pixel\", rows (13 strings of 12 characters), bodyColor, featureColor, neutralMouth. Any other style: id, name, kind \"svg\", bodyColor, svg {body, anchors, moods}.",
         "properties": [
             "id": ["type": "string"],
             "name": ["type": "string"],
-            "kind": ["type": "string", "enum": ["pixel"]],
+            "kind": ["type": "string", "enum": MascotAvatar.Kind.allCases.map(\.rawValue)],
+            "svg": ["type": "object", "description": "For kind svg: body (SVG string), anchors, optional moods."],
             "rows": ["type": "array", "items": ["type": "string"]] as [String: Any],
             "bodyColor": ["type": ["string", "null"]] as [String: Any],
             "featureColor": ["type": "string"],
             "neutralMouth": ["type": "array", "items": ["type": "array", "items": ["type": "integer"]] as [String: Any]] as [String: Any],
             "formatVersion": ["type": "integer"],
         ] as [String: Any],
-        "required": ["id", "name", "rows", "featureColor", "neutralMouth"],
+        "required": ["id", "name"],
     ]
 
     static var definitions: [[String: Any]] {
         [
             function(
                 "get_avatar_rules",
-                "How to draw a companion avatar for MinuteMind: the JSON format, the ink letters, where the face goes, two built-in avatars as examples and design advice. Call it first when the user asks for a new avatar or a change to one; then draw, check with preview_avatar, look at the picture, and save with save_avatar.",
+                "How to draw a companion avatar for MinuteMind in any style: pixel art (the ink letters, where the face goes, examples) or SVG for every other style (smooth, drawn, text art, abstract: drawings, anchors for the app's props, own frames per mood). Call it first when the user asks for a new avatar or a change to one; then draw, check with preview_avatar, look at the picture, and save with save_avatar.",
                 properties: [:], required: []),
             function(
                 "preview_avatar",
@@ -317,7 +318,14 @@ struct MCPAvatarTools {
         return """
             # Drawing a companion avatar
 
-            An avatar is a small pixel creature: a body of \(MascotGrid.width) x \(MascotGrid.height) pixels, a body colour, one feature colour and a neutral mouth. MinuteMind draws everything else over the body, the same for every avatar: eyes, blinking, mouths, cheeks, waving arms, the laptop, headphones, the thumb up, running feet, sleeping. So you only draw the creature at rest, without eyes.
+            There are two kinds of avatar. Pick the one that fits what the user describes:
+
+            - **pixel**: pixel art on a 12 x 13 grid; the app paints every mood over it. The first part below.
+            - **svg**: any other style the user asks for (smooth vector, a pencil or ink drawing, watercolour, flat, text art, a glowing orb, anything): SVG drawings, animated by the app. The second part, "SVG avatars", below. Use the user's own words about the style as the brief and take it seriously; the format sets no style.
+
+            # Pixel avatars
+
+            A pixel avatar is a small pixel creature: a body of \(MascotGrid.width) x \(MascotGrid.height) pixels, a body colour, one feature colour and a neutral mouth. MinuteMind draws everything else over the body, the same for every avatar: eyes, blinking, mouths, cheeks, waving arms, the laptop, headphones, the thumb up, running feet, sleeping. So you only draw the creature at rest, without eyes.
 
             ## Workflow
 
@@ -387,6 +395,71 @@ struct MCPAvatarTools {
             The built-in Duck (a cowlick, a flat bill that is its mouth, so `neutralMouth` is empty):
 
             \(example(.duck))
+
+            \(svgRules())
+            """
+    }
+
+    /// A complete svg avatar as it is saved, printed in the rules; it passes the validator.
+    static func svgExample() -> String {
+        let body = [
+            ##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 130">"##,
+            ##"<path d="M22 30 L34 6 L48 28 Z M98 30 L86 6 L72 28 Z" fill="currentColor" stroke="#3a1f0f" stroke-width="3" stroke-linejoin="round"/>"##,
+            ##"<ellipse cx="60" cy="72" rx="44" ry="50" fill="currentColor" stroke="#3a1f0f" stroke-width="3"/>"##,
+            ##"<path d="M30 84 Q60 120 90 84 Q60 98 30 84 Z" fill="#fff8ef"/>"##,
+            ##"<circle cx="44" cy="64" r="6" fill="#1b1b1b"/><circle cx="76" cy="64" r="6" fill="#1b1b1b"/>"##,
+            ##"<ellipse cx="60" cy="86" rx="5" ry="3.5" fill="#1b1b1b"/>"##,
+            ##"<ellipse cx="44" cy="126" rx="10" ry="4" fill="#3a1f0f"/><ellipse cx="76" cy="126" rx="10" ry="4" fill="#3a1f0f"/>"##,
+            "</svg>",
+        ].joined()
+        let object: [String: Any] = [
+            "id": "smooth-fox", "name": "Smooth Fox", "kind": "svg", "bodyColor": "#E8762C",
+            "formatVersion": MascotAvatarFile.currentFormatVersion,
+            "svg": [
+                "body": body,
+                "anchors": [
+                    "eyes": [[44, 64], [76, 64]], "eyeSize": 6, "mouth": [60, 94],
+                    "hands": [[14, 92], [106, 92]], "top": [60, 22], "feet": [60, 128],
+                ] as [String: Any],
+            ] as [String: Any],
+        ]
+        let data = (try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])) ?? Data()
+        return String(decoding: data, as: UTF8.self)
+    }
+
+    /// The SVG part of the rules, built from the format's own constants.
+    static func svgRules() -> String {
+        let moods = SVGAvatarArt.moodNames.map { "`\($0)`" }.joined(separator: ", ")
+        return """
+            # SVG avatars (any style)
+
+            An svg avatar is drawn as SVG and can look like anything. The app renders every drawing, keeps it as a picture, and animates it: it breathes, hops, shakes, leans while running, and the app's bubbles (thinking dots, "!", "?", zzz) appear beside it as for every avatar.
+
+            ## Format
+
+            A complete example, a smooth fox (its body in `currentColor`):
+
+            ```json
+            \(svgExample())
+            ```
+
+            Moods of its own go into `svg.moods`, for example `"moods": {"waiting": {"frames": ["<svg ...>", "<svg ...>"], "fps": 4}}`.
+
+            - Every drawing is a complete SVG document with `viewBox="\(SVGAvatarArt.viewBox)"`: the creature stands in that box, feet on the bottom edge, facing the viewer, filling most of it. It is shown from about 24 to 80 points tall, so keep shapes bold enough to read small.
+            - `currentColor` is the body colour: `bodyColor` (or the theme's accent when null), or the avatar colour a project sets. Fill the main body with `currentColor` so those colours apply; fixed colours stay as drawn.
+            - `body` (required): the creature at rest, eyes open.
+            - `anchors` (required), in viewBox units: `eyes` (one or two centres) and `eyeSize` (radius), `mouth`, `hands` (left, then right; where an arm would start), `top` (top of the head, for headphones), `feet` (middle between the feet, on the ground). The app draws its props there for every mood the avatar does not draw itself: closed eyes for blinking and sleeping, happy eyes, crossed eyes on errors, a laptop with typing hands, a waving hand, raised arms, a thumb up, headphones while recording. These props are plain rounded shapes in the body colour.
+            - `moods` (optional): frames of your own for any of \(moods). Each has `frames` (1 to \(SVGAvatarArt.maxFrames) SVG documents, shown in turn) and `fps` (\(Int(SVGAvatarArt.fpsRange.lowerBound)) to \(Int(SVGAvatarArt.fpsRange.upperBound))). A mood with own frames shows them instead of the props, so the creature can wave, type or sleep in its own style. `blink` is a single frame with closed eyes, used for blinking; `recording` replaces the headphones; `running` replaces the lean while it runs to the pointer. Draw your own frames whenever the props would clash with the style (a pencil sketch, text art, an orb without arms).
+
+            Allowed: shapes (path, circle, ellipse, rect, line, polyline, polygon), text and tspan, groups and use, gradients, patterns, clip paths, masks, filters (blur, turbulence and displacement for a hand-drawn wobble, colour matrix, drop shadow, morphology, ...) and `<style>` with CSS. Not allowed: images, scripts, foreign objects, links, event attributes (onclick, ...), and references outside the drawing (only `#id` and `url(#id)`). Each drawing at most \(SVGAvatarArt.maxDocumentBytes / 1000) KB, all together \(SVGAvatarArt.maxTotalBytes / 1000) KB. Escape `<` and `&` in text as `&lt;` and `&amp;`. SMIL animation is ignored; animate with mood frames.
+
+            ## Style advice
+
+            - Pencil or ink: strokes with `stroke-linecap="round"`, slightly uneven paths, a `feTurbulence` + `feDisplacementMap` filter (scale 1 to 3) for a wobbly line, a paper-coloured or transparent fill.
+            - Text art: `<text>` with `font-family="Menlo"` and `xml:space="preserve"`, one element per line; the eyes are characters, so draw `blink`, `sleeping`, `error` and the other moods as frames of their own.
+            - Orb or abstract: radial gradients and `feGaussianBlur` glow; with no hands or eyes, give every mood its own frames (colour and glow changes, a pulse over a few frames) and put the anchors where props would look least odd.
+            - Keep a clear silhouette and contrast on both light and dark backgrounds; the preview shows both.
+            - Animate with two to four frames per mood at 3 to 6 fps; more is rarely visible at this size and costs memory.
             """
     }
 

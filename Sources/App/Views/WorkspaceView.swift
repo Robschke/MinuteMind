@@ -78,23 +78,23 @@ struct WorkspaceView: View {
                 
                 // Breadcrumbs
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: .space(4)) {
                         ForEach(breadcrumbs) { crumb in
                             Button(action: { currentFolder = crumb.id }) {
                                 Text(crumb.name)
-                                    .font(.subheadline)
+                                    .font(.themed(.subheadline))
                                     .foregroundColor(crumb.id == currentFolder ? .primary : .secondary)
                             }
                             .buttonStyle(.plain)
                             
                             if crumb.id != breadcrumbs.last?.id {
                                 Image(systemName: "chevron.right")
-                                    .font(.caption)
+                                    .font(.themed(.caption))
                                     .foregroundColor(.secondary)
                             }
                         }
                     }
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, .space(8))
                 }
                 
                 Spacer()
@@ -115,7 +115,7 @@ struct WorkspaceView: View {
                     }
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(DesignSystem.Colors.accent)
                         .imageScale(.large)
                 }
                 .buttonStyle(.plain)
@@ -166,13 +166,13 @@ struct WorkspaceView: View {
     }
     
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: .space(16)) {
             Image(systemName: "folder")
-                .font(.system(size: 48))
+                .font(.themed(size: 48))
                 .foregroundColor(.secondary)
             
             Text(searchQuery.isEmpty ? "No items" : "No results found")
-                .font(.headline)
+                .font(.themed(.headline))
                 .foregroundColor(.secondary)
             
             if searchQuery.isEmpty {
@@ -197,7 +197,7 @@ struct WorkspaceView: View {
     
     @ViewBuilder
     private func itemRow(_ item: WorkspaceItem) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: .space(12)) {
             // Icon
             Image(systemName: item.isFolder ? "folder.fill" : fileIcon(item))
                 .foregroundColor(item.isFolder ? .blue : .secondary)
@@ -211,21 +211,21 @@ struct WorkspaceView: View {
                 })
                 .textFieldStyle(.plain)
             } else {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: .space(2)) {
                     Text(item.name)
-                        .font(.system(size: 13))
+                        .font(.themed(size: 13))
                     
-                    HStack(spacing: 8) {
+                    HStack(spacing: .space(8)) {
                         Text(formattedDate(item.createdAt))
-                            .font(.caption)
+                            .font(.themed(.caption))
                             .foregroundColor(.secondary)
                         
                         if case .file(let file) = item {
                             Text("•")
                                 .foregroundColor(.secondary)
-                                .font(.caption)
+                                .font(.themed(.caption))
                             Text(file.formattedSize)
-                                .font(.caption)
+                                .font(.themed(.caption))
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -236,24 +236,24 @@ struct WorkspaceView: View {
             
             // Quick actions
             if selectedItem == item.id {
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     if item.isFolder {
                         Button(action: { openFolder(item.id) }) {
                             Image(systemName: "arrow.right.circle.fill")
-                                .foregroundColor(.blue)
+                                .foregroundColor(DesignSystem.Colors.accent)
                         }
                         .buttonStyle(.plain)
                     } else if case .file(let file) = item, let url = file.fileURL {
                         Button(action: { openFile(url) }) {
                             Image(systemName: "eye.circle.fill")
-                                .foregroundColor(.blue)
+                                .foregroundColor(DesignSystem.Colors.accent)
                         }
                         .buttonStyle(.plain)
                     }
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, .space(4))
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
             if item.isFolder {

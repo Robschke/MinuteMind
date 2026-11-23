@@ -25,11 +25,11 @@ struct WorkboardCardView: View {
     var body: some View {
         HStack(spacing: 0) {
             // Left priority color strip
-            RoundedRectangle(cornerRadius: 2)
+            RoundedRectangle(cornerRadius: .corner(2))
                 .fill(priorityColor)
                 .frame(width: 4)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: .space(6)) {
                 // Title
                 if isEditingTitle {
                     InlineTaskTitleField(
@@ -43,7 +43,7 @@ struct WorkboardCardView: View {
                 }
 
                 // Bottom row: assignee, epic tag, due date
-                HStack(spacing: 6) {
+                HStack(spacing: .space(6)) {
                     if let assignee = task.assignee, !assignee.isEmpty {
                         assigneeAvatar(assignee)
                     }
@@ -59,8 +59,8 @@ struct WorkboardCardView: View {
                     }
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            .padding(.horizontal, .space(10))
+            .padding(.vertical, .space(8))
         }
         .background(DesignSystem.Colors.card)
         .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius))
@@ -106,14 +106,14 @@ struct WorkboardCardView: View {
             .uppercased()
 
         return Text(initials.isEmpty ? "?" : initials)
-            .font(.system(size: 9, weight: .semibold))
+            .font(.themed(size: 9, weight: .semibold))
             .foregroundStyle(.white)
             .frame(width: 20, height: 20)
-            .background(Color.gray.opacity(0.6), in: Circle())
+            .background(DesignSystem.Colors.textTertiary.opacity(0.6), in: Circle())
     }
 
     private func epicTag(_ epic: Epic) -> some View {
-        HStack(spacing: 3) {
+        HStack(spacing: .space(3)) {
             Circle()
                 .fill(Color(hex: epic.colorHex))
                 .frame(width: 6, height: 6)
@@ -135,17 +135,17 @@ struct WorkboardCardView: View {
         return Text(formatter.string(from: date))
             .font(DesignSystem.Typography.caption2)
             .foregroundStyle(isOverdue ? .white : DesignSystem.Colors.textSecondary)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
+            .padding(.horizontal, .space(6))
+            .padding(.vertical, .space(2))
             .background(
-                isOverdue ? AnyShapeStyle(Color.red.opacity(0.8)) : AnyShapeStyle(DesignSystem.Colors.border),
+                isOverdue ? AnyShapeStyle(DesignSystem.Colors.error.opacity(0.8)) : AnyShapeStyle(DesignSystem.Colors.border),
                 in: Capsule()
             )
     }
 
     private var priorityColor: Color {
         guard let priority = task.priority else {
-            return Color.gray.opacity(0.3)
+            return DesignSystem.Colors.textTertiary.opacity(0.3)
         }
         return Color(hex: priority.color)
     }

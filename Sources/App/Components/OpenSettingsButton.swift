@@ -41,7 +41,7 @@ struct SidebarSettingsRow: View {
         } label: {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
                 Image(systemName: "gearshape")
-                    .font(.system(size: 14))
+                    .font(.themed(size: 14))
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
                     .frame(width: 18)
                 Text("Settings")

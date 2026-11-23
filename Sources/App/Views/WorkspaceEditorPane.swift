@@ -74,12 +74,12 @@ struct WorkspaceEditorPane: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Image(nsImage: NSWorkspace.shared.icon(forFile: document.url.path))
                 .resizable()
                 .frame(width: 16, height: 16)
             Text(document.url.lastPathComponent)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.themed(size: 13, weight: .semibold))
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .help(relativePath)
@@ -109,8 +109,8 @@ struct WorkspaceEditorPane: View {
             .buttonStyle(.borderless)
             .help("Close")
         }
-        .padding(.horizontal, 12)
-        .frame(height: 36)
+        .padding(.horizontal, .space(12))
+        .frame(height: .row(36))
     }
 
     @ViewBuilder
@@ -128,7 +128,7 @@ struct WorkspaceEditorPane: View {
         }
         if let text {
             Text(text)
-                .font(.system(size: 11))
+                .font(.themed(size: 11))
                 .foregroundStyle(.secondary)
                 .transition(.opacity)
         }
@@ -162,16 +162,16 @@ struct WorkspaceEditorPane: View {
     }
 
     private func banner(text: String, systemImage: String, @ViewBuilder actions: () -> some View) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: .space(8)) {
             Image(systemName: systemImage)
             Text(text).lineLimit(2)
             Spacer()
             actions().controlSize(.small)
         }
-        .font(.system(size: 12))
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color.orange.opacity(0.12))
+        .font(.themed(size: 12))
+        .padding(.horizontal, .space(12))
+        .padding(.vertical, .space(6))
+        .background(DesignSystem.Colors.warning.opacity(0.12))
     }
 
     // MARK: - Content
@@ -181,7 +181,7 @@ struct WorkspaceEditorPane: View {
         switch document.kind {
         case .image:
             WorkspaceImageView(url: document.url, revision: document.revision)
-                .padding(12)
+                .padding(.space(12))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .pdf:
             WorkspacePDFView(url: document.url, revision: document.revision)
@@ -195,12 +195,12 @@ struct WorkspaceEditorPane: View {
         if document.isMarkdown, !document.isEditingMarkdown {
             let parts = WorkspaceEditorStore.splitFrontmatter(document.text)
             ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: .space(14)) {
                     if !parts.fields.isEmpty { frontmatterRow(parts.fields) }
                     MarkdownDisplayView(content: parts.body)
                 }
                 .frame(maxWidth: 720, alignment: .leading)
-                .padding(20)
+                .padding(.space(20))
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         } else {
@@ -209,9 +209,9 @@ struct WorkspaceEditorPane: View {
     }
 
     private func frontmatterRow(_ fields: [(key: String, value: String)]) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: .space(3)) {
             ForEach(Array(fields.prefix(8).enumerated()), id: \.offset) { _, field in
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: .space(6)) {
                     Text(field.key)
                         .foregroundStyle(.tertiary)
                         .frame(minWidth: 70, alignment: .leading)
@@ -222,10 +222,10 @@ struct WorkspaceEditorPane: View {
                 }
             }
         }
-        .font(.system(size: 11))
+        .font(.themed(size: 11))
         .textSelection(.enabled)
-        .padding(10)
+        .padding(.space(10))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 6).fill(Color.secondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: .corner(6)).fill(Color.secondary.opacity(0.08)))
     }
 }

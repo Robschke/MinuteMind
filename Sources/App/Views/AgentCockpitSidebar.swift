@@ -4,7 +4,8 @@
 //          the Home sidebar (ProjectsSidebarView) for as long as the cockpit is shown.
 // Dependencies: Sources/App/ViewModels/AppViewModel+Cockpit.swift (spaces, starting and showing
 //               sessions, collapsed spaces), Sources/App/Components/AgentStatusCreatureView.swift
-//               (creatures), Sources/App/Views/ProjectAgentsSection.swift (AgentSessionState),
+//               (creatures), Sources/App/Components/AgentAttentionJump.swift (bounce),
+//               Sources/App/Views/ProjectAgentsSection.swift (AgentSessionState),
 //               Sources/App/Views/NewProjectSheet.swift, Sources/App/Views/ProjectContextSidebar.swift
 //               (SidebarHoverButtonStyle), Sources/App/Components/OpenSettingsButton.swift
 //               (SidebarSettingsRow), Sources/App/Components/FullScreenSidebarControls.swift
@@ -13,9 +14,11 @@
 // Notes: Laid out like herdr: spaces with their agents nested, each space foldable. A space row
 //        shows the project's creature with the state of all its sessions (as Home's tiles do), a
 //        session row the creature in that session's state (as the project sidebar's Agents
-//        section does); the creature is the only status sign. A folded space shows how many
-//        agents it holds. The "+" on a space row shows on hover and starts an Opus session there
-//        (right click: Sonnet). The header's "+" offers the spaces without a session and New
+//        section does); the creature is the only status sign. A creature also bounces while its
+//        session needs the user (waiting until answered, finished until focused); a space row's
+//        creature bounces only while folded, since its session rows are hidden then. A folded
+//        space shows how many agents it holds. The "+" on a space row shows on hover and starts
+//        an Opus session there (right click: Sonnet). The header's "+" offers the spaces without a session and New
 //        Project…, which creates the project and starts a session in it without leaving the
 //        cockpit. A space leaves the list when its last Claude session closes.
 //        Sessions in a torn-off window are listed with a window mark; a click brings that window
@@ -51,7 +54,7 @@ struct AgentCockpitSidebar: View {
                 Spacer(minLength: 0)
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: .space(2)) {
                         ForEach(spaces, id: \.self) { spaceID in
                             space(spaceID, first: spaceID == spaces.first)
                         }
@@ -62,7 +65,7 @@ struct AgentCockpitSidebar: View {
                 .frame(maxHeight: .infinity)
             }
 
-            HStack(spacing: 2) {
+            HStack(spacing: .space(2)) {
                 SidebarSettingsRow()
                 if sidebarControl.isFullScreen {
                     SidebarHideButton(action: sidebarControl.hideSidebar)
@@ -95,17 +98,17 @@ struct AgentCockpitSidebar: View {
             } label: {
                 HStack(spacing: DesignSystem.Dimensions.spacingS) {
                     Image(systemName: "gauge.with.dots.needle.33percent")
-                        .font(.system(size: 18))
+                        .font(.themed(size: 18))
                         .foregroundStyle(DesignSystem.Colors.textSecondary)
                         .frame(width: 24, height: 32)
-                    VStack(alignment: .leading, spacing: 1) {
+                    VStack(alignment: .leading, spacing: .space(1)) {
                         Text("Cockpit")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.themed(size: 14, weight: .semibold))
                             .foregroundStyle(DesignSystem.Colors.textPrimary)
                             .lineLimit(1)
-                        HStack(spacing: 2) {
+                        HStack(spacing: .space(2)) {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: 9, weight: .semibold))
+                                .font(.themed(size: 9, weight: .semibold))
                             Text("Home")
                         }
                         .font(DesignSystem.Typography.caption1)
@@ -125,7 +128,7 @@ struct AgentCockpitSidebar: View {
                 AgentCockpitAddMenu()
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.themed(size: 13, weight: .medium))
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
@@ -174,8 +177,8 @@ struct AgentCockpitAddMenu: View {
     }
 }
 
-/// A space: fold chevron, creature with the state of all its sessions, name, and on hover a
-/// "+" that starts another session there.
+/// A space: fold chevron, creature with the state of all its sessions (bouncing while folded and
+/// one of them needs the user), name, and on hover a "+" that starts another session there.
 private struct CockpitSpaceRow: View {
     let project: Project
     let sessions: [WorkspaceTerminalSession]
@@ -192,7 +195,7 @@ private struct CockpitSpaceRow: View {
                 viewModel.setCockpitSpaceCollapsed(project.id, !isCollapsed)
             } label: {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 9, weight: .semibold))
+                    .font(.themed(size: 9, weight: .semibold))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
                     .rotationEffect(.degrees(isCollapsed ? 0 : 90))
                     .frame(width: 12, height: 26)
@@ -207,6 +210,7 @@ private struct CockpitSpaceRow: View {
                 HStack(spacing: DesignSystem.Dimensions.spacingS) {
                     AgentStatusCreatureView(projectID: project.id, sessions: sessions, pixelSize: 1)
                         .frame(width: 18)
+                        .agentAttentionJump(isCollapsed && sessions.contains(where: AgentAttention.needsUser))
                     Text(project.name)
                         .font(DesignSystem.Typography.callout.weight(.medium))
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
@@ -219,7 +223,7 @@ private struct CockpitSpaceRow: View {
                     }
                     Spacer(minLength: 0)
                 }
-                .frame(height: 26)
+                .frame(height: .row(26))
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -230,7 +234,7 @@ private struct CockpitSpaceRow: View {
                 viewModel.startCockpitSession(in: project.id)
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.themed(size: 11, weight: .medium))
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
                     .frame(width: 20, height: 20)
                     .contentShape(Rectangle())
@@ -262,7 +266,8 @@ private struct CockpitSpaceRow: View {
     }
 }
 
-/// A session of a space: the project's creature in the session's state and the session's name.
+/// A session of a space: the project's creature in the session's state (bouncing while the
+/// session needs the user) and the session's name.
 private struct CockpitAgentRow: View {
     let spaceID: UUID
     let session: WorkspaceTerminalSession
@@ -283,6 +288,7 @@ private struct CockpitAgentRow: View {
             HStack(spacing: DesignSystem.Dimensions.spacingS) {
                 AgentStatusCreatureView(projectID: spaceID, sessions: [session], pixelSize: 1)
                     .frame(width: 18)
+                    .agentAttentionJump(AgentAttention.needsUser(session))
                 Text(session.displayName)
                     .font(DesignSystem.Typography.callout)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
@@ -291,15 +297,15 @@ private struct CockpitAgentRow: View {
                 Spacer(minLength: DesignSystem.Dimensions.spacingXS)
                 if inWindow {
                     Image(systemName: "macwindow")
-                        .font(.system(size: 10))
+                        .font(.themed(size: 10))
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                         .help("In its own window")
                 }
             }
             // Indented under the space's creature (chevron column plus its gap).
-            .padding(.leading, 28)
+            .padding(.leading, .space(28))
             .padding(.trailing, DesignSystem.Dimensions.spacingS)
-            .frame(height: 26)
+            .frame(height: .row(26))
             .background(
                 RoundedRectangle(cornerRadius: DesignSystem.Dimensions.innerRadius)
                     .fill(isSelected ? Color.accentColor.opacity(0.12) : Color.clear)

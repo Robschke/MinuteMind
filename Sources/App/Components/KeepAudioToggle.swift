@@ -29,10 +29,10 @@ struct AudioRetentionChip: View {
                 viewModel.setKeepAudio(!kept, for: session.id)
             } label: {
                 Label(label(kept: kept, days: days), systemImage: kept ? "pin.fill" : "clock")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(color(kept: kept, days: days))
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, .space(7))
+                    .padding(.vertical, .space(2))
                     .background(Capsule().fill(Color.secondary.opacity(0.1)))
             }
             .buttonStyle(.plain)
@@ -50,7 +50,7 @@ struct AudioRetentionChip: View {
     }
 
     private func color(kept: Bool, days: Int?) -> AnyShapeStyle {
-        if !kept, let days, days <= 2 { return AnyShapeStyle(.orange) }
+        if !kept, let days, days <= 2 { return AnyShapeStyle(DesignSystem.Colors.warning) }
         return AnyShapeStyle(.secondary)
     }
 

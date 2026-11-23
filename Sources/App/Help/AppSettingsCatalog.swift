@@ -283,11 +283,12 @@ enum AppSettingsCatalog {
         [
             AppSetting(
                 id: "theme", title: "Theme", location: "Settings > Appearance",
-                summary: "Colour theme of the app. Custom uses the colours set in Settings; saved profiles are listed by name.",
+                summary: "Theme of the app (colours, and for theme files also font, corners, density and terminal font). Custom uses the colours set in Settings; saved profiles and theme files (save_theme) are listed by name.",
                 helpTopic: "appearance", storageKeys: ["mm.theme"], kind: .choice,
                 options: { _ in
                     AppTheme.builtIn.map { Option(value: $0.id, label: $0.name) }
                         + ThemeStore.shared.profiles.map { Option(value: $0.themeID, label: $0.name) }
+                        + ThemeStore.shared.fileThemes.map { Option(value: $0.themeID, label: $0.name) }
                         + [Option(value: AppTheme.customID, label: "Custom")]
                 },
                 read: { _ in .string(ThemeStore.shared.themeID) },
@@ -330,12 +331,16 @@ enum AppSettingsCatalog {
                 }),
             AppSetting(
                 id: "companion_size", title: "Size", location: companionPlace,
-                summary: "Size of the companion.",
-                helpTopic: "companion", storageKeys: ["mm.companionSize"], kind: .choice,
-                options: { _ in CompanionAppearance.Size.allCases.map { Option(value: $0.rawValue, label: $0.label) } },
-                read: { _ in .string(CompanionAppearance.shared.size.rawValue) },
+                summary: "Size of the companion, a number from 1.5 (small) to 6 (large) points per creature unit in half steps (other numbers are rounded to the nearest half); 3 is the standard size. \"small\", \"medium\" and \"large\" are 2, 3 and 4.",
+                helpTopic: "companion", storageKeys: ["mm.companionSize"], kind: .text,
+                read: { _ in .string(String(format: "%g", CompanionAppearance.shared.unitSize)) },
                 write: { _, value in
-                    if let size = CompanionAppearance.Size(rawValue: value.string) { CompanionAppearance.shared.size = size }
+                    let text = value.string.trimmingCharacters(in: .whitespaces).lowercased()
+                    guard let number = CompanionAppearance.namedSizes[text] ?? Double(text.replacingOccurrences(of: ",", with: ".")),
+                          CompanionAppearance.sizeRange.contains(number) else {
+                        return "Use a number from 1.5 to 6 (in half steps; other numbers are rounded to the nearest half), or small, medium or large."
+                    }
+                    CompanionAppearance.shared.unitSize = number
                     return nil
                 }),
             AppSetting(

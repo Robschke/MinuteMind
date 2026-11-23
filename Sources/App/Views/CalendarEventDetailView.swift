@@ -174,11 +174,11 @@ struct CalendarEventDetailView: View {
     private var projectAssignmentRow: some View {
         HStack(alignment: .center, spacing: DesignSystem.Dimensions.spacingS) {
             Image(systemName: "folder")
-                .font(.system(size: 14))
+                .font(.themed(size: 14))
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
                 .frame(width: 18)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Picker("", selection: $eventProjectId) {
                     Text("No project").tag(nil as UUID?)
                     ForEach(appViewModel.projects) { project in
@@ -210,11 +210,11 @@ struct CalendarEventDetailView: View {
     private var languageAssignmentRow: some View {
         HStack(alignment: .center, spacing: DesignSystem.Dimensions.spacingS) {
             Image(systemName: "globe")
-                .font(.system(size: 14))
+                .font(.themed(size: 14))
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
                 .frame(width: 18)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Picker("", selection: $eventLanguageCode) {
                     Text("Default (\(defaultLanguageLabel))").tag(nil as String?)
                     ForEach(AppViewModel.LanguageOption.allCases) { option in
@@ -268,7 +268,7 @@ struct CalendarEventDetailView: View {
             // Tags row
             HStack(spacing: DesignSystem.Dimensions.spacingXS) {
                 Image(systemName: "tag")
-                    .font(.system(size: 11))
+                    .font(.themed(size: 11))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
 
                 ForEach(noteTags, id: \.self) { tag in
@@ -277,7 +277,7 @@ struct CalendarEventDetailView: View {
 
                 if showTagField {
                     TextField("tag name", text: $newTagInput)
-                        .font(.system(size: 11))
+                        .font(.themed(size: 11))
                         .textFieldStyle(.plain)
                         .frame(width: 80)
                         .onSubmit {
@@ -288,7 +288,7 @@ struct CalendarEventDetailView: View {
                         showTagField = true
                     } label: {
                         Image(systemName: "plus.circle")
-                            .font(.system(size: 12))
+                            .font(.themed(size: 12))
                             .foregroundStyle(DesignSystem.Colors.textTertiary)
                     }
                     .buttonStyle(.plain)
@@ -299,7 +299,7 @@ struct CalendarEventDetailView: View {
             // Project link
             HStack(spacing: DesignSystem.Dimensions.spacingXS) {
                 Image(systemName: "folder")
-                    .font(.system(size: 11))
+                    .font(.themed(size: 11))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
 
                 Picker("", selection: $noteProjectId) {
@@ -310,7 +310,7 @@ struct CalendarEventDetailView: View {
                 }
                 .labelsHidden()
                 .pickerStyle(.menu)
-                .font(.system(size: 11))
+                .font(.themed(size: 11))
                 .controlSize(.mini)
             }
         }
@@ -318,21 +318,21 @@ struct CalendarEventDetailView: View {
 
     @ViewBuilder
     private func tagChip(_ tag: String) -> some View {
-        HStack(spacing: 3) {
+        HStack(spacing: .space(3)) {
             Text(tag)
-                .font(.system(size: 11))
+                .font(.themed(size: 11))
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
             Button {
                 noteTags.removeAll { $0 == tag }
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 8, weight: .bold))
+                    .font(.themed(size: 8, weight: .bold))
                     .foregroundStyle(DesignSystem.Colors.textTertiary)
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 7)
-        .padding(.vertical, 3)
+        .padding(.horizontal, .space(7))
+        .padding(.vertical, .space(3))
         .background(
             Capsule().fill(DesignSystem.Colors.card)
                 .overlay(Capsule().stroke(DesignSystem.Colors.divider, lineWidth: 1))
@@ -347,7 +347,7 @@ struct CalendarEventDetailView: View {
             HStack {
                 Image(systemName: "waveform.circle.fill")
                     .foregroundStyle(Color.accentColor)
-                    .font(.system(size: 14))
+                    .font(.themed(size: 14))
                 Text(session.title)
                     .font(DesignSystem.Typography.callout.weight(.medium))
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
@@ -368,7 +368,7 @@ struct CalendarEventDetailView: View {
                             systemImage: expandedSummaries.contains(session.id)
                                 ? "chevron.up" : "chevron.down"
                         )
-                        .font(.system(size: 11))
+                        .font(.themed(size: 11))
                         .foregroundStyle(DesignSystem.Colors.textSecondary)
                     }
                     .buttonStyle(.plain)
@@ -384,7 +384,7 @@ struct CalendarEventDetailView: View {
             if expandedSummaries.contains(session.id), let text = minutesTexts[session.id] {
                 Divider().overlay(DesignSystem.Colors.divider)
                 Text(text)
-                    .font(.system(size: 12))
+                    .font(.themed(size: 12))
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
                     .textSelection(.enabled)
                     .padding(DesignSystem.Dimensions.spacingS)
@@ -407,7 +407,7 @@ struct CalendarEventDetailView: View {
     private func labelRow(icon: String, text: String) -> some View {
         HStack(alignment: .top, spacing: DesignSystem.Dimensions.spacingS) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(.themed(size: 14))
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
                 .frame(width: 18)
             Text(text)
@@ -419,7 +419,7 @@ struct CalendarEventDetailView: View {
     private func sectionHeader(_ title: String, icon: String) -> some View {
         HStack(spacing: DesignSystem.Dimensions.spacingXS) {
             Image(systemName: icon)
-                .font(.system(size: 13))
+                .font(.themed(size: 13))
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
             Text(title)
                 .font(DesignSystem.Typography.subheadline.weight(.medium))

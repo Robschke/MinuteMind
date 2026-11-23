@@ -39,7 +39,7 @@ struct StorageManagementSettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: .space(20)) {
                 totalSection
                 Divider()
                 perProjectSection
@@ -51,7 +51,7 @@ struct StorageManagementSettingsView: View {
                 searchIndexSection
                 Spacer(minLength: 20)
             }
-            .padding(24)
+            .padding(.space(24))
         }
         .task {
             guard !hasLoaded else { return }
@@ -105,10 +105,10 @@ struct StorageManagementSettingsView: View {
 
     private var totalSection: some View {
         GroupBox(label: sectionLabel("Total storage used", systemImage: "externaldrive.fill")) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
+            VStack(alignment: .leading, spacing: .space(8)) {
+                HStack(alignment: .firstTextBaseline, spacing: .space(12)) {
                     Text(formatted(report.totalBytes))
-                        .font(.system(size: 34, weight: .semibold, design: .rounded))
+                        .font(.themed(size: 34, weight: .semibold, design: .rounded))
                         .monospacedDigit()
 
                     if isAnalyzing || isArchiving {
@@ -116,7 +116,7 @@ struct StorageManagementSettingsView: View {
                             .controlSize(.small)
                     } else {
                         Text("across \(report.projects.reduce(0) { $0 + $1.recordingCount }) recordings")
-                            .font(.subheadline)
+                            .font(.themed(.subheadline))
                             .foregroundStyle(.secondary)
                     }
 
@@ -133,11 +133,11 @@ struct StorageManagementSettingsView: View {
 
                 if let statusMessage {
                     Text(statusMessage)
-                        .font(.caption)
-                        .foregroundStyle(.green)
+                        .font(.themed(.caption))
+                        .foregroundStyle(DesignSystem.Colors.success)
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
@@ -145,7 +145,7 @@ struct StorageManagementSettingsView: View {
 
     private var perProjectSection: some View {
         GroupBox(label: sectionLabel("By project", systemImage: "folder.fill")) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: .space(12)) {
                 if report.projects.isEmpty {
                     emptyHint("No recordings use any storage yet.")
                 } else {
@@ -154,7 +154,7 @@ struct StorageManagementSettingsView: View {
                     }
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
@@ -163,8 +163,8 @@ struct StorageManagementSettingsView: View {
             ? Double(usage.totalBytes) / Double(report.totalBytes)
             : 0
 
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
+        return VStack(alignment: .leading, spacing: .space(6)) {
+            HStack(spacing: .space(8)) {
                 if let projectID = usage.projectID {
                     ProjectAvatarView(projectID: projectID, pixelSize: 1)
                 } else {
@@ -173,14 +173,14 @@ struct StorageManagementSettingsView: View {
                         .frame(width: 10, height: 10)
                 }
                 Text(usage.name)
-                    .font(.subheadline)
+                    .font(.themed(.subheadline))
                     .lineLimit(1)
                 Text("· \(usage.recordingCount) rec.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(formatted(usage.totalBytes))
-                    .font(.subheadline)
+                    .font(.themed(.subheadline))
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
             }
@@ -202,7 +202,7 @@ struct StorageManagementSettingsView: View {
 
     private var largestRecordingsSection: some View {
         GroupBox(label: sectionLabel("Largest recordings", systemImage: "waveform")) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: .space(10)) {
                 if report.largestRecordings.isEmpty {
                     emptyHint("No audio recordings found.")
                 } else {
@@ -215,25 +215,25 @@ struct StorageManagementSettingsView: View {
                     }
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
     private func largestRow(_ file: RecordingFileUsage) -> some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
+        HStack(spacing: .space(12)) {
+            VStack(alignment: .leading, spacing: .space(2)) {
                 Text(file.sessionTitle.isEmpty ? "Untitled recording" : file.sessionTitle)
-                    .font(.subheadline)
+                    .font(.themed(.subheadline))
                     .lineLimit(1)
                 Text(file.kind)
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
             Text(formatted(file.bytes))
-                .font(.subheadline)
+                .font(.themed(.subheadline))
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
 
@@ -252,10 +252,10 @@ struct StorageManagementSettingsView: View {
 
     private var bulkSection: some View {
         GroupBox(label: sectionLabel("Bulk archive", systemImage: "tray.full.fill")) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(12)) {
+                HStack(spacing: .space(8)) {
                     Text("Recordings older than")
-                        .font(.subheadline)
+                        .font(.themed(.subheadline))
                     Picker("Age", selection: $bulkAgeDays) {
                         Text("30 days").tag(30)
                         Text("90 days").tag(90)
@@ -275,10 +275,10 @@ struct StorageManagementSettingsView: View {
                 .disabled(isArchiving)
 
                 Text("Re-encode (shrink) or delete the audio of all older recordings at once. You choose which after pressing.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
@@ -286,11 +286,11 @@ struct StorageManagementSettingsView: View {
 
     private var searchIndexSection: some View {
         GroupBox(label: sectionLabel("Search index", systemImage: "magnifyingglass")) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: .space(8)) {
                 Text("Knowledge search reads the knowledge files of every workspace. Rebuild the index if search misses something that is in the files.")
-                    .font(.caption)
+                    .font(.themed(.caption))
                     .foregroundStyle(.secondary)
-                HStack(spacing: 8) {
+                HStack(spacing: .space(8)) {
                     Button {
                         Task {
                             isRebuildingIndex = true
@@ -305,15 +305,15 @@ struct StorageManagementSettingsView: View {
                     .disabled(isRebuildingIndex)
                     if isRebuildingIndex {
                         ProgressView().controlSize(.small)
-                        Text("Rebuilding\u{2026}").font(.caption).foregroundStyle(.secondary)
+                        Text("Rebuilding\u{2026}").font(.themed(.caption)).foregroundStyle(.secondary)
                     } else if indexRebuilt {
                         Label("Rebuilt", systemImage: "checkmark.circle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.green)
+                            .font(.themed(.caption))
+                            .foregroundStyle(DesignSystem.Colors.success)
                     }
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, .space(8))
         }
     }
 
@@ -345,13 +345,13 @@ struct StorageManagementSettingsView: View {
 
     private func emptyHint(_ text: String) -> some View {
         Text(text)
-            .font(.subheadline)
+            .font(.themed(.subheadline))
             .foregroundStyle(.secondary)
-            .padding(.vertical, 4)
+            .padding(.vertical, .space(4))
     }
 
     private func sectionLabel(_ title: String, systemImage: String) -> some View {
         Label(title, systemImage: systemImage)
-            .font(.headline)
+            .font(.themed(.headline))
     }
 }
