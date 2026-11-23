@@ -189,6 +189,8 @@ enum HelpGuideContent {
         - **Dictionary:** terms MinuteMind should always spell right, plus how they get misheard (see Dictionary).
         - **Correct names from calendar & project** (Settings > Automation > Pipeline): fixes near-miss spellings of participant names, the project and the meeting title.
         - **Clean audio before transcription** (same place): filters rumble, evens out quiet recordings and softens background noise.
+        - **Loudspeaker echo:** when your microphone also hears the other participants through the loudspeaker, their sentences would appear twice. With "Identify speakers" on, Parakeet drops the copy the microphone heard and keeps the one from the call audio.
+        - **Who spoke when:** your microphone and the call audio are lined up in time, so turns appear in the order they were spoken. "[overlapping]" marks a turn that started while the previous speaker was still talking.
         - **Speakers:** see Speakers and Voices.
 
         You can edit a transcript yourself on the recording; a hand edit is kept.
@@ -266,6 +268,8 @@ enum HelpGuideContent {
         ## Dictate into any app
 
         Hold **fn** (the default), speak, and release: the text is typed wherever your cursor is. Settings > Automation > Quick Dictation chooses the trigger (hold fn, hold the right Option key, or press Ctrl+Opt+D to start and again to insert) and the language. The dictionary's corrections apply.
+
+        With a hold key the microphone opens the moment the key goes down, so the first words are not cut off. A short tap therefore shows macOS's microphone indicator for a moment; nothing from a tap is kept.
 
         - Typing into other apps needs the Accessibility permission; without it the text goes to the clipboard.
         - For fn to be free, set "Press 🌐 key to" to "Do Nothing" in macOS Keyboard settings, and move macOS dictation's shortcut away from "Press 🌐 twice".

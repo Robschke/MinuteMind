@@ -102,6 +102,21 @@ struct TranscriptFormattingTests {
         #expect(result[1].text == "yours")
     }
 
+    @Test("A turn starting a moment before the previous one ends is not marked overlapping")
+    func testOverlapTolerance() {
+        let mic = [
+            TranscriptUtterance(
+                speaker: "You", text: "mine", start: 0, duration: 2.3, language: "de-DE")
+        ]
+        let system = [
+            TranscriptUtterance(
+                speaker: "Speaker 1", text: "yours", start: 2, duration: 1, language: "de-DE")
+        ]
+        let result = TranscriptFormatting.interleave(mic: mic, system: system)
+
+        #expect(result[1].text == "yours")
+    }
+
     // MARK: - Rendering
 
     @Test("Rendering produces timestamped speaker lines")

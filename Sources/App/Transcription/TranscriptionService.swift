@@ -438,15 +438,21 @@ actor TranscriptionService {
 
             systemSegments = zip(utterances, labels).map { utterance, label in
                 TimedSegment(
-                    speaker: label, text: utterance.text,
-                    timestamp: utterance.start + systemAudioOffset,
+                    speaker: label, text: utterance.text, timestamp: utterance.start,
                     duration: utterance.duration, detectedLanguage: localeID)
             }
             NSLog("TranscriptionService[SpeechAnalyzer]: system \(systemSegments.count) utterances")
         }
+        // Samples point into the system file, so they are taken before the shift onto the
+        // microphone's timeline.
         samples += SpeakerSampling.samples(
             from: systemSegments.map(Self.utterance(from:)), channel: .system,
             embeddings: labeler.embeddingByLabel)
+        systemSegments = systemSegments.map {
+            TimedSegment(
+                speaker: $0.speaker, text: $0.text, timestamp: $0.timestamp + systemAudioOffset,
+                duration: $0.duration, detectedLanguage: $0.detectedLanguage)
+        }
 
         return LabeledTranscript(
             text: Self.formatSegments(

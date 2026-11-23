@@ -112,4 +112,94 @@ struct SpeakerLabelerTests {
         #expect(labels == ["You"])
         #expect(labeler.speakerCount == 0)
     }
+
+    // MARK: - Word-level assignment
+
+    private func timed(_ text: String, from start: TimeInterval, step: TimeInterval = 0.4) -> [TimedWord] {
+        text.split(separator: " ").enumerated().map { index, word in
+            let wordStart = start + Double(index) * step
+            return TimedWord(text: String(word), start: wordStart, end: wordStart + step - 0.1)
+        }
+    }
+
+    @Test("Two speakers answering without a pause become two utterances")
+    func speakerChangeSplitsUtterance() {
+        // One run of speech, 0.1 s between all words: A talks 0 to 2 s, B from 2 s on.
+        let words = timed("Kommst du morgen mit? Ja klar, ich bin dabei.", from: 0)
+        let result = DiarizationResult(turns: [
+            SpeakerTurn(start: 0, end: 1.6, speaker: 0),
+            SpeakerTurn(start: 1.6, end: 4, speaker: 1),
+        ])
+        var labeler = SpeakerLabeler()
+        let utterances = labeler.utterances(
+            from: words, result: result, channel: "system", fallbackLabel: "Other", language: "auto")
+
+        #expect(utterances.map(\.speaker) == ["Speaker 1", "Speaker 2"])
+        #expect(utterances.map(\.text) == ["Kommst du morgen mit?", "Ja klar, ich bin dabei."])
+    }
+
+    @Test("A speaker change that falls mid-sentence moves to the sentence end")
+    func boundarySnapsToSentenceEnd() {
+        // The turn boundary sits one word late: "Ja" still overlaps speaker 0.
+        let words = timed("Kommst du morgen mit? Ja klar, ich bin dabei.", from: 0)
+        let turns = [
+            SpeakerTurn(start: 0, end: 2.0, speaker: 0),
+            SpeakerTurn(start: 2.0, end: 4, speaker: 1),
+        ]
+        let speakers = SpeakerAssignment.wordSpeakers(words: words, turns: turns)
+        #expect(speakers == [0, 0, 0, 0, 1, 1, 1, 1, 1])
+    }
+
+    @Test("A single word disagreeing with both neighbours follows them")
+    func blipIsSmoothed() {
+        let words = timed("das ist ein ganz langer Satz ohne Ende", from: 0)
+        let turns = [
+            SpeakerTurn(start: 0, end: 1.2, speaker: 0),
+            SpeakerTurn(start: 1.2, end: 1.5, speaker: 1),
+            SpeakerTurn(start: 1.5, end: 4, speaker: 0),
+        ]
+        let speakers = SpeakerAssignment.wordSpeakers(words: words, turns: turns)
+        #expect(Set(speakers) == [0])
+    }
+
+    @Test("Words no turn covers take their neighbour's speaker")
+    func uncoveredWordsAreFilled() {
+        let words = timed("eins zwei drei vier", from: 0)
+        let turns = [SpeakerTurn(start: 0.8, end: 1.6, speaker: 3)]
+        #expect(SpeakerAssignment.wordSpeakers(words: words, turns: turns) == [3, 3, 3, 3])
+    }
+
+    @Test("Without any turn every word keeps the fallback label")
+    func noTurnsFallBack() {
+        let words = timed("eins zwei", from: 0)
+        var labeler = SpeakerLabeler()
+        let utterances = labeler.utterances(
+            from: words, result: .empty, channel: "system", fallbackLabel: "Other", language: "auto")
+        #expect(utterances.map(\.speaker) == ["Other"])
+        #expect(utterances.map(\.text) == ["eins zwei"])
+    }
+
+    @Test("A one-word fragment inside a sentence joins the speaker of the rest")
+    func fragmentIsMerged() {
+        let words = timed("Das stimmt. Ich meine, man könnte es versuchen.", from: 0)
+        // "Ich" is heard as a third voice between the two real speakers.
+        let turns = [
+            SpeakerTurn(start: 0, end: 0.75, speaker: 0),
+            SpeakerTurn(start: 0.75, end: 1.15, speaker: 2),
+            SpeakerTurn(start: 1.15, end: 4, speaker: 1),
+        ]
+        #expect(SpeakerAssignment.wordSpeakers(words: words, turns: turns) == [0, 0, 1, 1, 1, 1, 1, 1])
+    }
+
+    @Test("A short remark that is a sentence of its own keeps its speaker")
+    func shortRemarkIsKept() {
+        let words = timed("Das machen wir so. Genau. Dann bis morgen.", from: 0)
+        let turns = [
+            SpeakerTurn(start: 0, end: 1.55, speaker: 0),
+            SpeakerTurn(start: 1.55, end: 1.95, speaker: 1),
+            SpeakerTurn(start: 1.95, end: 4, speaker: 0),
+        ]
+        // The blip pass would fold "Genau." into speaker 0; a remark between two sentences stays.
+        #expect(SpeakerAssignment.wordSpeakers(words: words, turns: turns) == [0, 0, 0, 0, 1, 0, 0, 0])
+    }
 }

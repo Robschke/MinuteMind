@@ -4,11 +4,14 @@
 //          the `SpeakerDiarizer` protocol; this file stays engine-agnostic so it compiles and is
 //          unit-tested on its own.
 // Dependencies: none.
-// Used by: Sources/App/Transcription/TranscriptionService.swift (SpeechAnalyzer path — assigns
-//          speakers to system-audio utterances) once a diarizer is wired in.
+// Used by: Sources/App/Transcription/TranscriptionService.swift (SpeechAnalyzer path, labels whole
+//          utterances), Sources/App/Services/ParakeetTranscriptionService.swift (labels word by
+//          word, see SpeakerLabeler.utterances).
 // Notes: The remote/system-audio channel is one mixed stream, so diarization runs on it to split
 //        multiple remote participants. The microphone channel is the known local speaker ("You")
-//        and is not diarized.
+//        and is only diarized for in-person meetings (DiarizationOptions.includeMicrophone).
+//        Engines with word timings label per word; engines that only return utterances label
+//        each utterance by the turn it overlaps most.
 
 import Foundation
 
@@ -161,20 +164,64 @@ struct SpeakerLabeler {
                 let cluster = SpeakerAssignment.speakerIndex(
                     utteranceStart: range.start, duration: range.duration, turns: result.turns)
             else { return fallbackLabel }
-
-            let key = "\(channel)#\(cluster)"
-            if let existing = numberByKey[key] { return "Speaker \(existing)" }
-
-            let number = nextNumber
-            numberByKey[key] = number
-            nextNumber += 1
-
-            let label = "Speaker \(number)"
-            if let embedding = result.embeddings[cluster] {
-                embeddingByLabel[label] = embedding
-            }
-            return label
+            return label(forCluster: cluster, result: result, channel: channel)
         }
+    }
+
+    /// Turns one channel's words into labelled utterances, deciding the speaker word by word:
+    /// an utterance ends at a pause or where the speaker changes, so two people answering each
+    /// other without a pause no longer share one block. Words no turn covers get `fallbackLabel`.
+    mutating func utterances(
+        from words: [TimedWord],
+        result: DiarizationResult,
+        channel: String,
+        fallbackLabel: String,
+        language: String,
+        pauseThreshold: TimeInterval = 0.8
+    ) -> [TranscriptUtterance] {
+        guard !words.isEmpty else { return [] }
+        let clusters = SpeakerAssignment.wordSpeakers(
+            words: words, turns: result.turns, pauseThreshold: pauseThreshold)
+
+        var utterances: [TranscriptUtterance] = []
+        var start = 0
+        for index in 1...words.count {
+            let ends =
+                index == words.count
+                || clusters[index] != clusters[index - 1]
+                || words[index].start - words[index - 1].end > pauseThreshold
+            guard ends else { continue }
+            let speaker =
+                clusters[start].map { label(forCluster: $0, result: result, channel: channel) }
+                ?? fallbackLabel
+            utterances.append(
+                TranscriptUtterance(
+                    speaker: speaker,
+                    text: words[start..<index].map(\.text).joined(separator: " "),
+                    start: words[start].start,
+                    duration: words[index - 1].end - words[start].start,
+                    language: language))
+            start = index
+        }
+        return utterances
+    }
+
+    /// "Speaker N" for a cluster of `channel`, numbered by first use.
+    private mutating func label(forCluster cluster: Int, result: DiarizationResult, channel: String)
+        -> String
+    {
+        let key = "\(channel)#\(cluster)"
+        if let existing = numberByKey[key] { return "Speaker \(existing)" }
+
+        let number = nextNumber
+        numberByKey[key] = number
+        nextNumber += 1
+
+        let label = "Speaker \(number)"
+        if let embedding = result.embeddings[cluster] {
+            embeddingByLabel[label] = embedding
+        }
+        return label
     }
 }
 
@@ -199,6 +246,119 @@ enum SpeakerAssignment {
         return overlapBySpeaker
             .max { a, b in a.value != b.value ? a.value < b.value : a.key > b.key }?
             .key
+    }
+
+    /// The speaker of every word. Passes over the raw per-word overlap:
+    /// words no turn covers take their neighbour's speaker inside the same run of speech; a single
+    /// word that disagrees with both neighbours follows them (diarizer blips); a change of
+    /// speaker that falls mid-sentence moves up to two words to the nearest sentence end or
+    /// audible gap, because turn boundaries are only accurate to a few hundred milliseconds; and
+    /// fragments of one or two words join a neighbour (see mergeFragments).
+    static func wordSpeakers(
+        words: [TimedWord],
+        turns: [SpeakerTurn],
+        pauseThreshold: TimeInterval = 0.8
+    ) -> [Int?] {
+        guard !words.isEmpty else { return [] }
+        var speakers: [Int?] = words.map {
+            speakerIndex(utteranceStart: $0.start, duration: max($0.end - $0.start, 0.02), turns: turns)
+        }
+        let count = words.count
+        /// Silence before word `index`.
+        func gap(_ index: Int) -> TimeInterval { words[index].start - words[index - 1].end }
+
+        for index in 1..<count where speakers[index] == nil && gap(index) <= pauseThreshold {
+            speakers[index] = speakers[index - 1]
+        }
+        for index in stride(from: count - 2, through: 0, by: -1)
+        where speakers[index] == nil && gap(index + 1) <= pauseThreshold {
+            speakers[index] = speakers[index + 1]
+        }
+
+        if count >= 3 {
+            for index in 1..<(count - 1)
+            where speakers[index] != speakers[index - 1] && speakers[index - 1] != nil
+                && speakers[index - 1] == speakers[index + 1]
+                && gap(index) <= pauseThreshold && gap(index + 1) <= pauseThreshold
+                // "Genau." between two sentences is a remark of its own, not a blip.
+                && !(endsSentence(words[index - 1].text) && endsSentence(words[index].text))
+            {
+                speakers[index] = speakers[index - 1]
+            }
+        }
+
+        var index = 1
+        while index < count {
+            defer { index += 1 }
+            guard let before = speakers[index - 1], let after = speakers[index], before != after,
+                gap(index) <= pauseThreshold
+            else { continue }
+
+            var runStart = index - 1
+            while runStart > 0, speakers[runStart - 1] == before, gap(runStart) <= pauseThreshold {
+                runStart -= 1
+            }
+            var runEnd = index + 1
+            while runEnd < count, speakers[runEnd] == after, gap(runEnd) <= pauseThreshold {
+                runEnd += 1
+            }
+            let candidates = max(runStart + 1, index - 2)...min(runEnd - 1, index + 2)
+
+            let sentenceEnds = candidates.filter { endsSentence(words[$0 - 1].text) }
+            let target: Int
+            if let nearest = sentenceEnds.min(by: { abs($0 - index) < abs($1 - index) }) {
+                target = nearest
+            } else if let widest = candidates.max(by: { gap($0) < gap($1) }),
+                gap(widest) >= 0.25, gap(widest) > gap(index)
+            {
+                target = widest
+            } else {
+                target = index
+            }
+
+            if target < index {
+                for moved in target..<index { speakers[moved] = after }
+            } else if target > index {
+                for moved in index..<target { speakers[moved] = before }
+                index = target
+            }
+        }
+        mergeFragments(&speakers, words: words, pauseThreshold: pauseThreshold)
+        return speakers
+    }
+
+    /// One or two words attributed to a speaker in the middle of someone else's flow are almost
+    /// always a diarizer slip ("Ich | meine, man könnte …"), unless they are a remark of their own
+    /// ("Ja." between two sentences). Such fragments join the neighbour they belong to: the next
+    /// speaker when the previous word ended a sentence, else the previous one.
+    private static func mergeFragments(
+        _ speakers: inout [Int?], words: [TimedWord], pauseThreshold: TimeInterval
+    ) {
+        let count = words.count
+        func joined(_ index: Int) -> Bool {
+            index > 0 && index < count && words[index].start - words[index - 1].end <= pauseThreshold
+        }
+        var start = 0
+        while start < count {
+            var end = start + 1
+            while end < count, speakers[end] == speakers[start], joined(end) { end += 1 }
+            defer { start = end }
+
+            let hasPrevious = joined(start) && speakers[start - 1] != nil
+            let hasNext = joined(end) && speakers[end] != nil
+            guard end - start <= 2, hasPrevious || hasNext else { continue }
+            let startsSentence = !hasPrevious || endsSentence(words[start - 1].text)
+            let finishesSentence = endsSentence(words[end - 1].text)
+            if startsSentence && (finishesSentence || !hasNext) { continue }  // a remark of its own
+
+            let target = startsSentence || !hasPrevious ? speakers[end] : speakers[start - 1]
+            for index in start..<end { speakers[index] = target }
+        }
+    }
+
+    private static func endsSentence(_ word: String) -> Bool {
+        guard let last = word.last else { return false }
+        return last == "." || last == "?" || last == "!"
     }
 
     /// Assigns a sequential, first-appearance-ordered "Speaker N" label to each utterance based on

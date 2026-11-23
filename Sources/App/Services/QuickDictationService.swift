@@ -27,6 +27,11 @@
 //        which made the start take a noticeable and varying while. The microphone opens before
 //        the stream is ready and its audio is queued, so the first words are never lost; the
 //        queue also keeps buffers in capture order (one task per buffer did not).
+//        The controller opens the microphone already when the key goes down
+//        (`openMicrophoneEarly`), before it knows whether the press is a tap or a dictation:
+//        the audio is held in a RelaySink and handed to the engine once `start()` runs, or
+//        thrown away (`discardEarlyMicrophone`). Otherwise the tap check and the device's
+//        start-up would cut off the first words.
 
 @preconcurrency import AVFoundation
 import FluidAudio
@@ -93,6 +98,45 @@ final class QuickDictationService {
             // handed to an async consumer — otherwise the audio is overwritten mid-flight.
             guard let copy = buffer.copyForAsyncUse() else { return }
             continuation.yield(BufferBox(copy))
+        }
+    }
+
+    /// Holds captured audio until an engine's sink is attached, then passes everything on in
+    /// capture order. Lets the microphone open before the engine exists.
+    private final class RelaySink: BufferSink, @unchecked Sendable {
+        /// Older audio than this is dropped while nothing is attached.
+        private static let maximumHeldSeconds = 30.0
+
+        private let lock = NSLock()
+        private var held: [AVAudioPCMBuffer] = []
+        private var heldSeconds = 0.0
+        private var target: (any BufferSink)?
+
+        func append(_ buffer: AVAudioPCMBuffer) {
+            lock.lock(); defer { lock.unlock() }
+            if let target {
+                target.append(buffer)
+                return
+            }
+            // MicrophoneCapture hands out a fresh buffer per callback, so it can be kept as is.
+            held.append(buffer)
+            heldSeconds += Self.seconds(of: buffer)
+            while heldSeconds > Self.maximumHeldSeconds, held.count > 1 {
+                heldSeconds -= Self.seconds(of: held.removeFirst())
+            }
+        }
+
+        /// Hands the held audio to `sink` and sends everything after it there directly.
+        func attach(_ sink: any BufferSink) {
+            lock.lock(); defer { lock.unlock() }
+            for buffer in held { sink.append(buffer) }
+            held = []
+            heldSeconds = 0
+            target = sink
+        }
+
+        private static func seconds(of buffer: AVAudioPCMBuffer) -> Double {
+            Double(buffer.frameLength) / max(buffer.format.sampleRate, 1)
         }
     }
 
@@ -169,6 +213,8 @@ final class QuickDictationService {
     /// Capture should be on: from beginCapture until stop or teardown, also while start() is
     /// still loading the model (a device change then must restart capture, not be dropped).
     private var wantsCapture = false
+    /// The microphone opened at key-down, holding its audio until `start()` attaches an engine.
+    private var earlyRelay: RelaySink?
 
     // Apple Speech
     private var request: SFSpeechAudioBufferRecognitionRequest?
@@ -209,6 +255,31 @@ final class QuickDictationService {
     var activeEngine: Engine { engineKind }
 
     // MARK: - Lifecycle
+
+    /// Opens the microphone before it is known whether a dictation follows (key down). The
+    /// audio is held; `start()` hands it to the engine, `discardEarlyMicrophone()` drops it.
+    /// A failure is only logged: `start()` opens the microphone itself and reports the error.
+    func openMicrophoneEarly() {
+        guard !isRunning, capture == nil, earlyRelay == nil, Bundle.main.bundleIdentifier != nil else { return }
+        let relay = RelaySink()
+        do {
+            try beginCapture(into: relay)
+            earlyRelay = relay
+        } catch {
+            wantsCapture = false
+            captureSink = nil
+            NSLog("QuickDictationService: early microphone start failed (%@)", error.localizedDescription)
+        }
+    }
+
+    /// Closes the microphone opened by `openMicrophoneEarly()` when no dictation followed (a tap).
+    func discardEarlyMicrophone() {
+        guard earlyRelay != nil, !isRunning else { return }
+        earlyRelay = nil
+        wantsCapture = false
+        detachCapture()
+        captureSink = nil
+    }
 
     /// Starts dictation. `parakeet` provides the installed Parakeet models when available;
     /// pass nil to force the Apple Speech fallback.
@@ -296,6 +367,7 @@ final class QuickDictationService {
 
         detachCapture()
         captureSink = nil
+        earlyRelay = nil
     }
 
     // MARK: - Parakeet backend
@@ -420,6 +492,17 @@ final class QuickDictationService {
     // MARK: - Microphone
 
     private func beginCapture(into sink: any BufferSink) throws {
+        if let relay = earlyRelay {
+            // The microphone is open since key-down: the engine takes over its audio.
+            earlyRelay = nil
+            relay.attach(sink)
+            wantsCapture = true
+            if capture == nil {
+                captureRestarts = 0
+                try attachCapture()
+            }
+            return
+        }
         captureSink = sink
         captureRestarts = 0
         wantsCapture = true

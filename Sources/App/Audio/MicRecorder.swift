@@ -32,6 +32,8 @@ final class MicRecorder: @unchecked Sendable {
     var onWriteError: ((Error) -> Void)?
     /// Callback fired when recording continues on another microphone after a device change.
     var onDeviceRecovery: ((String) -> Void)?
+    /// System uptime at which the file's first sample was captured; nil before the first buffer.
+    private var _firstSampleUptime: TimeInterval?
     /// Watchdog: last known audio file size, checked periodically.
     private var lastKnownFileSize: UInt64 = 0
     /// Watchdog: consecutive stall checks with no growth.
@@ -48,6 +50,12 @@ final class MicRecorder: @unchecked Sendable {
     /// Latest RMS audio level (0.0–1.0). Used by AutomationCoordinator for silence detection.
     var currentLevel: Float {
         queue.sync { _currentLevel }
+    }
+
+    /// When the file's first sample was captured (system uptime), for aligning this channel with
+    /// the system-audio channel. Read it before `stopRecording()`, which clears it.
+    var firstSampleUptime: TimeInterval? {
+        queue.sync { _firstSampleUptime }
     }
 
     func startRecording(to url: URL, deviceID: AudioDeviceID? = nil) throws {
@@ -93,6 +101,11 @@ final class MicRecorder: @unchecked Sendable {
     /// Writes one buffer (on `queue`) and updates the level.
     private func write(_ buffer: AVAudioPCMBuffer) {
         guard let file = audioFile else { return }
+        if _firstSampleUptime == nil {
+            // The buffer's first sample is one buffer length old by the time it arrives here.
+            _firstSampleUptime = ProcessInfo.processInfo.systemUptime
+                - Double(buffer.frameLength) / buffer.format.sampleRate
+        }
         var writeError: Error?
         do {
             try file.write(from: try fileBuffer(buffer, for: file))
@@ -161,6 +174,7 @@ final class MicRecorder: @unchecked Sendable {
         audioFile = nil
         currentURL = nil
         _currentLevel = 0
+        _firstSampleUptime = nil
         consecutiveWriteErrors = 0
         stallCheckCount = 0
         lastKnownFileSize = 0
