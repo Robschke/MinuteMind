@@ -20,7 +20,9 @@
 //        Feedback lives in the meeting pill (2026-10-04, user decision): one floating surface for
 //        dictation and meetings, like Wispr Flow. The separate dictation HUD was removed.
 //        Push-to-talk waits `holdDelay` before it starts listening. A release before that is a
-//        tap: it never starts the microphone (no flicker, no empty insert).
+//        tap (no pill, no empty insert). The microphone opens at key-down all the same and its
+//        audio is kept for the dictation or dropped on a tap: opened only after `holdDelay`,
+//        it lost the first words. The price is the system's microphone indicator on every tap.
 //        Hold key + Control = Claude task, push-to-talk like dictation: it listens while both are
 //        held and the release of the hold key sends it; the pill offers Open Chat and Cancel.
 //        Control may come first or within `holdDelay` after the hold key, before dictation has
@@ -138,6 +140,7 @@ final class QuickDictationController {
             beginClaude()
         case .idle:
             mode = .pressPending
+            dictation.openMicrophoneEarly()
             holdTask = Task { [weak self] in
                 try? await Task.sleep(for: Self.holdDelay)
                 guard let self, !Task.isCancelled, self.mode == .pressPending else { return }
@@ -165,6 +168,7 @@ final class QuickDictationController {
         case .pressPending:
             holdTask?.cancel()
             mode = .idle
+            dictation.discardEarlyMicrophone()
             registerTap()
         case .dictating:
             if dictation.isRunning {
@@ -219,28 +223,37 @@ final class QuickDictationController {
         mode = .claudePending
         // Reset here, not in `begin`: the keys may be released before that task runs.
         stopWhenStarted = false
+        // The selection is read before listening starts; what is said meanwhile is kept.
+        dictation.openMicrophoneEarly()
         Task { await begin(claude: true) }
     }
 
     private func begin(claude: Bool) async {
-        guard let viewModel else { mode = .idle; return }
+        guard let viewModel else {
+            mode = .idle
+            dictation.discardEarlyMicrophone()
+            return
+        }
 
         // Without Accessibility we could listen but never paste — ask first, do nothing else.
         // A Claude task still works without it: its answer then only reaches the clipboard.
         if !claude, !TextInsertionService.isTrusted {
             mode = .idle
+            dictation.discardEarlyMicrophone()
             TextInsertionService.requestPermission()
             viewModel.errorMessage = TextInsertionService.InsertionError.notTrusted.localizedDescription
             return
         }
         if claude, ClaudeCodeService.locate() == nil {
             mode = .idle
+            dictation.discardEarlyMicrophone()
             viewModel.meetingPill.dictationStarted(claude: true) { 0 }
             viewModel.meetingPill.claudeFinished(error: "Claude Code is not installed")
             return
         }
         if claude, assistantTask != nil {
             mode = .idle
+            dictation.discardEarlyMicrophone()
             viewModel.meetingPill.dictationStarted(claude: true) { 0 }
             viewModel.meetingPill.claudeFinished(error: "Claude is still on the last request")
             return

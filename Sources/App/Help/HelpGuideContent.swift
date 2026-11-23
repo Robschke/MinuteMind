@@ -269,6 +269,8 @@ enum HelpGuideContent {
 
         Hold **fn** (the default), speak, and release: the text is typed wherever your cursor is. Settings > Automation > Quick Dictation chooses the trigger (hold fn, hold the right Option key, or press Ctrl+Opt+D to start and again to insert) and the language. The dictionary's corrections apply.
 
+        With a hold key the microphone opens the moment the key goes down, so the first words are not cut off. A short tap therefore shows macOS's microphone indicator for a moment; nothing from a tap is kept.
+
         - Typing into other apps needs the Accessibility permission; without it the text goes to the clipboard.
         - For fn to be free, set "Press 🌐 key to" to "Do Nothing" in macOS Keyboard settings, and move macOS dictation's shortcut away from "Press 🌐 twice".
         - The bar beside the companion shows a waveform while you speak; it waits for the microphone to be ready before it says "Listening".
