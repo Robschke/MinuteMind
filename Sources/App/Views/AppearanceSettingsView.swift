@@ -7,7 +7,7 @@
 //               (size, colour), Sources/App/Supporting/CompanionController.swift (show / hide),
 //               Sources/App/Models/ProjectSidebarOrder.swift (the sidebar's project order),
 //               Sources/App/Components/AvatarPickerSupport.swift (delete menu, hint, restore
-//               button and the row layout of the avatar picker)
+//               button of the avatar picker)
 // Used by: Sources/App/Views/MeetingMinutesSettingsView.swift (Appearance tab)
 // Notes: User decisions 2026-10-05: four built-in themes plus Custom; Custom starts from one of
 //        them and overrides accent, background, card and border with a colour picker for light
@@ -25,10 +25,14 @@
 //        Claude, so they have no colour editor. A line under the grid says how to get one and
 //        names files that do not pass.
 //        Companion section (same day): show on the desktop, come to the pointer on a mouse
-//        shake, avatar (every avatar of the catalog, the built-in ones and the user's own, each
-//        shown as a still preview at its size; a right click deletes one, and deleted or edited
-//        built-ins can be restored below), size (2, 3 or 4 pt pixels) and colour (default or a
-//        picked one) with a live preview.
+//        shake, avatar (every avatar of the catalog, the built-in ones and the user's own, as
+//        equal tiles in a grid as wide as the section; a right click deletes one, and deleted or
+//        edited built-ins can be restored below), size (slider) and colour (default or a picked
+//        one) with a live preview at the real size.
+//        The avatar grid sits between two Grids, not inside one: Grid measures a cell at another
+//        width than it places it, so a wrapping layout in a cell drew more rows than it reserved
+//        and ran over the rows below. The tiles have a fixed size, independent of the companion's
+//        size, so many avatars fit; names wrap to two lines.
 
 import SwiftUI
 
@@ -475,49 +479,53 @@ private struct CompanionAppearanceSection: View {
                     .background(RoundedRectangle(cornerRadius: .corner(10)).fill(Color.primary.opacity(0.05)))
                     .accessibilityHidden(true)
 
-                Grid(alignment: .leading, horizontalSpacing: .space(12), verticalSpacing: .space(10)) {
-                    GridRow {
-                        Text("Desktop").frame(width: 80, alignment: .leading)
-                        Toggle("Show the companion", isOn: Binding(
-                            get: { !companion.model.isHiddenByUser },
-                            set: { companion.setHidden(!$0) }))
-                    }
-                    GridRow {
-                        Text("Shake").frame(width: 80, alignment: .leading)
-                        Toggle("Come to the pointer when I shake the mouse", isOn: $appearance.comesOnShake)
-                            .disabled(companion.model.isHiddenByUser)
-                    }
-                    GridRow {
-                        Text("Sensitivity").frame(width: 80, alignment: .leading)
-                        HStack(spacing: .space(8)) {
-                            Text("Gentle").font(.themed(.caption)).foregroundStyle(.secondary)
-                            Slider(
-                                value: Binding(
-                                    get: { Double(appearance.shakeStrength) },
-                                    set: { appearance.shakeStrength = Int($0.rounded()) }),
-                                in: Double(MouseShakeDetector.strengths.lowerBound)...Double(MouseShakeDetector.strengths.upperBound),
-                                step: 1)
-                                .labelsHidden()
-                                .accessibilityLabel("Shake sensitivity")
-                                .accessibilityValue(CompanionAppearance.shakeStrengthLabel(appearance.shakeStrength))
-                            Text("Hard").font(.themed(.caption)).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: .space(10)) {
+                    Grid(alignment: .leading, horizontalSpacing: .space(12), verticalSpacing: .space(10)) {
+                        GridRow {
+                            Text("Desktop").frame(width: 80, alignment: .leading)
+                            Toggle("Show the companion", isOn: Binding(
+                                get: { !companion.model.isHiddenByUser },
+                                set: { companion.setHidden(!$0) }))
                         }
-                        .frame(width: 240)
-                        .help("How hard you shake the mouse before the companion comes. Gentle: two short flips. Hard: five wide ones.")
-                        .disabled(companion.model.isHiddenByUser || !appearance.comesOnShake)
+                        GridRow {
+                            Text("Shake").frame(width: 80, alignment: .leading)
+                            Toggle("Come to the pointer when I shake the mouse", isOn: $appearance.comesOnShake)
+                                .disabled(companion.model.isHiddenByUser)
+                        }
+                        GridRow {
+                            Text("Sensitivity").frame(width: 80, alignment: .leading)
+                            HStack(spacing: .space(8)) {
+                                Text("Gentle").font(.themed(.caption)).foregroundStyle(.secondary)
+                                Slider(
+                                    value: Binding(
+                                        get: { Double(appearance.shakeStrength) },
+                                        set: { appearance.shakeStrength = Int($0.rounded()) }),
+                                    in: Double(MouseShakeDetector.strengths.lowerBound)...Double(MouseShakeDetector.strengths.upperBound),
+                                    step: 1)
+                                    .labelsHidden()
+                                    .accessibilityLabel("Shake sensitivity")
+                                    .accessibilityValue(CompanionAppearance.shakeStrengthLabel(appearance.shakeStrength))
+                                Text("Hard").font(.themed(.caption)).foregroundStyle(.secondary)
+                            }
+                            .frame(width: 240)
+                            .help("How hard you shake the mouse before the companion comes. Gentle: two short flips. Hard: five wide ones.")
+                            .disabled(companion.model.isHiddenByUser || !appearance.comesOnShake)
+                        }
+                        GridRow {
+                            Text("Sharing").frame(width: 80, alignment: .leading)
+                            Toggle("Show the companion in screen shares", isOn: $appearance.visibleInScreenShares)
+                                .disabled(companion.model.isHiddenByUser)
+                                .help("Others in a call see the creature while you share your screen. Its speech bubbles and the cards stay private.")
+                        }
                     }
-                    GridRow {
-                        Text("Sharing").frame(width: 80, alignment: .leading)
-                        Toggle("Show the companion in screen shares", isOn: $appearance.visibleInScreenShares)
-                            .disabled(companion.model.isHiddenByUser)
-                            .help("Others in a call see the creature while you share your screen. Its speech bubbles and the cards stay private.")
-                    }
-                    GridRow {
+                    // Outside the Grids: a wrapping grid in a Grid cell gets measured at one width
+                    // and placed at another (see the header). Label width and gaps match the Grids.
+                    HStack(alignment: .center, spacing: .space(12)) {
                         Text("Avatar").frame(width: 80, alignment: .leading)
                         VStack(alignment: .leading, spacing: .space(8)) {
-                            // One row while it fits, else even rows: more at large sizes, in a
-                            // narrow window and with avatars of the user's own.
-                            BalancedRows(spacing: .space(8)) {
+                            LazyVGrid(
+                                columns: [GridItem(.adaptive(minimum: AvatarChoice.width, maximum: AvatarChoice.width), spacing: .space(8))],
+                                alignment: .leading, spacing: .space(8)) {
                                 ForEach(MascotAvatarCatalog.all) { avatar in
                                     AvatarChoice(avatar: avatar, isSelected: appearance.avatar == avatar) {
                                         appearance.avatar = avatar
@@ -529,43 +537,46 @@ private struct CompanionAppearanceSection: View {
                             AvatarDesignHint()
                             RestoreBuiltInAvatarsButton()
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    GridRow {
-                        Text("Size").frame(width: 80, alignment: .leading)
-                        Slider(value: $appearance.unitSize, in: CompanionAppearance.sizeRange, step: 0.5) {
-                            Text("Size")
-                        } minimumValueLabel: {
-                            Text("Small").font(.themed(.caption))
-                        } maximumValueLabel: {
-                            Text("Large").font(.themed(.caption))
-                        }
-                        .labelsHidden()
-                        .frame(width: 240)
-                        // Size and colour only matter while it shows; Show stays usable.
-                        .disabled(companion.model.isHiddenByUser)
-                    }
-                    GridRow {
-                        Text("Colour").frame(width: 80, alignment: .leading)
-                        HStack(spacing: .space(10)) {
-                            Picker("Colour", selection: Binding(
-                                get: { appearance.customColor != nil },
-                                set: { own in appearance.customColor = own ? appearance.suggestedOwnColor : nil })) {
-                                // Default: the theme's accent for the blob, the natural colour otherwise.
-                                Text("Default").tag(false)
-                                Text("Own Colour").tag(true)
+                    Grid(alignment: .leading, horizontalSpacing: .space(12), verticalSpacing: .space(10)) {
+                        GridRow {
+                            Text("Size").frame(width: 80, alignment: .leading)
+                            Slider(value: $appearance.unitSize, in: CompanionAppearance.sizeRange, step: 0.5) {
+                                Text("Size")
+                            } minimumValueLabel: {
+                                Text("Small").font(.themed(.caption))
+                            } maximumValueLabel: {
+                                Text("Large").font(.themed(.caption))
                             }
-                            .pickerStyle(.segmented)
                             .labelsHidden()
                             .frame(width: 240)
-                            if appearance.customColor != nil {
-                                ColorPicker("Companion colour", selection: Binding(
-                                    get: { appearance.bodyColor },
-                                    set: { appearance.customColor = ThemeColor.hex(of: NSColor($0)) }),
-                                    supportsOpacity: false)
-                                    .labelsHidden()
-                            }
+                            // Size and colour only matter while it shows; Show stays usable.
+                            .disabled(companion.model.isHiddenByUser)
                         }
-                        .disabled(companion.model.isHiddenByUser)
+                        GridRow {
+                            Text("Colour").frame(width: 80, alignment: .leading)
+                            HStack(spacing: .space(10)) {
+                                Picker("Colour", selection: Binding(
+                                    get: { appearance.customColor != nil },
+                                    set: { own in appearance.customColor = own ? appearance.suggestedOwnColor : nil })) {
+                                    // Default: the theme's accent for the blob, the natural colour otherwise.
+                                    Text("Default").tag(false)
+                                    Text("Own Colour").tag(true)
+                                }
+                                .pickerStyle(.segmented)
+                                .labelsHidden()
+                                .frame(width: 240)
+                                if appearance.customColor != nil {
+                                    ColorPicker("Companion colour", selection: Binding(
+                                        get: { appearance.bodyColor },
+                                        set: { appearance.customColor = ThemeColor.hex(of: NSColor($0)) }),
+                                        supportsOpacity: false)
+                                        .labelsHidden()
+                                }
+                            }
+                            .disabled(companion.model.isHiddenByUser)
+                        }
                     }
                 }
             }
@@ -578,8 +589,14 @@ private struct CompanionAppearanceSection: View {
     }
 }
 
-/// One creature in the avatar picker: a small still preview and its name.
+/// One creature in the avatar picker: a small still preview and its name, every tile the same
+/// size whatever the companion's size and the name's length.
 private struct AvatarChoice: View {
+    /// Tile width; the grid fits as many as the row has room for.
+    static let width: CGFloat = 84
+    /// Points per creature unit in the tile: whole points keep pixel avatars crisp.
+    private static let unit: CGFloat = 3
+
     let avatar: MascotAvatar
     let isSelected: Bool
     let select: () -> Void
@@ -587,11 +604,16 @@ private struct AvatarChoice: View {
     var body: some View {
         Button(action: select) {
             VStack(spacing: .space(4)) {
-                CreatureView(pose: .init(mood: .idle, time: 0.05, look: nil, avatar: avatar, animated: false))
-                Text(avatar.name).font(.themed(.caption))
+                CreatureView(pose: .init(mood: .idle, time: 0.05, look: nil, avatar: avatar, animated: false), unit: Self.unit)
+                Text(avatar.name)
+                    .font(.themed(.caption))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2, reservesSpace: true)
+                    .help(avatar.name)
             }
-            .padding(.horizontal, .space(8))
+            .padding(.horizontal, .space(4))
             .padding(.vertical, .space(6))
+            .frame(width: Self.width)
             .background(RoundedRectangle(cornerRadius: .corner(8)).fill(Color.primary.opacity(isSelected ? 0.08 : 0.03)))
             .overlay(
                 RoundedRectangle(cornerRadius: .corner(8))

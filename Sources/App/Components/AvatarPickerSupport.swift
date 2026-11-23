@@ -1,6 +1,6 @@
 // Purpose: What the two avatar pickers share: the right click "Delete avatar" with its
-//          confirmation, the hint that Claude designs new avatars, the "Restore built-in
-//          avatars" button, and a layout that wraps the avatars into even rows.
+//          confirmation, the hint that Claude designs new avatars and the "Restore built-in
+//          avatars" button. The pickers lay out their tiles themselves.
 // Dependencies: Sources/App/Supporting/MascotAvatarStore.swift (delete, restore, what exists),
 //               Sources/App/Supporting/MascotAvatarUsage.swift (who wears an avatar),
 //               Sources/App/Supporting/CompanionAppearance.swift (the home companion's choice),
@@ -86,48 +86,6 @@ struct RestoreBuiltInAvatarsButton: View {
             try MascotAvatarStore.shared.restoreBuiltIns()
         } catch {
             viewModel.errorMessage = "The built-in avatars could not be restored: \(error.localizedDescription)"
-        }
-    }
-}
-
-/// Lays its subviews out in one row while they fit, else in as few rows as needed, each with
-/// the same number of items (the last may be shorter), so the rows look even.
-struct BalancedRows: Layout {
-    var spacing: CGFloat = 8
-
-    private func rows(_ sizes: [CGSize], width: CGFloat) -> [Range<Int>] {
-        guard !sizes.isEmpty else { return [] }
-        for rowCount in 1...sizes.count {
-            let perRow = Int((Double(sizes.count) / Double(rowCount)).rounded(.up))
-            let ranges = stride(from: 0, to: sizes.count, by: perRow).map { $0..<min($0 + perRow, sizes.count) }
-            let fits = ranges.allSatisfy { range in
-                sizes[range].reduce(0) { $0 + $1.width } + spacing * CGFloat(range.count - 1) <= width
-            }
-            if fits || perRow == 1 { return ranges }
-        }
-        return sizes.indices.map { $0..<($0 + 1) }
-    }
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
-        let rows = rows(sizes, width: proposal.width ?? .infinity)
-        let widths = rows.map { range in sizes[range].reduce(0) { $0 + $1.width } + spacing * CGFloat(range.count - 1) }
-        let heights = rows.map { range in sizes[range].map(\.height).max() ?? 0 }
-        return CGSize(
-            width: widths.max() ?? 0,
-            height: heights.reduce(0, +) + spacing * CGFloat(max(rows.count - 1, 0)))
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
-        var y = bounds.minY
-        for range in rows(sizes, width: bounds.width) {
-            var x = bounds.minX
-            for index in range {
-                subviews[index].place(at: CGPoint(x: x, y: y), anchor: .topLeading, proposal: .unspecified)
-                x += sizes[index].width + spacing
-            }
-            y += (sizes[range].map(\.height).max() ?? 0) + spacing
         }
     }
 }
