@@ -57,7 +57,10 @@ final class AutomationSettings: ObservableObject {
     @AppStorage("mm.claudeTaskPrompt") var claudeTaskPrompt: String = ""
     /// The voice assistant may run terminal commands (user request 2026-10-13, on by default).
     @AppStorage("mm.claudeTaskAllowsTerminal") var claudeTaskAllowsTerminal: Bool = true
-    @AppStorage("mm.remindersSyncDefault") var remindersSyncDefault: Bool = true
+    /// Every open task goes to the "MinuteMind Tasks" list in Apple Reminders, not only the ones
+    /// with the bell on (AppViewModel+RemindersSync.swift). Off by default: switching it on
+    /// copies all open tasks there.
+    @AppStorage("mm.remindersSyncAll") var remindersSyncAll: Bool = false
     @AppStorage("mm.liveDictationLanguage") var liveDictationLanguage: String = "auto"
     @AppStorage("mm.autoAcceptExtractedTasks") var autoAcceptExtractedTasks: Bool = true
 
@@ -119,7 +122,7 @@ final class AutomationSettings: ObservableObject {
             _claudeTaskModel = AppStorage(wrappedValue: "sonnet", "mm.claudeTaskModel", store: defaults)
             _claudeTaskPrompt = AppStorage(wrappedValue: "", "mm.claudeTaskPrompt", store: defaults)
             _claudeTaskAllowsTerminal = AppStorage(wrappedValue: true, "mm.claudeTaskAllowsTerminal", store: defaults)
-            _remindersSyncDefault = AppStorage(wrappedValue: true, "mm.remindersSyncDefault", store: defaults)
+            _remindersSyncAll = AppStorage(wrappedValue: false, "mm.remindersSyncAll", store: defaults)
             _liveDictationLanguage = AppStorage(wrappedValue: "auto", "mm.liveDictationLanguage", store: defaults)
             _autoAcceptExtractedTasks = AppStorage(wrappedValue: true, "mm.autoAcceptExtractedTasks", store: defaults)
             _reviewReminderTimesData = AppStorage(wrappedValue: Data(), "mm.reviewReminderTimes", store: defaults)

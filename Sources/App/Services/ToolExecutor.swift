@@ -440,7 +440,8 @@ class ToolExecutor {
             
             let taskTitle = tasks[taskIndex].title
             
-            // Remove the task
+            // Remove the task, and its reminder in Apple Reminders
+            appViewModel.deleteReminders(of: [tasks[taskIndex]])
             tasks.remove(at: taskIndex)
             appViewModel.projectStore.debouncedSaveTasks(tasks)
             

@@ -141,6 +141,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     private let fullScreenToolbar = FullScreenToolbarAutoHide()
     private var hotkeysInstalled = false
 
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        TerminationSignalHandler.install()
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         viewModel?.projectStore.flushPendingSaves()
         viewModel?.recordClaudeSessionsEndedAtQuit()

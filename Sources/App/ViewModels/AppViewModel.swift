@@ -100,7 +100,8 @@ final class AppViewModel {
 
     // Project management
     private(set) var projects: [Project] = []
-    private(set) var tasks: [ProjectTask] = []
+    /// Every change schedules a sync with Apple Reminders (AppViewModel+RemindersSync.swift).
+    private(set) var tasks: [ProjectTask] = [] { didSet { scheduleRemindersSync() } }
     private(set) var epics: [Epic] = []
     var selectedProjectID: UUID? { didSet { if selectedProjectID != nil { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false; isShowingCockpit = false } } }
     var isShowingAllTasks = false { didSet { if isShowingAllTasks { isShowingInbox = false; isShowingClipboard = false; isShowingHome = false; isShowingCockpit = false } } }
@@ -722,6 +723,7 @@ final class AppViewModel {
             await loadSessions()
             runStartupMigrations()
             await removeLegacyStaticReminders()
+            setupRemindersSync()
         }
     }
 
@@ -1129,6 +1131,10 @@ final class AppViewModel {
     private(set) var inboxBatchStopping = false
     @ObservationIgnored private var inboxBatchTask: Task<Void, Never>?
     @ObservationIgnored private var processingTasks: [UUID: Task<Void, Never>] = [:]
+    // Apple Reminders sync state (AppViewModel+RemindersSync.swift).
+    @ObservationIgnored var remindersSyncDebounce: Task<Void, Never>?
+    @ObservationIgnored var isSyncingReminders = false
+    @ObservationIgnored var remindersSyncRequestedAgain = false
 
     func dismissFromInbox(_ sessionID: UUID) {
         setInboxDismissed(sessionID, true)
@@ -3699,6 +3705,7 @@ final class AppViewModel {
         try? store.saveSessions(sessions)
 
         // Delete all tasks for this project
+        deleteReminders(of: tasks.filter { $0.projectID == project.id })
         tasks.removeAll { $0.projectID == project.id }
         projectStore.debouncedSaveTasks(tasks)
 
@@ -3904,6 +3911,16 @@ final class AppViewModel {
 
     // MARK: - Task Management
 
+    /// Changes tasks from code outside this file (the Reminders sync) and saves them, only
+    /// when something changed.
+    func modifyTasks(_ change: (inout [ProjectTask]) -> Void) {
+        var updated = tasks
+        change(&updated)
+        guard updated != tasks else { return }
+        tasks = updated
+        projectStore.debouncedSaveTasks(tasks)
+    }
+
     func reloadTasks() {
         if let loadedTasks = try? projectStore.loadTasks() {
             self.tasks = loadedTasks
@@ -3993,42 +4010,10 @@ final class AppViewModel {
         guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
         tasks[index].toggleCompleted()
         projectStore.debouncedSaveTasks(tasks)
-
-        // Sync with Reminders if enabled
-        if tasks[index].reminderEnabled {
-            Task {
-                await syncTaskToReminders(tasks[index])
-            }
-        }
-    }
-
-    /// Toggle reminder sync for a task (add to or remove from Apple Reminders)
-    @MainActor
-    func toggleTaskReminder(_ task: ProjectTask) async {
-        guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
-
-        let wasEnabled = tasks[index].reminderEnabled
-        tasks[index].reminderEnabled = !wasEnabled
-
-        if tasks[index].reminderEnabled {
-            // Enable: sync to Reminders
-            await syncTaskToReminders(tasks[index])
-        } else if let reminderID = tasks[index].reminderID {
-            // Disable: remove from Reminders
-            try? await remindersService.deleteReminder(withID: reminderID)
-            tasks[index].reminderID = nil
-        }
-
-        projectStore.debouncedSaveTasks(tasks)
     }
 
     func deleteTask(_ task: ProjectTask) {
-        // Delete from Reminders if synced
-        if let reminderID = task.reminderID {
-            Task {
-                try? await remindersService.deleteReminder(withID: reminderID)
-            }
-        }
+        deleteReminders(of: tasks.filter { $0.id == task.id })
         tasks.removeAll { $0.id == task.id }
         projectStore.debouncedSaveTasks(tasks)
     }
@@ -4052,10 +4037,6 @@ final class AppViewModel {
         guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
         tasks[index].title = trimmed
         projectStore.debouncedSaveTasks(tasks)
-        if tasks[index].reminderEnabled {
-            let updated = tasks[index]
-            Task { await syncTaskToReminders(updated) }
-        }
     }
 
     func updateTaskAssignee(_ task: ProjectTask, assignee: String?) {
@@ -4086,87 +4067,19 @@ final class AppViewModel {
         guard !trimmedTitle.isEmpty else { return }
         let trimmedAssignee = assignee?.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        let wasReminderEnabled = tasks[index].reminderEnabled
-
         tasks[index].title = trimmedTitle
         tasks[index].assignee = (trimmedAssignee?.isEmpty == true) ? nil : trimmedAssignee
         tasks[index].dueDate = dueDate
         tasks[index].hasDueTime = hasDueTime
         tasks[index].priority = priority
         tasks[index].notes = notes
-        tasks[index].reminderEnabled = reminderEnabled
         tasks[index].estimatedDurationMinutes = estimatedDuration
         tasks[index].needsReview = nil  // Clear review state on edit
+        // The sheet's switch shows whether the task is in Reminders; the sync follows.
+        if reminderEnabled != syncsToReminders(tasks[index]) {
+            setReminderSelection(of: &tasks[index], selected: reminderEnabled)
+        }
         projectStore.debouncedSaveTasks(tasks)
-
-        // Handle reminder sync
-        if reminderEnabled {
-            Task {
-                await syncTaskToReminders(tasks[index])
-            }
-        } else if wasReminderEnabled, let reminderID = tasks[index].reminderID {
-            // Remove reminder if disabled
-            Task {
-                try? await remindersService.deleteReminder(withID: reminderID)
-                if let idx = self.tasks.firstIndex(where: { $0.id == task.id }) {
-                    self.tasks[idx].reminderID = nil
-                    self.projectStore.debouncedSaveTasks(self.tasks)
-                }
-            }
-        }
-    }
-
-    // MARK: - Reminders Sync
-
-    /// Sync a task to Apple Reminders
-    func syncTaskToReminders(_ task: ProjectTask) async {
-        guard task.reminderEnabled else { return }
-        guard let project = projects.first(where: { $0.id == task.projectID }) else { return }
-
-        do {
-            if let reminderID = try await remindersService.syncTask(task, projectName: project.name)
-            {
-                if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-                    tasks[index].reminderID = reminderID
-                    projectStore.debouncedSaveTasks(tasks)
-                }
-            }
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    /// Sync all reminder-enabled tasks
-    func syncAllReminders() async {
-        for task in tasks where task.reminderEnabled {
-            await syncTaskToReminders(task)
-        }
-    }
-
-    /// Pull updates from Reminders back to app
-    func pullRemindersUpdates() async {
-        for (index, task) in tasks.enumerated() {
-            guard let reminderID = task.reminderID else { continue }
-
-            if let status = remindersService.fetchReminderStatus(reminderID: reminderID) {
-                var needsSave = false
-
-                if tasks[index].isCompleted != status.isCompleted {
-                    if status.isCompleted {
-                        tasks[index].isCompleted = true
-                        tasks[index].completedAt = Date()
-                    } else {
-                        tasks[index].isCompleted = false
-                        tasks[index].completedAt = nil
-                    }
-                    needsSave = true
-                }
-
-                if needsSave {
-                    projectStore.debouncedSaveTasks(tasks)
-                }
-            }
-        }
     }
 
     // MARK: - Calendar Time Blockers
