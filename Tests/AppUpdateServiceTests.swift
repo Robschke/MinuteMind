@@ -1,5 +1,5 @@
 // Purpose: Tests for AppUpdateService: version comparison, reading GitHub's release JSON, when the
-//          update dialog may show, and the update tools being exposed over MCP.
+//          update dialog may show, the reason shown for a failed installer, and the update tools being exposed over MCP.
 // Dependencies: Sources/App/Services/AppUpdateService.swift,
 //               Sources/App/Services/AppUpdateChecker.swift (offer rules),
 //               Sources/App/Services/MCP/MCPUpdateTools.swift, MinuteMindMCPServer.exposedToolNames
@@ -67,6 +67,14 @@ struct AppUpdateServiceTests {
         #expect(offer(release, snoozedUntil: now.addingTimeInterval(-60)))
         #expect(AppUpdateChecker.snoozeInterval == 3 * 24 * 60 * 60)
         #expect(AppUpdateChecker.checkInterval == 24 * 60 * 60)
+    }
+
+    @Test("A failed installer's last log line becomes the reason, without colours or the Error prefix")
+    func installerFailureReason() {
+        let log = "\u{1B}[1m==>\u{1B}[0m Downloading MinuteMind\n\u{1B}[31mError:\u{1B}[0m MinuteMind did not quit.\n\n"
+        #expect(AppUpdateService.lastMeaningfulLine(log) == "MinuteMind did not quit.")
+        #expect(AppUpdateService.lastMeaningfulLine("==> Installing\r\n") == "==> Installing")
+        #expect(AppUpdateService.lastMeaningfulLine("\n  \n") == nil)
     }
 
     @Test("The update tools are served over MCP")

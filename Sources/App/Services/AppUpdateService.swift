@@ -6,7 +6,9 @@
 // Used by: Sources/App/Services/MCP/MCPUpdateTools.swift (check_for_update, update_app),
 //          Sources/App/Services/AppUpdateChecker.swift (automatic check and update dialog)
 // Notes: The installer runs as a separate bash process so it survives MinuteMind quitting; it
-//        starts after a short sleep so the MCP reply reaches the client first. It installs into
+//        starts after a short sleep so the MCP reply reaches the client first. The script quits
+//        its parent MinuteMind with SIGTERM (TerminationSignalHandler makes that a normal Quit),
+//        so an installer that ends while the app still runs has failed. It installs into
 //        the folder the running app lives in (MINUTEMIND_INSTALL_DIR), so an app in
 //        ~/Applications is replaced there instead of a second copy landing in /Applications.
 //        Output goes to <Application Support>/MinuteMind/update.log for debugging.
@@ -105,10 +107,20 @@ enum AppUpdateService {
     }
 
     /// Starts install.sh for the app in `folder`; MinuteMind is quit and reopened by the script.
-    static func startInstaller(into folder: URL, logFile: URL) throws {
+    /// `onEndedEarly` runs (on the main actor) when the installer ends while MinuteMind still runs:
+    /// a working update quits MinuteMind before the script ends, so that means it failed.
+    static func startInstaller(
+        into folder: URL, logFile: URL, onEndedEarly: (@MainActor @Sendable (String) -> Void)? = nil
+    ) throws {
         FileManager.default.createFile(atPath: logFile.path, contents: nil)
         let log = try FileHandle(forWritingTo: logFile)
         let process = Process()
+        if let onEndedEarly {
+            process.terminationHandler = { _ in
+                let reason = lastLogLine(of: logFile) ?? "The installer stopped without a message."
+                Task { @MainActor in onEndedEarly(reason) }
+            }
+        }
         process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = ["-c", "sleep 2; /usr/bin/curl -fsSL '\(installScriptURL)' | /bin/bash"]
         var environment = ProcessInfo.processInfo.environment
@@ -118,6 +130,23 @@ enum AppUpdateService {
         process.standardError = log
         process.standardInput = FileHandle.nullDevice
         try process.run()
+    }
+
+    /// The installer's last non-empty output line without terminal colour codes and the
+    /// "Error:" prefix, nil when the log is empty or unreadable.
+    static func lastLogLine(of logFile: URL) -> String? {
+        guard let text = try? String(contentsOf: logFile, encoding: .utf8) else { return nil }
+        return lastMeaningfulLine(text)
+    }
+
+    static func lastMeaningfulLine(_ text: String) -> String? {
+        let plain = text.replacingOccurrences(of: "\u{1B}\\[[0-9;]*m", with: "", options: .regularExpression)
+        guard let line = plain
+            .split(whereSeparator: \.isNewline)
+            .map({ $0.trimmingCharacters(in: .whitespaces) })
+            .last(where: { !$0.isEmpty })
+        else { return nil }
+        return line.hasPrefix("Error:") ? line.dropFirst(6).trimmingCharacters(in: .whitespaces) : line
     }
 
     private static func normalized(_ version: String) -> String {

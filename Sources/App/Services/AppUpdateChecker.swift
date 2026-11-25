@@ -56,12 +56,23 @@ final class AppUpdateChecker {
         }
         do {
             let folder = try AppUpdateService.writableInstallFolder()
-            try AppUpdateService.startInstaller(into: folder, logFile: AppUpdateService.logFile)
+            try AppUpdateService.startInstaller(into: folder, logFile: AppUpdateService.logFile) { [weak self] reason in
+                self?.installerEndedEarly(reason)
+            }
             isUpdating = true
             updateError = nil
         } catch {
             updateError = error.localizedDescription
         }
+    }
+
+    /// The installer ended while MinuteMind still runs, so the update did not happen: the dialog
+    /// stops waiting and says why, with the Terminal command as the way out.
+    private func installerEndedEarly(_ reason: String) {
+        guard isUpdating else { return }
+        isUpdating = false
+        let sentence = reason.hasSuffix(".") ? reason : reason + "."
+        updateError = "The update did not finish: \(sentence) Try again, or update in Terminal with: \(AppUpdateService.installCommand)"
     }
 
     /// Whether the dialog may show `release` now. Pure, so the rules are testable.

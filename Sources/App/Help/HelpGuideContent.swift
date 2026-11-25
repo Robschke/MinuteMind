@@ -48,7 +48,7 @@ enum HelpGuideContent {
         curl -fsSL https://raw.githubusercontent.com/Robschke/MinuteMind/main/install.sh | bash
         ```
 
-        It downloads the latest release, quits MinuteMind, replaces the app where it is installed (/Applications or ~/Applications) and opens the new version. Your recordings, projects, settings and permissions stay. It also installs Claude Code if it is missing.
+        It downloads the latest release, quits MinuteMind, replaces the app where it is installed (/Applications or ~/Applications) and opens the new version. Your recordings, projects, settings and permissions stay. It also installs Claude Code if it is missing. The first time, macOS may ask whether Terminal may control MinuteMind: allow it, so the command can quit MinuteMind. If the dialog's update does not finish, it stops waiting and shows why; the Terminal command is the way out then.
 
         **Ask Claude instead:** "Is there a MinuteMind update?" makes Claude compare your version with the latest release and show what changed. "Update MinuteMind" installs it: MinuteMind quits and opens again, usually within a minute. Open windows and Claude sessions in MinuteMind close, so Claude asks first. It waits while a recording, a transcription or meeting processing runs.
 
