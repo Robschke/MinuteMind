@@ -24,6 +24,8 @@ struct AutomationSettingsView: View {
 
     // MARK: - Local state
 
+    /// Shown after "sync all open tasks" was switched on and Reminders access was refused.
+    @State private var remindersAccessMissing = false
     /// Whether the "add reminder time" date picker row is expanded inline.
     @State private var isAddingReminder = false
     /// The pending time selection in the inline date picker (defaults to 9:00 AM).
@@ -722,12 +724,37 @@ struct AutomationSettingsView: View {
         GroupBox(label: sectionLabel("Reminders Sync", systemImage: "checklist")) {
             VStack(alignment: .leading, spacing: .space(10)) {
                 Toggle(
-                    "Sync tasks to Apple Reminders by default",
-                    isOn: $settings.remindersSyncDefault
+                    "Sync all open tasks to Apple Reminders",
+                    isOn: $settings.remindersSyncAll
                 )
-                Text("New tasks will default to this setting. You can override per-task in the review UI.")
+                .onChange(of: settings.remindersSyncAll) { _, isOn in
+                    remindersAccessMissing = false
+                    guard isOn else {
+                        appViewModel.scheduleRemindersSync()
+                        return
+                    }
+                    Task {
+                        if !appViewModel.remindersService.hasFullAccess {
+                            _ = await appViewModel.remindersService.requestAccess()
+                        }
+                        if appViewModel.remindersService.hasFullAccess {
+                            appViewModel.scheduleRemindersSync()
+                        } else {
+                            settings.remindersSyncAll = false
+                            remindersAccessMissing = true
+                        }
+                    }
+                }
+                Text("Tasks from all projects are kept in the \u{201C}MinuteMind Tasks\u{201D} list, both ways: ticked off in one place, done in the other; titles and due dates changed in Reminders come back; a reminder deleted there closes its task; reminders you add to the list become tasks. A task's bell takes it out. Off: only tasks with the bell on are synced.")
                     .font(.themed(.caption))
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if remindersAccessMissing {
+                    Text("MinuteMind needs full access to Reminders: System Settings > Privacy & Security > Reminders.")
+                        .font(.themed(.caption))
+                        .foregroundStyle(DesignSystem.Colors.warning)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             .padding(.top, .space(8))
         }

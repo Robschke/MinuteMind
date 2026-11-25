@@ -230,8 +230,14 @@ struct ProjectTask: Identifiable, Codable, Equatable {
     var priority: TaskPriority?
     /// Apple Reminders ID for syncing (nil if not synced)
     var reminderID: String?
-    /// Whether reminders sync is enabled for this task
+    /// The bell: this task syncs with Apple Reminders while "sync all open tasks" is off.
     var reminderEnabled: Bool
+    /// The bell while "sync all open tasks" is on: true takes this task out of Reminders.
+    /// Optional so task files from older builds still load; nil means false.
+    var reminderExcluded: Bool?
+    /// What the Reminders sync last wrote to and read from this task's reminder
+    /// (TaskReminderSync); nil while it has none or was linked by an older build.
+    var reminderSnapshot: ReminderSyncSnapshot?
     /// Estimated duration in minutes to complete the task
     var estimatedDurationMinutes: Int?
     /// Calendar event IDs for time blockers created for this task

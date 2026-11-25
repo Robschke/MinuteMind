@@ -706,7 +706,10 @@ struct TaskEditSheet: View {
         _hasDueTime = State(initialValue: task.hasDueTime)
         _priority = State(initialValue: task.priority)
         _notes = State(initialValue: task.notes)
-        _reminderEnabled = State(initialValue: task.reminderEnabled)
+        // The switch shows whether the task is in Reminders, which depends on the
+        // "sync all open tasks" setting (AutomationSettings.remindersSyncAll).
+        _reminderEnabled = State(initialValue: TaskReminderSync.isSelected(
+            task, syncAll: UserDefaults.standard.bool(forKey: "mm.remindersSyncAll")))
         _selectedEpicID = State(initialValue: task.epicID)
         _hasEstimatedDuration = State(initialValue: task.estimatedDurationMinutes != nil)
         let totalMinutes = task.estimatedDurationMinutes ?? 60
@@ -1470,7 +1473,7 @@ private struct TaskRowView: View {
                     .menuStyle(.borderlessButton)
                     .fixedSize()
 
-                    if task.reminderEnabled {
+                    if viewModel.syncsToReminders(task) {
                         Image(systemName: "bell.badge.fill")
                             .font(.themed(.caption))
                             .foregroundStyle(DesignSystem.Colors.warning)
@@ -1522,12 +1525,12 @@ private struct TaskRowView: View {
                         ProgressView()
                             .controlSize(.small)
                     } else {
-                        Image(systemName: task.reminderEnabled ? "bell.slash" : "bell")
-                            .foregroundStyle(task.reminderEnabled ? .orange : .secondary)
+                        Image(systemName: viewModel.syncsToReminders(task) ? "bell.slash" : "bell")
+                            .foregroundStyle(viewModel.syncsToReminders(task) ? .orange : .secondary)
                     }
                 }
                 .buttonStyle(.plain)
-                .help(task.reminderEnabled ? "Remove from Reminders" : "Add to Reminders")
+                .help(viewModel.syncsToReminders(task) ? "Remove from Reminders" : "Add to Reminders")
                 .disabled(isRequestingAccess)
 
                 Button(action: onEdit) {
@@ -1581,7 +1584,8 @@ private struct TaskRowView: View {
     private func toggleReminder() {
         Task {
             // If enabling and not authorized, request access
-            if !task.reminderEnabled && !viewModel.remindersService.isAuthorized {
+            // The two-way sync reads reminders back, which needs full access.
+            if !viewModel.syncsToReminders(task) && !viewModel.remindersService.hasFullAccess {
                 isRequestingAccess = true
                 let granted = await viewModel.remindersService.requestAccess()
                 isRequestingAccess = false

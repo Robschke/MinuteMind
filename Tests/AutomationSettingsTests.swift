@@ -54,11 +54,11 @@ struct AutomationSettingsTests {
         #expect(settings.defaultTranscriptionModel == "parakeet")
     }
 
-    @Test("remindersSyncDefault defaults to true")
-    func testRemindersSyncDefault() {
+    @Test("remindersSyncAll defaults to false")
+    func testRemindersSyncAllDefault() {
         let defaults = makeFreshDefaults()
         let settings = AutomationSettings(defaults: defaults)
-        #expect(settings.remindersSyncDefault == true)
+        #expect(settings.remindersSyncAll == false)
     }
 
     // MARK: - Persistence Tests (SETT-04)

@@ -554,7 +554,7 @@ private struct AllTasksRowView: View {
                             .foregroundStyle(isOverdue ? DesignSystem.Colors.error : (isDueSoon ? DesignSystem.Colors.warning : DesignSystem.Colors.textSecondary))
                     }
 
-                    if task.reminderEnabled {
+                    if viewModel.syncsToReminders(task) {
                         Image(systemName: "bell.badge.fill")
                             .font(DesignSystem.Typography.caption1)
                             .foregroundStyle(DesignSystem.Colors.warning)

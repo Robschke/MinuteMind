@@ -234,11 +234,25 @@ enum AppSettingsCatalog {
                     }
                     return nil
                 }),
-            automationToggle(
-                "sync_tasks_to_reminders", "Sync tasks to Apple Reminders by default",
-                "Settings > Automation > Reminders Sync",
-                "New tasks also go to Apple Reminders unless the task says otherwise.",
-                topic: "tasks", key: "mm.remindersSyncDefault", \.remindersSyncDefault),
+            AppSetting(
+                id: "sync_all_tasks_to_reminders", title: "Sync all open tasks to Apple Reminders",
+                location: "Settings > Automation > Reminders Sync",
+                summary: "On: every open task is kept in the \"MinuteMind Tasks\" list in Apple Reminders, both ways (a task's bell takes it out). Off: only tasks with the bell on.",
+                helpTopic: "tasks", storageKeys: ["mm.remindersSyncAll"], kind: .toggle,
+                read: { .bool($0.automationSettings.remindersSyncAll) },
+                write: { vm, value in
+                    vm.automationSettings.remindersSyncAll = value.flag
+                    guard value.flag, !vm.remindersService.hasFullAccess else {
+                        vm.scheduleRemindersSync()
+                        return nil
+                    }
+                    // As the Settings page does: ask for access, the sync starts once it is given.
+                    Task {
+                        _ = await vm.remindersService.requestAccess()
+                        vm.scheduleRemindersSync()
+                    }
+                    return "MinuteMind asks for access to Reminders now; the sync starts once it is allowed (System Settings > Privacy & Security > Reminders, Full Access)."
+                }),
         ]
     }
 
